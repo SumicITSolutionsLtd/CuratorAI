@@ -40,7 +40,7 @@ export class OutfitRepository implements IOutfitRepository {
     await apiClient.post(`/outfits/${outfitId}/like`, { userId })
   }
 
-  async unlikeOutfit(userId: string, outfitId: string): Promise<void> {
+  async unlikeOutfit(_userId: string, outfitId: string): Promise<void> {
     await apiClient.delete(`/outfits/${outfitId}/like`)
   }
 
@@ -48,7 +48,7 @@ export class OutfitRepository implements IOutfitRepository {
     await apiClient.post(`/outfits/${outfitId}/save`, { userId })
   }
 
-  async unsaveOutfit(userId: string, outfitId: string): Promise<void> {
+  async unsaveOutfit(_userId: string, outfitId: string): Promise<void> {
     await apiClient.delete(`/outfits/${outfitId}/save`)
   }
 

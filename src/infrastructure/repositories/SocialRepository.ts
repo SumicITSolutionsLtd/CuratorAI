@@ -40,7 +40,7 @@ export class SocialRepository implements ISocialRepository {
     await apiClient.post(`/social/posts/${postId}/like`, { userId })
   }
 
-  async unlikePost(userId: string, postId: string): Promise<void> {
+  async unlikePost(_userId: string, postId: string): Promise<void> {
     await apiClient.delete(`/social/posts/${postId}/like`)
   }
 
@@ -48,7 +48,7 @@ export class SocialRepository implements ISocialRepository {
     await apiClient.post(`/social/posts/${postId}/save`, { userId })
   }
 
-  async unsavePost(userId: string, postId: string): Promise<void> {
+  async unsavePost(_userId: string, postId: string): Promise<void> {
     await apiClient.delete(`/social/posts/${postId}/save`)
   }
 
@@ -91,7 +91,7 @@ export class SocialRepository implements ISocialRepository {
     await apiClient.post(`/social/comments/${commentId}/like`, { userId })
   }
 
-  async unlikeComment(userId: string, commentId: string): Promise<void> {
+  async unlikeComment(_userId: string, commentId: string): Promise<void> {
     await apiClient.delete(`/social/comments/${commentId}/like`)
   }
 }
