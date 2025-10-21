@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { User, AuthCredentials, RegisterData } from '@domain/entities/User'
 import { AuthRepository } from '@infrastructure/repositories/AuthRepository'
 
