@@ -185,10 +185,10 @@ export const WardrobePage = () => {
           </motion.div>
 
           <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
-            <Card className="border-amber-500/20 p-4 transition-all hover:shadow-lg hover:shadow-amber-500/10">
+            <Card className="border-brand-blue/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-blue/10">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-amber-500/10 p-3">
-                  <TrendingUp className="h-5 w-5 text-amber-500" />
+                <div className="rounded-full bg-brand-blue/10 p-3">
+                  <TrendingUp className="h-5 w-5 text-brand-blue" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-brand-charcoal">$3,240</p>
@@ -199,10 +199,10 @@ export const WardrobePage = () => {
           </motion.div>
 
           <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
-            <Card className="border-green-500/20 p-4 transition-all hover:shadow-lg hover:shadow-green-500/10">
+            <Card className="border-brand-crimson/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-crimson/10">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-green-500/10 p-3">
-                  <Calendar className="h-5 w-5 text-green-500" />
+                <div className="rounded-full bg-brand-crimson/10 p-3">
+                  <Calendar className="h-5 w-5 text-brand-crimson" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-brand-charcoal">23</p>

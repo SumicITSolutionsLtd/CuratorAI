@@ -23,8 +23,8 @@ import { cn } from '@/shared/utils/cn'
 const collections = [
   { id: 'all', name: 'All Saved', icon: Heart, count: 47, color: 'text-brand-crimson' },
   { id: 'outfits', name: 'Outfits', icon: Shirt, count: 28, color: 'text-brand-blue' },
-  { id: 'lookbooks', name: 'Lookbooks', icon: BookOpen, count: 12, color: 'text-purple-500' },
-  { id: 'items', name: 'Items', icon: ShoppingBag, count: 7, color: 'text-amber-500' },
+  { id: 'lookbooks', name: 'Lookbooks', icon: BookOpen, count: 12, color: 'text-brand-blue' },
+  { id: 'items', name: 'Items', icon: ShoppingBag, count: 7, color: 'text-brand-crimson' },
 ]
 
 const savedOutfits = [

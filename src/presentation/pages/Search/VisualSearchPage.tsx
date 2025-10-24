@@ -9,7 +9,7 @@ import { OutfitGrid } from '@/presentation/components/outfit/OutfitGrid'
 export const VisualSearchPage = () => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<unknown[]>([])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -33,10 +33,7 @@ export const VisualSearchPage = () => {
     <MainLayout>
       <div className="space-y-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="mb-2 text-3xl font-bold">Visual Search</h1>
           <p className="text-muted-foreground">
             Upload any fashion image to find similar outfits and styles
@@ -65,9 +62,7 @@ export const VisualSearchPage = () => {
                           <Sparkles className="h-12 w-12 text-white" />
                         </motion.div>
 
-                        <h2 className="mb-2 text-2xl font-bold">
-                          Find Your Perfect Match
-                        </h2>
+                        <h2 className="mb-2 text-2xl font-bold">Find Your Perfect Match</h2>
                         <p className="mb-8 text-muted-foreground">
                           Upload a photo or take a picture to discover similar styles
                         </p>
@@ -160,9 +155,9 @@ export const VisualSearchPage = () => {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="rounded-lg bg-green-500/10 p-4">
+                        <div className="rounded-lg bg-brand-crimson/10 p-4">
                           <div className="mb-2 flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-green-500" />
+                            <div className="h-2 w-2 rounded-full bg-brand-crimson" />
                             <span className="text-sm font-medium">Analysis Complete</span>
                           </div>
                           <p className="text-sm text-muted-foreground">
@@ -178,8 +173,8 @@ export const VisualSearchPage = () => {
                           <div className="flex items-center justify-between text-sm">
                             <span>Color Palette</span>
                             <div className="flex gap-1">
-                              <div className="h-6 w-6 rounded bg-blue-500" />
-                              <div className="h-6 w-6 rounded bg-white border" />
+                              <div className="h-6 w-6 rounded bg-brand-blue" />
+                              <div className="h-6 w-6 rounded border bg-white" />
                               <div className="h-6 w-6 rounded bg-gray-800" />
                             </div>
                           </div>
@@ -203,9 +198,7 @@ export const VisualSearchPage = () => {
                 >
                   <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-2xl font-bold">Similar Outfits</h2>
-                    <p className="text-sm text-muted-foreground">
-                      {results.length} results found
-                    </p>
+                    <p className="text-sm text-muted-foreground">{results.length} results found</p>
                   </div>
                   <OutfitGrid outfits={results} />
                 </motion.div>

@@ -181,7 +181,7 @@ export const CartPage = () => {
                             <span>Size: {item.size}</span>
                           </div>
                           {item.inStock ? (
-                            <Badge className="bg-green-500/10 text-green-700 hover:bg-green-500/20">
+                            <Badge className="bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20">
                               In Stock
                             </Badge>
                           ) : (
@@ -248,7 +248,7 @@ export const CartPage = () => {
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-green-600"
+                    className="mt-2 text-sm text-brand-blue"
                   >
                     Promo code applied! You saved ${discount.toFixed(2)}
                   </motion.p>
@@ -271,7 +271,7 @@ export const CartPage = () => {
                     </div>
 
                     {promoApplied && (
-                      <div className="flex justify-between text-green-600">
+                      <div className="flex justify-between text-brand-blue">
                         <span>Discount (10%)</span>
                         <span>-${discount.toFixed(2)}</span>
                       </div>
@@ -281,7 +281,7 @@ export const CartPage = () => {
                       <span className="text-muted-foreground">Shipping</span>
                       <span className="font-medium">
                         {shipping === 0 ? (
-                          <Badge className="bg-green-500/10 text-green-700">FREE</Badge>
+                          <Badge className="bg-brand-blue/10 text-brand-blue">FREE</Badge>
                         ) : (
                           `$${shipping.toFixed(2)}`
                         )}
@@ -333,8 +333,8 @@ export const CartPage = () => {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <div className="rounded-full bg-amber-500/10 p-2">
-                        <Gift className="h-4 w-4 text-amber-500" />
+                      <div className="rounded-full bg-brand-crimson/10 p-2">
+                        <Gift className="h-4 w-4 text-brand-crimson" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-brand-charcoal">Easy Returns</p>

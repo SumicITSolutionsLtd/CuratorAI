@@ -111,7 +111,11 @@ export const HomePage = () => {
             </motion.div>
           </div>
           <p className="text-muted-foreground">
-            We've found <span className="font-semibold text-brand-crimson">{mockOutfits.length} perfect matches</span> for you today
+            We've found{' '}
+            <span className="font-semibold text-brand-crimson">
+              {mockOutfits.length} perfect matches
+            </span>{' '}
+            for you today
           </p>
         </motion.div>
 
@@ -151,7 +155,7 @@ export const HomePage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="rounded-lg border bg-gradient-to-br from-green-500/10 to-green-500/5 p-4"
+            className="rounded-lg border bg-brand-beige/40 p-4"
           >
             <div className="flex items-center justify-between">
               <div>

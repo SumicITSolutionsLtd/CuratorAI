@@ -116,11 +116,11 @@ const getNotificationIcon = (type: string) => {
     case 'comment':
       return <MessageCircle className="h-5 w-5 text-brand-blue" />
     case 'follow':
-      return <UserPlus className="h-5 w-5 text-green-500" />
+      return <UserPlus className="h-5 w-5 text-brand-blue" />
     case 'recommendation':
-      return <Sparkles className="h-5 w-5 text-amber-500" />
+      return <Sparkles className="h-5 w-5 text-brand-crimson" />
     default:
-      return <ShoppingBag className="h-5 w-5 text-purple-500" />
+      return <ShoppingBag className="h-5 w-5 text-brand-blue" />
   }
 }
 

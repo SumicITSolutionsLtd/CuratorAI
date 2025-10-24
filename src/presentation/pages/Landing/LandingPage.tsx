@@ -40,65 +40,73 @@ export const LandingPage = () => {
     {
       icon: Sparkles,
       title: 'AI-Powered Recommendations',
-      description: 'Get personalized outfit suggestions that match your unique style, budget, and occasion',
-      gradient: 'from-brand-crimson to-red-600',
+      description:
+        'Get personalized outfit suggestions that match your unique style, budget, and occasion',
+      bgColor: 'bg-brand-crimson',
     },
     {
       icon: Search,
       title: 'Visual Search',
       description: 'Upload any fashion photo and instantly discover similar outfits and styles',
-      gradient: 'from-brand-blue to-blue-600',
+      bgColor: 'bg-brand-blue',
     },
     {
       icon: Shirt,
       title: 'Smart Wardrobe',
-      description: 'Organize, track, and maximize your existing wardrobe with intelligent analytics',
-      gradient: 'from-brand-crimson to-brand-blue',
+      description:
+        'Organize, track, and maximize your existing wardrobe with intelligent analytics',
+      bgColor: 'bg-brand-crimson',
     },
     {
       icon: Users,
       title: 'Social Fashion Feed',
       description: 'Share your looks, get inspired, and connect with fashion enthusiasts worldwide',
-      gradient: 'from-brand-blue to-brand-crimson',
+      bgColor: 'bg-brand-blue',
     },
     {
       icon: BookOpen,
       title: 'Curated Lookbooks',
       description: 'Browse professional styling collections for every season and occasion',
-      gradient: 'from-brand-crimson to-pink-600',
+      bgColor: 'bg-brand-crimson',
     },
     {
       icon: ShoppingBag,
       title: 'Seamless Shopping',
       description: 'Shop directly from outfits with one-click purchasing from trusted retailers',
-      gradient: 'from-brand-blue to-purple-600',
+      bgColor: 'bg-brand-blue',
     },
   ]
 
   const faqs = [
     {
       question: 'How does the AI recommendation system work?',
-      answer: 'Our AI analyzes your style preferences, body type, budget, and occasion to suggest outfits that match your unique taste. It learns from your interactions to provide increasingly personalized recommendations.',
+      answer:
+        'Our AI analyzes your style preferences, body type, budget, and occasion to suggest outfits that match your unique taste. It learns from your interactions to provide increasingly personalized recommendations.',
     },
     {
       question: 'Is CuratorAI free to use?',
-      answer: 'Yes! We offer a free tier with basic features. Premium plans unlock advanced AI features, unlimited outfit saves, and priority support. Start with our 14-day free trial to explore all features.',
+      answer:
+        'Yes! We offer a free tier with basic features. Premium plans unlock advanced AI features, unlimited outfit saves, and priority support.',
     },
     {
       question: 'Can I shop directly through the app?',
-      answer: 'Absolutely! We partner with trusted retailers so you can purchase items directly from outfits you love. We earn a small commission when you buy, which helps keep our service running.',
+      answer:
+        'Absolutely! We partner with trusted retailers so you can purchase items directly from outfits you love. We earn a small commission when you buy, which helps keep our service running.',
     },
     {
       question: 'How accurate is the visual search?',
-      answer: 'Our visual search uses advanced AI to identify clothing items with 95% accuracy. Simply upload a photo, and we\'ll find similar styles across thousands of products from our partner retailers.',
+      answer:
+        "Our visual search uses advanced AI to identify clothing items with 95% accuracy. Simply upload a photo, and we'll find similar styles across thousands of products from our partner retailers.",
     },
     {
       question: 'Can I use CuratorAI on mobile?',
-      answer: 'Yes! CuratorAI works seamlessly on all devices - desktop, tablet, and mobile. Our responsive design ensures you have a great experience wherever you are.',
+      answer:
+        'Yes! CuratorAI works seamlessly on all devices - desktop, tablet, and mobile. Our responsive design ensures you have a great experience wherever you are.',
     },
     {
       question: 'How do you protect my data?',
-      answer: 'We take privacy seriously. Your data is encrypted, never sold to third parties, and you have full control over what you share. We comply with GDPR and all major privacy regulations.',
+      answer:
+        'We take privacy seriously. Your data is encrypted, never sold to third parties, and you have full control over what you share. We comply with GDPR and all major privacy regulations.',
     },
   ]
 
@@ -171,8 +179,13 @@ export const LandingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* SEO Meta Tags */}
-      <title>CuratorAI - AI-Powered Fashion Recommendations | Where Fashion Meets Intelligence</title>
-      <meta name="description" content="Discover your perfect style with CuratorAI's AI-powered outfit recommendations. Visual search, smart wardrobe, and personalized fashion advice. Start free today!" />
+      <title>
+        CuratorAI - AI-Powered Fashion Recommendations | Where Fashion Meets Intelligence
+      </title>
+      <meta
+        name="description"
+        content="Discover your perfect style with CuratorAI's AI-powered outfit recommendations. Visual search, smart wardrobe, and personalized fashion advice. Start free today!"
+      />
 
       {/* Skip to Content Link */}
       <a
@@ -192,29 +205,41 @@ export const LandingPage = () => {
           <Logo size="sm" />
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <nav className="hidden items-center gap-6 md:flex">
+            <a
+              href="#features"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
               Features
             </a>
-            <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <a
+              href="#how-it-works"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
               How It Works
             </a>
-            <a href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <a
+              href="#testimonials"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
               Testimonials
             </a>
-            <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <a
+              href="#faq"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
               FAQ
             </a>
           </nav>
 
           {/* Desktop Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden items-center gap-4 md:flex">
             <Button variant="ghost" onClick={() => navigate('/login')}>
               Login
             </Button>
             <Button
               onClick={() => navigate('/register')}
-              className="bg-gradient-to-r from-brand-crimson to-brand-blue hover:opacity-90"
+              className="bg-brand-crimson hover:bg-brand-crimson/90"
             >
               Get Started <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -226,11 +251,7 @@ export const LandingPage = () => {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle mobile menu"
           >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </motion.header>
@@ -246,39 +267,39 @@ export const LandingPage = () => {
             className="fixed inset-y-0 right-0 z-50 w-64 border-l bg-background shadow-lg md:hidden"
           >
             <div className="flex h-full flex-col p-6">
-              <div className="flex items-center justify-between mb-8">
-                <span className="font-bold text-lg">Menu</span>
+              <div className="mb-8 flex items-center justify-between">
+                <span className="text-lg font-bold">Menu</span>
                 <button onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
                   <X className="h-6 w-6" />
                 </button>
               </div>
 
-              <nav className="flex flex-col gap-4 mb-8">
+              <nav className="mb-8 flex flex-col gap-4">
                 <a
                   href="#features"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-medium hover:text-brand-crimson transition-colors"
+                  className="text-lg font-medium transition-colors hover:text-brand-crimson"
                 >
                   Features
                 </a>
                 <a
                   href="#how-it-works"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-medium hover:text-brand-crimson transition-colors"
+                  className="text-lg font-medium transition-colors hover:text-brand-crimson"
                 >
                   How It Works
                 </a>
                 <a
                   href="#testimonials"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-medium hover:text-brand-crimson transition-colors"
+                  className="text-lg font-medium transition-colors hover:text-brand-crimson"
                 >
                   Testimonials
                 </a>
                 <a
                   href="#faq"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-medium hover:text-brand-crimson transition-colors"
+                  className="text-lg font-medium transition-colors hover:text-brand-crimson"
                 >
                   FAQ
                 </a>
@@ -296,7 +317,7 @@ export const LandingPage = () => {
                   Login
                 </Button>
                 <Button
-                  className="w-full bg-gradient-to-r from-brand-crimson to-brand-blue"
+                  className="w-full bg-brand-crimson hover:bg-brand-crimson/90"
                   onClick={() => {
                     setMobileMenuOpen(false)
                     navigate('/register')
@@ -312,8 +333,14 @@ export const LandingPage = () => {
 
       {/* Hero Section */}
       <section id="main-content" className="relative overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-brand-crimson/5 via-brand-blue/5 to-purple-500/5" />
-        <div aria-hidden="true" className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDIiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-br from-brand-crimson/5 via-brand-blue/5 to-brand-beige/30"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDIiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"
+        />
 
         <div className="container relative mx-auto px-4 py-24 md:py-32">
           <motion.div
@@ -328,13 +355,13 @@ export const LandingPage = () => {
               transition={{ delay: 0.2, type: 'spring' }}
               className="mb-6 inline-block"
             >
-              <Badge className="bg-gradient-to-r from-brand-crimson to-brand-blue text-white">
+              <Badge className="bg-brand-crimson text-white">
                 <Zap className="mr-1 h-3 w-3" />
                 AI-Powered Fashion Intelligence
               </Badge>
             </motion.div>
 
-            <h1 className="mb-6 bg-gradient-to-r from-brand-charcoal via-brand-crimson to-brand-blue bg-clip-text text-5xl font-bold leading-tight text-transparent md:text-7xl">
+            <h1 className="mb-6 text-5xl font-bold leading-tight text-brand-charcoal md:text-7xl">
               Where Fashion Meets Intelligence
             </h1>
 
@@ -348,7 +375,7 @@ export const LandingPage = () => {
               <Button
                 size="lg"
                 onClick={() => navigate('/register')}
-                className="group bg-gradient-to-r from-brand-crimson to-brand-blue text-lg hover:opacity-90"
+                className="group bg-brand-crimson text-lg hover:bg-brand-crimson/90"
               >
                 Start Your Style Journey
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -356,8 +383,10 @@ export const LandingPage = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-lg"
-                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                className="border-brand-blue text-lg text-brand-blue hover:bg-brand-blue/10"
+                onClick={() =>
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+                }
               >
                 Learn More
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -421,7 +450,7 @@ export const LandingPage = () => {
                 >
                   <Card className="group h-full border-2 p-6 transition-all hover:border-brand-crimson/50 hover:shadow-2xl">
                     <div
-                      className={`mb-4 inline-flex h-14 w-14 items-center justify-center rounded-lg bg-gradient-to-br ${feature.gradient} transition-transform group-hover:scale-110`}
+                      className={`mb-4 inline-flex h-14 w-14 items-center justify-center rounded-lg ${feature.bgColor} transition-transform group-hover:scale-110`}
                     >
                       <Icon className="h-7 w-7 text-white" />
                     </div>
@@ -445,9 +474,7 @@ export const LandingPage = () => {
             className="mb-16 text-center"
           >
             <h2 className="mb-4 text-4xl font-bold md:text-5xl">How It Works</h2>
-            <p className="text-xl text-muted-foreground">
-              Get started in three simple steps
-            </p>
+            <p className="text-xl text-muted-foreground">Get started in three simple steps</p>
           </motion.div>
 
           <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-3">
@@ -462,10 +489,10 @@ export const LandingPage = () => {
                   transition={{ delay: idx * 0.2 }}
                   className="relative text-center"
                 >
-                  <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-brand-crimson to-brand-blue text-3xl font-bold text-white">
+                  <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand-crimson text-3xl font-bold text-white">
                     {item.step}
                     {idx < howItWorks.length - 1 && (
-                      <div className="absolute left-full top-1/2 hidden h-0.5 w-full bg-gradient-to-r from-brand-crimson to-brand-blue md:block" />
+                      <div className="absolute left-full top-1/2 hidden h-0.5 w-full bg-brand-gray md:block" />
                     )}
                   </div>
                   <Icon className="mx-auto mb-4 h-10 w-10 text-brand-crimson" />
@@ -488,9 +515,7 @@ export const LandingPage = () => {
             className="mb-16 text-center"
           >
             <h2 className="mb-4 text-4xl font-bold md:text-5xl">Loved by Fashion Enthusiasts</h2>
-            <p className="text-xl text-muted-foreground">
-              See what our users are saying
-            </p>
+            <p className="text-xl text-muted-foreground">See what our users are saying</p>
           </motion.div>
 
           <div className="grid gap-8 md:grid-cols-3">
@@ -559,7 +584,7 @@ export const LandingPage = () => {
       </section>
 
       {/* Newsletter Section */}
-      <section className="bg-gradient-to-br from-brand-crimson/5 via-brand-blue/5 to-purple-500/5 py-16">
+      <section className="bg-brand-beige/30 py-16">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -570,7 +595,8 @@ export const LandingPage = () => {
             <Mail className="mx-auto mb-4 h-12 w-12 text-brand-crimson" />
             <h2 className="mb-4 text-3xl font-bold md:text-4xl">Stay in Style</h2>
             <p className="mb-6 text-lg text-muted-foreground">
-              Get the latest fashion tips, style trends, and exclusive offers delivered to your inbox
+              Get the latest fashion tips, style trends, and exclusive offers delivered to your
+              inbox
             </p>
             <form onSubmit={handleNewsletterSubmit} className="mx-auto flex max-w-md gap-2">
               <Input
@@ -581,10 +607,7 @@ export const LandingPage = () => {
                 required
                 className="flex-1"
               />
-              <Button
-                type="submit"
-                className="bg-gradient-to-r from-brand-crimson to-brand-blue hover:opacity-90"
-              >
+              <Button type="submit" className="bg-brand-crimson hover:bg-brand-crimson/90">
                 Subscribe
               </Button>
             </form>
@@ -653,8 +676,11 @@ export const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-crimson via-brand-blue to-purple-600 py-24 text-white">
-        <div aria-hidden="true" className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
+      <section className="relative overflow-hidden bg-brand-crimson py-24 text-white">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"
+        />
         <div className="container relative mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -662,9 +688,7 @@ export const LandingPage = () => {
             viewport={{ once: true }}
           >
             <Sparkles className="mx-auto mb-6 h-16 w-16" />
-            <h2 className="mb-4 text-4xl font-bold md:text-5xl">
-              Ready to Transform Your Style?
-            </h2>
+            <h2 className="mb-4 text-4xl font-bold md:text-5xl">Ready to Transform Your Style?</h2>
             <p className="mb-8 text-xl opacity-90">
               Join thousands of fashion lovers who've discovered their perfect style
             </p>
@@ -672,21 +696,19 @@ export const LandingPage = () => {
               <Button
                 size="lg"
                 onClick={() => navigate('/register')}
-                className="bg-white text-brand-crimson hover:bg-white/90"
+                className="bg-brand-ivory text-brand-charcoal hover:bg-brand-ivory/90"
               >
                 Start Free Today <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white/10"
+                className="border-brand-ivory bg-transparent text-brand-ivory hover:bg-brand-ivory hover:text-brand-crimson"
               >
                 Contact Sales
               </Button>
             </div>
-            <p className="mt-6 text-sm opacity-75">
-              No credit card required • 14-day free trial • Cancel anytime
-            </p>
+            <p className="mt-6 text-sm opacity-75">No credit card required • Cancel anytime</p>
           </motion.div>
         </div>
       </section>
@@ -704,27 +726,63 @@ export const LandingPage = () => {
             <div>
               <h4 className="mb-4 font-semibold">Product</h4>
               <ul className="space-y-2 text-sm text-brand-gray">
-                <li><a href="#" className="hover:text-brand-ivory">Features</a></li>
-                <li><a href="#" className="hover:text-brand-ivory">Pricing</a></li>
-                <li><a href="#" className="hover:text-brand-ivory">FAQ</a></li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    FAQ
+                  </a>
+                </li>
               </ul>
             </div>
 
             <div>
               <h4 className="mb-4 font-semibold">Company</h4>
               <ul className="space-y-2 text-sm text-brand-gray">
-                <li><a href="#" className="hover:text-brand-ivory">About</a></li>
-                <li><a href="#" className="hover:text-brand-ivory">Blog</a></li>
-                <li><a href="#" className="hover:text-brand-ivory">Careers</a></li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    Careers
+                  </a>
+                </li>
               </ul>
             </div>
 
             <div>
               <h4 className="mb-4 font-semibold">Legal</h4>
               <ul className="space-y-2 text-sm text-brand-gray">
-                <li><a href="#" className="hover:text-brand-ivory">Privacy</a></li>
-                <li><a href="#" className="hover:text-brand-ivory">Terms</a></li>
-                <li><a href="#" className="hover:text-brand-ivory">Contact</a></li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    Privacy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    Terms
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-brand-ivory">
+                    Contact
+                  </a>
+                </li>
               </ul>
             </div>
 
@@ -777,7 +835,7 @@ export const LandingPage = () => {
         <Button
           size="lg"
           onClick={() => navigate('/register')}
-          className="w-full bg-gradient-to-r from-brand-crimson to-brand-blue hover:opacity-90"
+          className="w-full bg-brand-crimson hover:bg-brand-crimson/90"
         >
           Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
         </Button>

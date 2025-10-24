@@ -93,8 +93,26 @@ export const RegisterPage = () => {
   }
 
   const genderOptions = ['Men', 'Women', 'Non-binary', 'Prefer not to say']
-  const styleOptions = ['Casual', 'Formal', 'Streetwear', 'Bohemian', 'Minimalist', 'Vintage', 'Athletic', 'Trendy']
-  const occasionOptions = ['Work', 'Casual', 'Date Night', 'Party', 'Gym', 'Travel', 'Beach', 'Wedding']
+  const styleOptions = [
+    'Casual',
+    'Formal',
+    'Streetwear',
+    'Bohemian',
+    'Minimalist',
+    'Vintage',
+    'Athletic',
+    'Trendy',
+  ]
+  const occasionOptions = [
+    'Work',
+    'Casual',
+    'Date Night',
+    'Party',
+    'Gym',
+    'Travel',
+    'Beach',
+    'Wedding',
+  ]
   const budgetOptions = ['Budget-friendly ($)', 'Mid-range ($$)', 'Premium ($$$)', 'Luxury ($$$$)']
 
   const toggleArraySelection = (arr: string[], setArr: (val: string[]) => void, item: string) => {
@@ -118,11 +136,11 @@ export const RegisterPage = () => {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-brand-ivory via-brand-beige to-brand-ivory py-8">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-brand-ivory py-8">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -left-1/4 -top-1/4 h-1/2 w-1/2 rounded-full bg-gradient-to-br from-brand-crimson/10 to-brand-blue/10 blur-3xl" />
-        <div className="absolute -bottom-1/4 -right-1/4 h-1/2 w-1/2 rounded-full bg-gradient-to-br from-brand-blue/10 to-brand-crimson/10 blur-3xl" />
+        <div className="absolute -left-1/4 -top-1/4 h-1/2 w-1/2 rounded-full bg-brand-crimson/10 blur-3xl" />
+        <div className="absolute -bottom-1/4 -right-1/4 h-1/2 w-1/2 rounded-full bg-brand-blue/10 blur-3xl" />
       </div>
 
       {/* Main Content */}
@@ -146,9 +164,7 @@ export const RegisterPage = () => {
                   <ArrowLeft className="mr-1 h-4 w-4 transition-transform group-hover:-translate-x-1" />
                   Back
                 </Button>
-                <span className="text-sm font-semibold text-brand-gray">
-                  Step {step} of 3
-                </span>
+                <span className="text-sm font-semibold text-brand-gray">Step {step} of 3</span>
               </div>
 
               {/* Progress Indicator */}
@@ -158,7 +174,7 @@ export const RegisterPage = () => {
                     key={s}
                     className={cn(
                       'h-2 flex-1 rounded-full transition-all duration-300',
-                      s <= step ? 'bg-gradient-to-r from-brand-crimson to-brand-blue' : 'bg-gray-200'
+                      s <= step ? 'bg-brand-crimson' : 'bg-gray-200'
                     )}
                   />
                 ))}
@@ -190,8 +206,12 @@ export const RegisterPage = () => {
                   className="space-y-6"
                 >
                   <div className="text-center">
-                    <h2 className="mb-2 text-2xl font-bold text-brand-charcoal">Create Your Account</h2>
-                    <p className="text-sm text-brand-gray">Join thousands discovering their perfect style</p>
+                    <h2 className="mb-2 text-2xl font-bold text-brand-charcoal">
+                      Create Your Account
+                    </h2>
+                    <p className="text-sm text-brand-gray">
+                      Join thousands discovering their perfect style
+                    </p>
                   </div>
 
                   {/* OAuth Buttons */}
@@ -204,10 +224,22 @@ export const RegisterPage = () => {
                       onClick={() => handleOAuthRegister('google')}
                     >
                       <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        <path
+                          fill="#4285F4"
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        />
                       </svg>
                       <span className="font-semibold">Continue with Google</span>
                     </Button>
@@ -220,7 +252,7 @@ export const RegisterPage = () => {
                       onClick={() => handleOAuthRegister('facebook')}
                     >
                       <svg className="mr-3 h-5 w-5 fill-current" viewBox="0 0 24 24">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                       </svg>
                       <span className="font-semibold">Continue with Facebook</span>
                     </Button>
@@ -239,7 +271,7 @@ export const RegisterPage = () => {
                   {/* Email Button */}
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                      className="w-full bg-gradient-to-r from-brand-crimson to-brand-blue py-6 text-base font-bold shadow-lg transition-all hover:shadow-xl"
+                      className="w-full bg-brand-crimson py-6 text-base font-bold shadow-lg transition-all hover:bg-brand-crimson/90 hover:shadow-xl"
                       onClick={() => setStep(2)}
                     >
                       <Mail className="mr-2 h-5 w-5" />
@@ -335,7 +367,11 @@ export const RegisterPage = () => {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-gray transition-colors hover:text-brand-charcoal"
                       >
-                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
                       </button>
                     </div>
 
@@ -344,7 +380,16 @@ export const RegisterPage = () => {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-medium text-brand-gray">Password Strength</span>
-                          <span className={cn('font-bold', passwordStrength >= 75 ? 'text-green-600' : passwordStrength >= 50 ? 'text-orange-600' : 'text-red-600')}>
+                          <span
+                            className={cn(
+                              'font-bold',
+                              passwordStrength >= 75
+                                ? 'text-green-600'
+                                : passwordStrength >= 50
+                                  ? 'text-orange-600'
+                                  : 'text-red-600'
+                            )}
+                          >
                             {getStrengthLabel()}
                           </span>
                         </div>
@@ -380,7 +425,10 @@ export const RegisterPage = () => {
 
                   {/* Confirm Password */}
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-semibold text-brand-charcoal">
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="text-sm font-semibold text-brand-charcoal"
+                    >
                       Confirm Password
                     </Label>
                     <div className="relative">
@@ -399,7 +447,11 @@ export const RegisterPage = () => {
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-gray transition-colors hover:text-brand-charcoal"
                       >
-                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
                       </button>
                     </div>
                     {confirmPassword && password !== confirmPassword && (
@@ -432,8 +484,10 @@ export const RegisterPage = () => {
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-brand-crimson to-brand-blue py-6 text-base font-bold shadow-lg transition-all hover:shadow-xl"
-                      disabled={passwordStrength < 75 || password !== confirmPassword || !agreedToTerms}
+                      className="w-full bg-brand-crimson py-6 text-base font-bold shadow-lg transition-all hover:bg-brand-crimson/90 hover:shadow-xl"
+                      disabled={
+                        passwordStrength < 75 || password !== confirmPassword || !agreedToTerms
+                      }
                     >
                       Continue to Style Preferences
                       <ArrowRight className="ml-2 h-5 w-5" />
@@ -452,15 +506,18 @@ export const RegisterPage = () => {
                   className="space-y-6"
                 >
                   <div className="text-center">
-                    <h2 className="mb-2 text-2xl font-bold text-brand-charcoal">Personalize Your Style</h2>
-                    <p className="text-sm text-brand-gray">Help us curate the perfect outfits for you</p>
+                    <h2 className="mb-2 text-2xl font-bold text-brand-charcoal">
+                      Personalize Your Style
+                    </h2>
+                    <p className="text-sm text-brand-gray">
+                      Help us curate the perfect outfits for you
+                    </p>
                   </div>
 
                   {/* Gender */}
                   <div className="space-y-3">
                     <Label className="flex items-center gap-2 text-sm font-semibold text-brand-charcoal">
-                      <Shirt className="h-4 w-4" />
-                      I shop for
+                      <Shirt className="h-4 w-4" />I shop for
                     </Label>
                     <div className="grid grid-cols-2 gap-2">
                       {genderOptions.map((gender) => (
@@ -498,7 +555,9 @@ export const RegisterPage = () => {
                             type="button"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => toggleArraySelection(selectedStyles, setSelectedStyles, style)}
+                            onClick={() =>
+                              toggleArraySelection(selectedStyles, setSelectedStyles, style)
+                            }
                           >
                             <Badge
                               variant={isSelected ? 'default' : 'outline'}
@@ -521,8 +580,7 @@ export const RegisterPage = () => {
                   {/* Occasions */}
                   <div className="space-y-3">
                     <Label className="flex items-center gap-2 text-sm font-semibold text-brand-charcoal">
-                      <Calendar className="h-4 w-4" />
-                      I dress for (select multiple)
+                      <Calendar className="h-4 w-4" />I dress for (select multiple)
                     </Label>
                     <div className="flex flex-wrap gap-2">
                       {occasionOptions.map((occasion) => {
@@ -533,7 +591,13 @@ export const RegisterPage = () => {
                             type="button"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => toggleArraySelection(selectedOccasions, setSelectedOccasions, occasion)}
+                            onClick={() =>
+                              toggleArraySelection(
+                                selectedOccasions,
+                                setSelectedOccasions,
+                                occasion
+                              )
+                            }
                           >
                             <Badge
                               variant={isSelected ? 'default' : 'outline'}
@@ -570,7 +634,7 @@ export const RegisterPage = () => {
                           className={cn(
                             'rounded-lg border-2 px-4 py-3 text-sm font-semibold transition-all',
                             selectedBudget === budget
-                              ? 'border-brand-blue bg-gradient-to-r from-brand-crimson to-brand-blue text-white shadow-lg'
+                              ? 'border-brand-crimson bg-brand-crimson text-white shadow-lg'
                               : 'border-gray-200 bg-white text-brand-charcoal hover:border-brand-blue/50'
                           )}
                         >
@@ -585,8 +649,13 @@ export const RegisterPage = () => {
                     <Button
                       type="button"
                       onClick={handleCompleteRegistration}
-                      disabled={!selectedGender || selectedStyles.length === 0 || selectedOccasions.length === 0 || !selectedBudget}
-                      className="w-full bg-gradient-to-r from-brand-crimson to-brand-blue py-6 text-base font-bold shadow-lg transition-all hover:shadow-xl disabled:opacity-50"
+                      disabled={
+                        !selectedGender ||
+                        selectedStyles.length === 0 ||
+                        selectedOccasions.length === 0 ||
+                        !selectedBudget
+                      }
+                      className="w-full bg-brand-crimson py-6 text-base font-bold shadow-lg transition-all hover:bg-brand-crimson/90 hover:shadow-xl disabled:opacity-50"
                     >
                       <Sparkles className="mr-2 h-5 w-5" />
                       Complete Registration

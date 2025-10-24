@@ -109,9 +109,9 @@ export const TryOnPage = () => {
             </p>
           </Card>
 
-          <Card className="border-amber-500/20 p-4 text-center">
-            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
-              <ImageIcon className="h-6 w-6 text-amber-500" />
+          <Card className="border-brand-blue/20 p-4 text-center">
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-brand-blue/10">
+              <ImageIcon className="h-6 w-6 text-brand-blue" />
             </div>
             <h3 className="font-semibold text-brand-charcoal">See Result</h3>
             <p className="mt-1 text-xs text-muted-foreground">
