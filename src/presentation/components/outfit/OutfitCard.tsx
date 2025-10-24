@@ -7,13 +7,15 @@ import { cn } from '@/shared/utils/cn'
 import { useState } from 'react'
 
 interface OutfitCardProps {
-  id: string
+  id?: string | number
   name: string
+  image?: string
   imageUrl?: string
-  items: { name: string; price: number }[]
-  totalPrice: number
+  items: { name: string; price?: number; brand?: string }[]
+  price?: number
+  totalPrice?: number
   matchScore: number
-  tags: string[]
+  tags?: string[]
   likes: number
   isLiked?: boolean
   isSaved?: boolean
@@ -21,15 +23,19 @@ interface OutfitCardProps {
 
 export const OutfitCard = ({
   name,
+  image,
   imageUrl,
   items,
+  price,
   totalPrice,
   matchScore,
-  tags,
+  tags = [],
   likes,
   isLiked: initialLiked = false,
   isSaved: initialSaved = false,
 }: OutfitCardProps) => {
+  const displayImage = image || imageUrl
+  const displayPrice = totalPrice || price || 0
   const [isLiked, setIsLiked] = useState(initialLiked)
   const [isSaved, setIsSaved] = useState(initialSaved)
   const [isHovered, setIsHovered] = useState(false)
@@ -46,9 +52,9 @@ export const OutfitCard = ({
       <Card className="overflow-hidden border-2 transition-all duration-300 hover:border-brand-crimson/50 hover:shadow-2xl hover:shadow-brand-crimson/10">
         {/* Image Container */}
         <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-brand-beige/30 to-brand-gray/10">
-          {imageUrl ? (
+          {displayImage ? (
             <img
-              src={imageUrl}
+              src={displayImage}
               alt={name}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
@@ -66,12 +72,12 @@ export const OutfitCard = ({
           >
             <Badge
               className={cn(
-                'backdrop-blur-sm font-bold',
+                'font-bold backdrop-blur-sm',
                 matchScore >= 90
                   ? 'bg-green-500/90 text-white'
                   : matchScore >= 75
-                  ? 'bg-brand-blue/90 text-white'
-                  : 'bg-brand-gray/90 text-white'
+                    ? 'bg-brand-blue/90 text-white'
+                    : 'bg-brand-gray/90 text-white'
               )}
             >
               <Sparkles className="mr-1 h-3 w-3" />
@@ -97,9 +103,7 @@ export const OutfitCard = ({
                     )}
                     onClick={() => setIsLiked(!isLiked)}
                   >
-                    <Heart
-                      className={cn('h-4 w-4', isLiked && 'fill-current')}
-                    />
+                    <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
                   </Button>
                 </motion.div>
 
@@ -143,7 +147,7 @@ export const OutfitCard = ({
 
         {/* Content */}
         <div className="p-4">
-          <h3 className="mb-2 font-semibold text-lg leading-tight">{name}</h3>
+          <h3 className="mb-2 text-lg font-semibold leading-tight">{name}</h3>
 
           {/* Tags */}
           <div className="mb-3 flex flex-wrap gap-1">
@@ -158,13 +162,12 @@ export const OutfitCard = ({
           <div className="mb-3 space-y-1">
             {items.slice(0, 2).map((item, idx) => (
               <p key={idx} className="text-xs text-muted-foreground">
-                • {item.name} - ${item.price}
+                • {item.name}
+                {item.price ? ` - $${item.price}` : ''}
               </p>
             ))}
             {items.length > 2 && (
-              <p className="text-xs text-muted-foreground">
-                +{items.length - 2} more items
-              </p>
+              <p className="text-xs text-muted-foreground">+{items.length - 2} more items</p>
             )}
           </div>
 
@@ -172,7 +175,7 @@ export const OutfitCard = ({
           <div className="flex items-center justify-between border-t pt-3">
             <div>
               <p className="text-xs text-muted-foreground">Total Price</p>
-              <p className="font-bold text-lg text-brand-crimson">${totalPrice}</p>
+              <p className="text-lg font-bold text-brand-crimson">${displayPrice}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">{likes} likes</p>
