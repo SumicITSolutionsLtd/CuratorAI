@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion'
-import { Sparkles, TrendingUp } from 'lucide-react'
+import { Sparkles, TrendingUp, Palette, Calendar, MapPin, Zap } from 'lucide-react'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import { OutfitGrid } from '@/presentation/components/outfit/OutfitGrid'
 import { FilterPanel } from '@/presentation/components/outfit/FilterPanel'
+import { ControlPanel } from '@/presentation/components/outfit/ControlPanel'
+import { Card } from '@/presentation/components/ui/card'
 
 const mockOutfits = [
   {
@@ -94,7 +96,7 @@ const mockOutfits = [
 export const HomePage = () => {
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -167,16 +169,87 @@ export const HomePage = () => {
           </motion.div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-          {/* Filters */}
+        {/* Welcome Back Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="p-6">
+            <div className="mb-4">
+              <h2 className="mb-1 flex items-center gap-2 text-xl font-bold">
+                Welcome back{' '}
+                <motion.span
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 0.5, delay: 0.5, repeat: 3 }}
+                >
+                  👋
+                </motion.span>
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Pick a starting point — CuratorAI will do the rest.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <motion.button
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-crimson hover:shadow-md"
+              >
+                <Zap className="mb-2 h-6 w-6 text-brand-crimson" />
+                <h3 className="mb-1 font-semibold text-brand-charcoal">Quick Style</h3>
+                <p className="text-xs text-muted-foreground">1-tap outfits for today</p>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-blue hover:shadow-md"
+              >
+                <Palette className="mb-2 h-6 w-6 text-brand-blue" />
+                <h3 className="mb-1 font-semibold text-brand-charcoal">Color Mood</h3>
+                <p className="text-xs text-muted-foreground">Pick a palette & vibe</p>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-crimson hover:shadow-md"
+              >
+                <Calendar className="mb-2 h-6 w-6 text-brand-crimson" />
+                <h3 className="mb-1 font-semibold text-brand-charcoal">Event Ready</h3>
+                <p className="text-xs text-muted-foreground">AI looks by occasion</p>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-blue hover:shadow-md"
+              >
+                <MapPin className="mb-2 h-6 w-6 text-brand-blue" />
+                <h3 className="mb-1 font-semibold text-brand-charcoal">Local Trends</h3>
+                <p className="text-xs text-muted-foreground">What's trending near you</p>
+              </motion.button>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Main Content - Three Column Layout */}
+        <div className="grid gap-4 lg:grid-cols-[240px_1fr_280px]">
+          {/* Left: Filters */}
           <div>
             <FilterPanel />
           </div>
 
-          {/* Outfit Grid */}
+          {/* Center: Outfit Grid */}
           <div>
             <OutfitGrid outfits={mockOutfits} />
+          </div>
+
+          {/* Right: Controls */}
+          <div>
+            <ControlPanel />
           </div>
         </div>
       </div>

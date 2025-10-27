@@ -393,6 +393,59 @@ export const LandingPage = () => {
               </Button>
             </div>
 
+            {/* Hero Visual Content - Fashion Grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="mt-16 grid grid-cols-3 gap-4 md:gap-6"
+            >
+              {[
+                {
+                  img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=500&fit=crop',
+                  delay: 0.1,
+                },
+                {
+                  img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=500&fit=crop',
+                  delay: 0.2,
+                },
+                {
+                  img: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=500&fit=crop',
+                  delay: 0.3,
+                },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + item.delay, duration: 0.6 }}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  className="group relative overflow-hidden rounded-2xl shadow-xl"
+                >
+                  <div className="aspect-[3/4] overflow-hidden">
+                    <img
+                      src={item.img}
+                      alt={`Fashion inspiration ${idx + 1}`}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    whileHover={{ y: 0, opacity: 1 }}
+                    className="absolute bottom-4 left-4 right-4 text-white"
+                  >
+                    <Sparkles className="mb-2 h-5 w-5" />
+                    <p className="text-sm font-semibold">
+                      {idx === 0 && 'AI-Curated Looks'}
+                      {idx === 1 && 'Style Intelligence'}
+                      {idx === 2 && 'Perfect Matches'}
+                    </p>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+
             {/* Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -826,20 +879,7 @@ export const LandingPage = () => {
         </div>
       </footer>
 
-      {/* Mobile Sticky CTA */}
-      <motion.div
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background p-4 shadow-lg md:hidden"
-      >
-        <Button
-          size="lg"
-          onClick={() => navigate('/register')}
-          className="w-full bg-brand-crimson hover:bg-brand-crimson/90"
-        >
-          Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
-      </motion.div>
+      {/* Mobile Sticky CTA - Removed Free Trial Button as per UI feedback */}
     </div>
   )
 }

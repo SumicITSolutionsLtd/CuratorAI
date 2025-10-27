@@ -1,7 +1,18 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
-import { User, Bell, Lock, Palette, Shield, LogOut, Save, Camera } from 'lucide-react'
+import {
+  User,
+  Bell,
+  Lock,
+  Palette,
+  Shield,
+  LogOut,
+  Save,
+  Camera,
+  Sparkles,
+  Shirt,
+} from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Label } from '@/presentation/components/ui/label'
@@ -33,6 +44,13 @@ export const SettingsPage = () => {
     allowMessages: true,
   })
 
+  const [styleFoundations, setStyleFoundations] = useState({
+    primaryVibes: [] as string[],
+    colors: [] as string[],
+    fit: '',
+    footwear: '',
+  })
+
   return (
     <MainLayout>
       <motion.div
@@ -50,7 +68,7 @@ export const SettingsPage = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile">
               <User className="mr-2 h-4 w-4" />
               Profile
@@ -66,6 +84,10 @@ export const SettingsPage = () => {
             <TabsTrigger value="preferences">
               <Palette className="mr-2 h-4 w-4" />
               Preferences
+            </TabsTrigger>
+            <TabsTrigger value="style-quiz">
+              <Sparkles className="mr-2 h-4 w-4" />
+              Style Quiz
             </TabsTrigger>
           </TabsList>
 
@@ -415,6 +437,227 @@ export const SettingsPage = () => {
                 </div>
               </div>
             </Card>
+          </TabsContent>
+
+          {/* Style Quiz/Foundations Tab */}
+          <TabsContent value="style-quiz" className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Style Foundations */}
+              <Card className="p-6">
+                <div className="mb-6">
+                  <h2 className="mb-1 text-xl font-bold text-brand-charcoal">Style Foundations</h2>
+                  <p className="text-sm text-muted-foreground">Your baseline preference</p>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Primary Vibe */}
+                  <div>
+                    <Label className="mb-3 block font-semibold text-brand-charcoal">
+                      Primary vibe
+                    </Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Casual', 'Minimal', 'Street', 'Smart'].map((vibe) => {
+                        const isSelected = styleFoundations.primaryVibes.includes(vibe)
+                        return (
+                          <Button
+                            key={vibe}
+                            variant={isSelected ? 'default' : 'outline'}
+                            className={`${
+                              isSelected
+                                ? 'bg-brand-charcoal text-white hover:bg-brand-charcoal/90'
+                                : ''
+                            }`}
+                            onClick={() => {
+                              if (isSelected) {
+                                setStyleFoundations({
+                                  ...styleFoundations,
+                                  primaryVibes: styleFoundations.primaryVibes.filter(
+                                    (v) => v !== vibe
+                                  ),
+                                })
+                              } else {
+                                setStyleFoundations({
+                                  ...styleFoundations,
+                                  primaryVibes: [...styleFoundations.primaryVibes, vibe],
+                                })
+                              }
+                            }}
+                          >
+                            {vibe}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Colors You Love */}
+                  <div>
+                    <Label className="mb-3 block font-semibold text-brand-charcoal">
+                      Colors you love
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { name: 'Earth', color: 'bg-amber-700' },
+                        { name: 'Black', color: 'bg-black' },
+                        { name: 'Navy', color: 'bg-blue-900' },
+                        { name: 'White', color: 'bg-white border' },
+                        { name: 'Pastels', color: 'bg-pink-200' },
+                      ].map((colorOption) => {
+                        const isSelected = styleFoundations.colors.includes(colorOption.name)
+                        return (
+                          <Button
+                            key={colorOption.name}
+                            variant={isSelected ? 'default' : 'outline'}
+                            size="sm"
+                            className={`rounded-full ${
+                              isSelected
+                                ? 'bg-brand-charcoal text-white hover:bg-brand-charcoal/90'
+                                : ''
+                            }`}
+                            onClick={() => {
+                              if (isSelected) {
+                                setStyleFoundations({
+                                  ...styleFoundations,
+                                  colors: styleFoundations.colors.filter(
+                                    (c) => c !== colorOption.name
+                                  ),
+                                })
+                              } else {
+                                setStyleFoundations({
+                                  ...styleFoundations,
+                                  colors: [...styleFoundations.colors, colorOption.name],
+                                })
+                              }
+                            }}
+                          >
+                            <div className={`mr-2 h-3 w-3 rounded-full ${colorOption.color}`} />
+                            {colorOption.name}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Fit */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <Label className="mb-3 block font-semibold text-brand-charcoal">Fit</Label>
+                      <div className="space-y-2">
+                        {['Slim', 'Regular', 'Relaxed'].map((fitOption) => (
+                          <Button
+                            key={fitOption}
+                            variant={styleFoundations.fit === fitOption ? 'default' : 'outline'}
+                            size="sm"
+                            className={`w-full ${
+                              styleFoundations.fit === fitOption
+                                ? 'bg-brand-blue text-white hover:bg-brand-blue/90'
+                                : ''
+                            }`}
+                            onClick={() =>
+                              setStyleFoundations({ ...styleFoundations, fit: fitOption })
+                            }
+                          >
+                            {fitOption}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Footwear */}
+                    <div>
+                      <Label className="mb-3 block font-semibold text-brand-charcoal">
+                        Footwear
+                      </Label>
+                      <div className="space-y-2">
+                        {['Sneakers', 'Boots', 'Loafers'].map((footwearOption) => (
+                          <Button
+                            key={footwearOption}
+                            variant={
+                              styleFoundations.footwear === footwearOption ? 'default' : 'outline'
+                            }
+                            size="sm"
+                            className={`w-full ${
+                              styleFoundations.footwear === footwearOption
+                                ? 'bg-brand-blue text-white hover:bg-brand-blue/90'
+                                : ''
+                            }`}
+                            onClick={() =>
+                              setStyleFoundations({
+                                ...styleFoundations,
+                                footwear: footwearOption,
+                              })
+                            }
+                          >
+                            {footwearOption}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <Button
+                    className="w-full bg-brand-charcoal text-white hover:bg-brand-charcoal/90"
+                    size="lg"
+                    onClick={() => {
+                      console.log('Style foundations:', styleFoundations)
+                      alert('Style preferences saved!')
+                    }}
+                  >
+                    <Save className="mr-2 h-5 w-5" />
+                    Save Preferences
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Snapshot Preview */}
+              <Card className="p-6">
+                <div className="mb-6">
+                  <h2 className="mb-1 text-xl font-bold text-brand-charcoal">Snapshot Preview</h2>
+                  <p className="text-sm text-muted-foreground">What your picks might look like</p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((item) => (
+                    <motion.div
+                      key={item}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: item * 0.1 }}
+                      className="aspect-square rounded-lg bg-gradient-to-br from-brand-beige to-brand-ivory p-4"
+                    >
+                      <div className="flex h-full flex-col items-center justify-center">
+                        <Shirt className="mb-2 h-8 w-8 text-brand-charcoal/30" />
+                        <p className="text-center text-xs text-muted-foreground">
+                          {item % 2 === 0
+                            ? 'Piece'
+                            : item === 3
+                              ? 'Look'
+                              : item === 1
+                                ? 'Piece'
+                                : 'Look'}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="mt-6 rounded-lg bg-brand-crimson/10 p-4">
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="h-5 w-5 shrink-0 text-brand-crimson" />
+                    <div>
+                      <h4 className="mb-1 font-semibold text-brand-charcoal">
+                        AI Personalization Active
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        We'll use these preferences to curate outfits that match your style.
+                        Recommendations will improve as you interact with the app.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </motion.div>

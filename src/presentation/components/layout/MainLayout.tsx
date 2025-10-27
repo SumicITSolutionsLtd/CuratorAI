@@ -16,9 +16,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         <TopBar />
 
         {/* Content with bottom padding for mobile nav */}
-        <main className="flex-1 p-4 pb-24 sm:p-6 lg:pb-6">
-          {children}
-        </main>
+        <main className="flex-1 p-3 pb-24 sm:p-4 lg:pb-4">{children}</main>
       </div>
     </div>
   )

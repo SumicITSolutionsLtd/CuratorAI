@@ -32,6 +32,7 @@ const cartItems = [
     quantity: 1,
     image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=500&fit=crop',
     inStock: true,
+    fulfilledBy: 'curatorai', // 'curatorai' or 'external'
   },
   {
     id: 2,
@@ -43,6 +44,7 @@ const cartItems = [
     quantity: 1,
     image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=500&fit=crop',
     inStock: true,
+    fulfilledBy: 'external',
   },
   {
     id: 3,
@@ -54,6 +56,7 @@ const cartItems = [
     quantity: 1,
     image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=500&fit=crop',
     inStock: true,
+    fulfilledBy: 'curatorai',
   },
 ]
 
@@ -180,13 +183,24 @@ export const CartPage = () => {
                             <span>Color: {item.color}</span>
                             <span>Size: {item.size}</span>
                           </div>
-                          {item.inStock ? (
-                            <Badge className="bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20">
-                              In Stock
-                            </Badge>
-                          ) : (
-                            <Badge variant="destructive">Out of Stock</Badge>
-                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {item.inStock ? (
+                              <Badge className="bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20">
+                                In Stock
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive">Out of Stock</Badge>
+                            )}
+                            {item.fulfilledBy === 'curatorai' ? (
+                              <Badge className="bg-brand-crimson/10 text-brand-crimson hover:bg-brand-crimson/20">
+                                Fulfilled by CuratorAI
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-brand-charcoal/10 text-brand-charcoal hover:bg-brand-charcoal/20">
+                                Delivered by External Seller
+                              </Badge>
+                            )}
+                          </div>
                         </div>
 
                         {/* Quantity Controls */}
