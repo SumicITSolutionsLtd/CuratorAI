@@ -54,9 +54,14 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background font-inter text-foreground;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-montserrat font-bold;
   }
 }
@@ -64,5 +69,56 @@
 @layer utilities {
   .font-logo {
     @apply font-playfair;
+  }
+}
+
+/* React Hot Toast - Responsive positioning */
+@layer components {
+  /* Mobile: Center toasts */
+  @media (max-width: 1023px) {
+    [data-hot-toast] {
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Desktop: Right-aligned toasts */
+  @media (min-width: 1024px) {
+    [data-hot-toast] {
+      right: 1rem !important;
+      left: auto !important;
+    }
+  }
+
+  /* Smooth animations */
+  .animate-enter {
+    animation: slideIn 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+  }
+
+  .animate-leave {
+    animation: slideOut 0.2s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
   }
 }

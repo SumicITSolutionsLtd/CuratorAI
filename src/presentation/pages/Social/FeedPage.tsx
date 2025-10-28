@@ -74,10 +74,11 @@ export const FeedPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between"
         >
-          <h1 className="text-3xl font-bold">Feed</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Feed</h1>
           <Button className="bg-brand-crimson hover:bg-brand-crimson/90">
             <Plus className="mr-2 h-4 w-4" />
-            Create Post
+            <span className="hidden sm:inline">Create Post</span>
+            <span className="sm:hidden">Post</span>
           </Button>
         </motion.div>
 
@@ -110,17 +111,13 @@ export const FeedPage = () => {
 
           <TabsContent value="following" className="mt-6">
             <div className="rounded-lg border bg-muted/50 p-12 text-center">
-              <p className="text-muted-foreground">
-                Follow more users to see their posts here
-              </p>
+              <p className="text-muted-foreground">Follow more users to see their posts here</p>
             </div>
           </TabsContent>
 
           <TabsContent value="trending" className="mt-6">
             <div className="rounded-lg border bg-muted/50 p-12 text-center">
-              <p className="text-muted-foreground">
-                Trending posts will appear here
-              </p>
+              <p className="text-muted-foreground">Trending posts will appear here</p>
             </div>
           </TabsContent>
         </Tabs>

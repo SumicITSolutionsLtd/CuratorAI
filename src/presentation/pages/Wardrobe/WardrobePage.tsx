@@ -134,28 +134,32 @@ export const WardrobePage = () => {
       >
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-heading text-3xl font-bold text-brand-charcoal">My Wardrobe</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+          <div className="flex-1">
+            <h1 className="font-heading text-2xl font-bold text-brand-charcoal sm:text-3xl">
+              My Wardrobe
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
               Organize, track, and style your fashion collection
             </p>
           </div>
           <div className="flex gap-2">
-            <Link to="/wardrobe/create-outfit">
-              <Button className="bg-brand-blue hover:bg-brand-blue/90">
+            <Link to="/wardrobe/create-outfit" className="flex-1 sm:flex-none">
+              <Button className="w-full bg-brand-blue hover:bg-brand-blue/90 sm:w-auto">
                 <Sparkles className="mr-2 h-4 w-4" />
-                Create Outfit
+                <span className="hidden sm:inline">Create Outfit</span>
+                <span className="sm:hidden">Create</span>
               </Button>
             </Link>
-            <Button className="bg-brand-crimson hover:bg-brand-crimson/90">
+            <Button className="flex-1 bg-brand-crimson hover:bg-brand-crimson/90 sm:flex-none">
               <Plus className="mr-2 h-4 w-4" />
-              Add Item
+              <span className="hidden sm:inline">Add Item</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
             <Card className="border-brand-crimson/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-crimson/10">
               <div className="flex items-center gap-3">
@@ -286,7 +290,7 @@ export const WardrobePage = () => {
         <div
           className={cn(
             'grid gap-4',
-            viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'
+            viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
           )}
         >
           {wardrobeItems.map((item, index) => (
@@ -307,13 +311,14 @@ export const WardrobePage = () => {
                       whileHover={{ scale: 1.1 }}
                       transition={{ duration: 0.3 }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                    {/* Desktop hover overlay */}
+                    <div className="absolute inset-0 hidden bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 lg:block" />
 
-                    {/* Quick Stats Overlay */}
+                    {/* Quick Stats Overlay - Desktop (hover) */}
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       whileHover={{ opacity: 1, y: 0 }}
-                      className="absolute bottom-2 left-2 right-2 flex gap-2"
+                      className="absolute bottom-2 left-2 right-2 hidden gap-2 lg:flex"
                     >
                       <Badge className="bg-white/90 text-brand-charcoal hover:bg-white">
                         Worn {item.timesWorn}×
@@ -322,6 +327,16 @@ export const WardrobePage = () => {
                         {item.lastWorn}
                       </Badge>
                     </motion.div>
+
+                    {/* Mobile Stats - Always visible */}
+                    <div className="absolute bottom-2 left-2 right-2 flex gap-2 lg:hidden">
+                      <Badge className="bg-white/95 text-brand-charcoal backdrop-blur-sm">
+                        Worn {item.timesWorn}×
+                      </Badge>
+                      <Badge className="bg-white/95 text-brand-charcoal backdrop-blur-sm">
+                        {item.lastWorn}
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Item Info */}

@@ -1,4 +1,5 @@
 import { Toaster } from '@/presentation/components/ui/toaster'
+import { ToastProvider } from '@/presentation/components/common/ToastProvider'
 import { AppRoutes } from '@/presentation/routes'
 
 function App() {
@@ -6,6 +7,7 @@ function App() {
     <>
       <AppRoutes />
       <Toaster />
+      <ToastProvider />
     </>
   )
 }

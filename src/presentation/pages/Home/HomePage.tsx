@@ -1,10 +1,28 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles, TrendingUp, Palette, Calendar, MapPin, Zap } from 'lucide-react'
+import {
+  Sparkles,
+  TrendingUp,
+  Palette,
+  Calendar,
+  MapPin,
+  Zap,
+  SlidersHorizontal,
+  Settings2,
+} from 'lucide-react'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import { OutfitGrid } from '@/presentation/components/outfit/OutfitGrid'
 import { FilterPanel } from '@/presentation/components/outfit/FilterPanel'
 import { ControlPanel } from '@/presentation/components/outfit/ControlPanel'
 import { Card } from '@/presentation/components/ui/card'
+import { Button } from '@/presentation/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/presentation/components/ui/sheet'
 
 const mockOutfits = [
   {
@@ -94,6 +112,9 @@ const mockOutfits = [
 ]
 
 export const HomePage = () => {
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [controlOpen, setControlOpen] = useState(false)
+
   return (
     <MainLayout>
       <div className="space-y-4">
@@ -235,23 +256,75 @@ export const HomePage = () => {
           </Card>
         </motion.div>
 
-        {/* Main Content - Three Column Layout */}
-        <div className="grid gap-4 lg:grid-cols-[240px_1fr_280px]">
-          {/* Left: Filters */}
-          <div>
-            <FilterPanel />
+        {/* Main Content - Three Column Layout (Desktop) / Mobile with Drawers */}
+        <div className="grid gap-4 xl:grid-cols-[240px_1fr_280px]">
+          {/* Left: Filters (Desktop Only) */}
+          <div className="hidden xl:block">
+            <div className="sticky top-6 self-start">
+              <FilterPanel />
+            </div>
           </div>
 
           {/* Center: Outfit Grid */}
-          <div>
+          <div className="relative">
             <OutfitGrid outfits={mockOutfits} />
           </div>
 
-          {/* Right: Controls */}
-          <div>
-            <ControlPanel />
+          {/* Right: Controls (Desktop Only) */}
+          <div className="hidden xl:block">
+            <div className="sticky top-6 self-start">
+              <ControlPanel />
+            </div>
           </div>
         </div>
+
+        {/* Mobile Floating Action Buttons */}
+        <div className="fixed bottom-24 right-4 z-40 flex flex-col gap-3 xl:hidden">
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button
+              size="icon"
+              className="h-14 w-14 rounded-full bg-brand-crimson shadow-lg hover:bg-brand-crimson/90"
+              onClick={() => setFilterOpen(true)}
+            >
+              <SlidersHorizontal className="h-6 w-6" />
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button
+              size="icon"
+              className="h-14 w-14 rounded-full bg-brand-blue shadow-lg hover:bg-brand-blue/90"
+              onClick={() => setControlOpen(true)}
+            >
+              <Settings2 className="h-6 w-6" />
+            </Button>
+          </motion.div>
+        </div>
+
+        {/* Mobile Filters Sheet */}
+        <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+          <SheetContent side="left" className="w-[300px] overflow-y-auto sm:w-[400px]">
+            <SheetHeader>
+              <SheetTitle>Filters</SheetTitle>
+              <SheetDescription>Refine your outfit recommendations</SheetDescription>
+            </SheetHeader>
+            <div className="mt-6">
+              <FilterPanel />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Mobile Controls Sheet */}
+        <Sheet open={controlOpen} onOpenChange={setControlOpen}>
+          <SheetContent side="right" className="w-[300px] overflow-y-auto sm:w-[400px]">
+            <SheetHeader>
+              <SheetTitle>AI Controls</SheetTitle>
+              <SheetDescription>Customize your recommendations</SheetDescription>
+            </SheetHeader>
+            <div className="mt-6">
+              <ControlPanel />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </MainLayout>
   )

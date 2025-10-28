@@ -68,26 +68,41 @@ export const SettingsPage = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="profile">
-              <User className="mr-2 h-4 w-4" />
-              Profile
+          <TabsList className="grid w-full grid-cols-5 lg:gap-2">
+            <TabsTrigger
+              value="profile"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <User className="h-4 w-4 lg:h-4 lg:w-4" />
+              <span className="text-[10px] font-medium lg:text-sm">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications">
-              <Bell className="mr-2 h-4 w-4" />
-              Notifications
+            <TabsTrigger
+              value="notifications"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <Bell className="h-4 w-4 lg:h-4 lg:w-4" />
+              <span className="text-[10px] font-medium lg:text-sm">Notify</span>
             </TabsTrigger>
-            <TabsTrigger value="privacy">
-              <Shield className="mr-2 h-4 w-4" />
-              Privacy
+            <TabsTrigger
+              value="privacy"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <Shield className="h-4 w-4 lg:h-4 lg:w-4" />
+              <span className="text-[10px] font-medium lg:text-sm">Privacy</span>
             </TabsTrigger>
-            <TabsTrigger value="preferences">
-              <Palette className="mr-2 h-4 w-4" />
-              Preferences
+            <TabsTrigger
+              value="preferences"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <Palette className="h-4 w-4 lg:h-4 lg:w-4" />
+              <span className="text-[10px] font-medium lg:text-sm">Style</span>
             </TabsTrigger>
-            <TabsTrigger value="style-quiz">
-              <Sparkles className="mr-2 h-4 w-4" />
-              Style Quiz
+            <TabsTrigger
+              value="style-quiz"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <Sparkles className="h-4 w-4 lg:h-4 lg:w-4" />
+              <span className="text-[10px] font-medium lg:text-sm">Quiz</span>
             </TabsTrigger>
           </TabsList>
 
@@ -539,7 +554,7 @@ export const SettingsPage = () => {
                   </div>
 
                   {/* Fit */}
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
                       <Label className="mb-3 block font-semibold text-brand-charcoal">Fit</Label>
                       <div className="space-y-2">
@@ -617,7 +632,7 @@ export const SettingsPage = () => {
                   <p className="text-sm text-muted-foreground">What your picks might look like</p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {[1, 2, 3, 4, 5, 6].map((item) => (
                     <motion.div
                       key={item}

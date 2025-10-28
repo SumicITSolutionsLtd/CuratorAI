@@ -272,7 +272,7 @@ export const CartPage = () => {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="sticky top-6 space-y-4">
+              <div className="space-y-4 lg:sticky lg:top-6">
                 <Card className="border-brand-crimson/20 p-6 shadow-lg">
                   <h2 className="font-heading mb-4 text-xl font-bold text-brand-charcoal">
                     Order Summary

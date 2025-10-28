@@ -137,22 +137,22 @@ export const AIChat = () => {
   }
 
   return (
-    <Card className="flex h-[600px] flex-col overflow-hidden">
+    <Card className="flex h-[500px] flex-col overflow-hidden sm:h-[600px]">
       {/* Header */}
-      <div className="border-b bg-gradient-to-r from-brand-crimson to-brand-blue p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-            <Sparkles className="h-5 w-5 text-brand-crimson" />
+      <div className="border-b bg-gradient-to-r from-brand-crimson to-brand-blue p-3 sm:p-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white sm:h-10 sm:w-10">
+            <Sparkles className="h-4 w-4 text-brand-crimson sm:h-5 sm:w-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-white">AI Fashion Assistant</h3>
+            <h3 className="text-sm font-semibold text-white sm:text-base">AI Fashion Assistant</h3>
             <p className="text-xs text-white/80">Powered by CuratorAI</p>
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+      <div className="flex-1 space-y-3 overflow-y-auto p-3 sm:space-y-4 sm:p-4">
         <AnimatePresence>
           {messages.map((message) => (
             <motion.div
@@ -160,9 +160,9 @@ export const AIChat = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+              className={`flex gap-2 sm:gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
             >
-              <Avatar className="h-8 w-8 shrink-0">
+              <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
                 <AvatarFallback
                   className={
                     message.role === 'assistant'
@@ -171,24 +171,24 @@ export const AIChat = () => {
                   }
                 >
                   {message.role === 'assistant' ? (
-                    <Bot className="h-4 w-4" />
+                    <Bot className="h-3 w-3 sm:h-4 sm:w-4" />
                   ) : (
-                    <User className="h-4 w-4" />
+                    <User className="h-3 w-3 sm:h-4 sm:w-4" />
                   )}
                 </AvatarFallback>
               </Avatar>
 
               <div
-                className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[80%]`}
+                className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[80%]`}
               >
                 <div
-                  className={`rounded-2xl px-4 py-2 ${
+                  className={`rounded-2xl px-3 py-2 sm:px-4 ${
                     message.role === 'user'
                       ? 'bg-brand-blue text-white'
                       : 'bg-brand-beige text-brand-charcoal'
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  <p className="text-xs sm:text-sm">{message.content}</p>
                 </div>
                 <span className="mt-1 text-xs text-muted-foreground">
                   {message.timestamp.toLocaleTimeString([], {
@@ -239,19 +239,19 @@ export const AIChat = () => {
       </div>
 
       {/* Input Area */}
-      <div className="border-t bg-background p-4">
+      <div className="border-t bg-background p-3 sm:p-4">
         {isRecording && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-3 flex items-center justify-center gap-2"
+            className="mb-2 flex items-center justify-center gap-2 sm:mb-3"
           >
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ repeat: Infinity, duration: 1 }}
-              className="h-3 w-3 rounded-full bg-red-500"
+              className="h-2 w-2 rounded-full bg-red-500 sm:h-3 sm:w-3"
             />
-            <Badge variant="destructive" className="animate-pulse">
+            <Badge variant="destructive" className="animate-pulse text-xs">
               Recording...
             </Badge>
           </motion.div>
@@ -263,8 +263,8 @@ export const AIChat = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your message or use voice note..."
-              className="pr-12"
+              placeholder="Type your message..."
+              className="pr-12 text-sm"
               disabled={isRecording || isProcessing}
             />
           </div>
@@ -275,9 +275,15 @@ export const AIChat = () => {
             variant={isRecording ? 'destructive' : 'outline'}
             onClick={isRecording ? stopRecording : startRecording}
             disabled={isProcessing}
-            className={isRecording ? 'animate-pulse' : ''}
+            className={
+              isRecording ? 'h-9 w-9 animate-pulse sm:h-10 sm:w-10' : 'h-9 w-9 sm:h-10 sm:w-10'
+            }
           >
-            {isRecording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            {isRecording ? (
+              <Square className="h-3 w-3 sm:h-4 sm:w-4" />
+            ) : (
+              <Mic className="h-3 w-3 sm:h-4 sm:w-4" />
+            )}
           </Button>
 
           {/* Send Button */}
@@ -285,9 +291,9 @@ export const AIChat = () => {
             size="icon"
             onClick={handleSendMessage}
             disabled={input.trim() === '' || isRecording || isProcessing}
-            className="bg-brand-crimson hover:bg-brand-crimson/90"
+            className="h-9 w-9 bg-brand-crimson hover:bg-brand-crimson/90 sm:h-10 sm:w-10"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
 

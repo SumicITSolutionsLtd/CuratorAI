@@ -91,13 +91,15 @@ export const CreatePostPage = () => {
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-heading text-3xl font-bold text-brand-charcoal">Create Post</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+          <div className="flex-1">
+            <h1 className="font-heading text-2xl font-bold text-brand-charcoal sm:text-3xl">
+              Create Post
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
               Share your outfit with the community
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button variant="outline" onClick={() => navigate(-1)} className="ml-2">
             Cancel
           </Button>
         </div>
@@ -128,13 +130,14 @@ export const CreatePostPage = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-brand-charcoal">Upload Photos</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
+                      <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
                         Click to browse or drag and drop
                       </p>
                     </div>
                     <Button className="bg-brand-crimson hover:bg-brand-crimson/90">
                       <Camera className="mr-2 h-4 w-4" />
-                      Take Photo
+                      <span className="hidden sm:inline">Take Photo</span>
+                      <span className="sm:hidden">Photo</span>
                     </Button>
                   </div>
                 </motion.label>
@@ -249,96 +252,99 @@ export const CreatePostPage = () => {
 
           {/* Sidebar */}
           <div className="space-y-6 lg:col-span-1">
-            {/* Author Card */}
-            <Card className="bg-gradient-to-br from-brand-ivory to-brand-beige p-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
-                  <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" />
-                  <AvatarFallback>SC</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold text-brand-charcoal">Sarah Chen</p>
-                  <p className="text-xs text-muted-foreground">@sarahchen</p>
+            <div className="sticky top-6 space-y-6">
+              {/* Author Card */}
+              <Card className="bg-gradient-to-br from-brand-ivory to-brand-beige p-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
+                    <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" />
+                    <AvatarFallback>SC</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold text-brand-charcoal">Sarah Chen</p>
+                    <p className="text-xs text-muted-foreground">@sarahchen</p>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
 
-            {/* Post Settings */}
-            <Card className="space-y-4 p-6">
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="location"
-                    placeholder="Add location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="pl-10"
-                  />
+              {/* Post Settings */}
+              <Card className="space-y-4 p-6">
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="location"
+                      placeholder="Add location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <Separator />
+                <Separator />
 
-              <div className="space-y-2">
-                <Label htmlFor="visibility">Visibility</Label>
-                <Select value={visibility} onValueChange={setVisibility}>
-                  <SelectTrigger id="visibility">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
-                        <span>Public</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="followers">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span>Followers Only</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="private">
-                      <div className="flex items-center gap-2">
-                        <Lock className="h-4 w-4" />
-                        <span>Only Me</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="visibility">Visibility</Label>
+                  <Select value={visibility} onValueChange={setVisibility}>
+                    <SelectTrigger id="visibility">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">
+                        <div className="flex items-center gap-2">
+                          <Globe className="h-4 w-4" />
+                          <span>Public</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="followers">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          <span>Followers Only</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="private">
+                        <div className="flex items-center gap-2">
+                          <Lock className="h-4 w-4" />
+                          <span>Only Me</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <Separator />
+                <Separator />
 
-              <div className="space-y-2">
-                <Label>AI Enhancement</Label>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start border-brand-blue text-brand-blue hover:bg-brand-blue/10"
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Caption with AI
-                </Button>
-              </div>
-            </Card>
+                <div className="space-y-2">
+                  <Label>AI Enhancement</Label>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start border-brand-blue text-brand-blue hover:bg-brand-blue/10"
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Generate Caption with AI</span>
+                    <span className="sm:hidden">AI Caption</span>
+                  </Button>
+                </div>
+              </Card>
 
-            {/* Post Button */}
-            <Button
-              onClick={handlePost}
-              disabled={images.length === 0 || isPosting}
-              className="h-12 w-full bg-brand-crimson hover:bg-brand-crimson/90"
-            >
-              {isPosting ? (
-                <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Posting...
-                </>
-              ) : (
-                'Share Post'
-              )}
-            </Button>
+              {/* Post Button */}
+              <Button
+                onClick={handlePost}
+                disabled={images.length === 0 || isPosting}
+                className="h-12 w-full bg-brand-crimson hover:bg-brand-crimson/90"
+              >
+                {isPosting ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Posting...
+                  </>
+                ) : (
+                  'Share Post'
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </motion.div>

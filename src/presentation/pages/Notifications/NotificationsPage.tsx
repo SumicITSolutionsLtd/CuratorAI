@@ -153,21 +153,29 @@ export const NotificationsPage = () => {
         className="mx-auto max-w-3xl space-y-6"
       >
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-heading text-3xl font-bold text-brand-charcoal">Notifications</h1>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex-1">
+            <h1 className="font-heading text-2xl font-bold text-brand-charcoal sm:text-3xl">
+              Notifications
+            </h1>
             {unreadCount > 0 && (
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
                 You have {unreadCount} unread {unreadCount === 1 ? 'notification' : 'notifications'}
               </p>
             )}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={markAllAsRead} disabled={unreadCount === 0}>
+            <Button
+              variant="outline"
+              onClick={markAllAsRead}
+              disabled={unreadCount === 0}
+              className="flex-1 sm:flex-none"
+            >
               <Check className="mr-2 h-4 w-4" />
-              Mark all read
+              <span className="hidden sm:inline">Mark all read</span>
+              <span className="sm:hidden">Mark read</span>
             </Button>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="shrink-0">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
@@ -175,27 +183,47 @@ export const NotificationsPage = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="all">
-              All
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger
+              value="all"
+              className="relative flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <span className="text-[10px] font-medium lg:text-sm">All</span>
               {unreadCount > 0 && (
-                <Badge variant="secondary" className="ml-2 px-1.5 py-0">
+                <Badge
+                  variant="secondary"
+                  className="absolute -right-1 -top-1 h-4 min-w-[16px] px-1 text-[9px] lg:relative lg:right-auto lg:top-auto lg:ml-1 lg:h-5 lg:min-w-[20px] lg:px-1.5 lg:text-xs"
+                >
                   {unreadCount}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="unread">Unread</TabsTrigger>
-            <TabsTrigger value="like">
-              <Heart className="mr-2 h-4 w-4" />
-              Likes
+            <TabsTrigger
+              value="unread"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <span className="text-[10px] font-medium lg:text-sm">Unread</span>
             </TabsTrigger>
-            <TabsTrigger value="comment">
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Comments
+            <TabsTrigger
+              value="like"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <Heart className="h-4 w-4" />
+              <span className="text-[10px] font-medium lg:text-sm">Likes</span>
             </TabsTrigger>
-            <TabsTrigger value="follow">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Follows
+            <TabsTrigger
+              value="comment"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span className="text-[10px] font-medium lg:text-sm">Comments</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="follow"
+              className="flex-col gap-1 px-2 py-3 lg:flex-row lg:gap-2 lg:px-4"
+            >
+              <UserPlus className="h-4 w-4" />
+              <span className="text-[10px] font-medium lg:text-sm">Follows</span>
             </TabsTrigger>
           </TabsList>
 

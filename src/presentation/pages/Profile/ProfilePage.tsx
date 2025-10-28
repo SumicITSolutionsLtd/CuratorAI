@@ -128,13 +128,14 @@ export const ProfilePage = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {profile.isOwnProfile ? (
                   <>
                     <Link to="/settings">
-                      <Button variant="outline">
+                      <Button variant="outline" className="w-full sm:w-auto">
                         <Settings className="mr-2 h-4 w-4" />
-                        Edit Profile
+                        <span className="hidden sm:inline">Edit Profile</span>
+                        <span className="sm:hidden">Edit</span>
                       </Button>
                     </Link>
                     <Button variant="outline" size="icon">
@@ -234,22 +235,22 @@ export const ProfilePage = () => {
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="posts">
-              <Grid3x3 className="mr-2 h-4 w-4" />
-              Posts
+            <TabsTrigger value="posts" className="gap-1 sm:gap-2">
+              <Grid3x3 className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Posts</span>
             </TabsTrigger>
-            <TabsTrigger value="lookbooks">
-              <BookOpen className="mr-2 h-4 w-4" />
-              Lookbooks
+            <TabsTrigger value="lookbooks" className="gap-1 sm:gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Lookbooks</span>
             </TabsTrigger>
-            <TabsTrigger value="liked">
-              <Heart className="mr-2 h-4 w-4" />
-              Liked
+            <TabsTrigger value="liked" className="gap-1 sm:gap-2">
+              <Heart className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Liked</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="posts" className="mt-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {posts.map((post, index) => (
                 <motion.div
                   key={post.id}
@@ -272,7 +273,7 @@ export const ProfilePage = () => {
 
           <TabsContent value="liked" className="mt-6">
             {profile.isOwnProfile ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {posts.slice(0, 2).map((post, index) => (
                   <motion.div
                     key={post.id}

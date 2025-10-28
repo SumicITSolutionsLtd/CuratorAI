@@ -239,154 +239,158 @@ export const PostDetailPage = () => {
 
           {/* Details Sidebar */}
           <div className="space-y-4 lg:col-span-1">
-            {/* Author Card */}
-            <Card className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Link to={`/profile/${post.author.username}`}>
-                    <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
-                      <AvatarImage src={post.author.avatar} />
-                      <AvatarFallback>{post.author.name[0]}</AvatarFallback>
-                    </Avatar>
-                  </Link>
-                  <div>
+            <div className="sticky top-6 space-y-4">
+              {/* Author Card */}
+              <Card className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
                     <Link to={`/profile/${post.author.username}`}>
-                      <p className="font-semibold text-brand-charcoal transition-colors hover:text-brand-crimson">
-                        {post.author.name}
-                      </p>
+                      <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
+                        <AvatarImage src={post.author.avatar} />
+                        <AvatarFallback>{post.author.name[0]}</AvatarFallback>
+                      </Avatar>
                     </Link>
-                    <p className="text-xs text-muted-foreground">
-                      {post.author.followers.toLocaleString()} followers
-                    </p>
-                  </div>
-                </div>
-                <Button className="bg-brand-crimson hover:bg-brand-crimson/90">Follow</Button>
-              </div>
-
-              <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {post.timestamp}
-                </div>
-                {post.location && (
-                  <>
-                    <span>•</span>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {post.location}
+                    <div>
+                      <Link to={`/profile/${post.author.username}`}>
+                        <p className="font-semibold text-brand-charcoal transition-colors hover:text-brand-crimson">
+                          {post.author.name}
+                        </p>
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {post.author.followers.toLocaleString()} followers
+                      </p>
                     </div>
-                  </>
+                  </div>
+                  <Button className="bg-brand-crimson hover:bg-brand-crimson/90">Follow</Button>
+                </div>
+
+                <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {post.timestamp}
+                  </div>
+                  {post.location && (
+                    <>
+                      <span>•</span>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {post.location}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </Card>
+
+              {/* Caption */}
+              <Card className="p-4">
+                <p className="whitespace-pre-line text-sm text-brand-charcoal">{post.caption}</p>
+                {post.tags.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {post.tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="outline"
+                        className="border-brand-crimson/30 text-brand-crimson hover:bg-brand-crimson/10"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                 )}
-              </div>
-            </Card>
+              </Card>
 
-            {/* Caption */}
-            <Card className="p-4">
-              <p className="whitespace-pre-line text-sm text-brand-charcoal">{post.caption}</p>
-              {post.tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="outline"
-                      className="border-brand-crimson/30 text-brand-crimson hover:bg-brand-crimson/10"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
+              {/* Products */}
+              <Card className="p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="font-semibold text-brand-charcoal">Products in this post</h3>
+                  <ShoppingBag className="h-5 w-5 text-brand-crimson" />
                 </div>
-              )}
-            </Card>
-
-            {/* Products */}
-            <Card className="p-4">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-semibold text-brand-charcoal">Products in this post</h3>
-                <ShoppingBag className="h-5 w-5 text-brand-crimson" />
-              </div>
-              <div className="space-y-3">
-                {post.items.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted"
-                  >
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-brand-charcoal">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">{item.brand}</p>
+                <div className="space-y-3">
+                  {post.items.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted"
+                    >
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-brand-charcoal">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.brand}</p>
+                      </div>
+                      <p className="text-sm font-semibold text-brand-charcoal">${item.price}</p>
                     </div>
-                    <p className="text-sm font-semibold text-brand-charcoal">${item.price}</p>
-                  </div>
-                ))}
-                <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
-                  <ShoppingBag className="mr-2 h-4 w-4" />
-                  Shop Similar
-                </Button>
-              </div>
-            </Card>
-
-            {/* Comments */}
-            <Card className="p-4">
-              <h3 className="mb-4 font-semibold text-brand-charcoal">
-                Comments ({localComments.length})
-              </h3>
-
-              {/* Comment Input */}
-              <div className="mb-4 flex gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=You" />
-                  <AvatarFallback>You</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-1 gap-2">
-                  <Input
-                    placeholder="Add a comment..."
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                  />
-                  <Button
-                    size="icon"
-                    onClick={handleComment}
-                    disabled={!comment.trim()}
-                    className="bg-brand-crimson hover:bg-brand-crimson/90"
-                  >
-                    <Send className="h-4 w-4" />
+                  ))}
+                  <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
+                    <ShoppingBag className="mr-2 h-4 w-4" />
+                    Shop Similar
                   </Button>
                 </div>
-              </div>
+              </Card>
 
-              <Separator className="my-4" />
+              {/* Comments */}
+              <Card className="p-4">
+                <h3 className="mb-4 font-semibold text-brand-charcoal">
+                  Comments ({localComments.length})
+                </h3>
 
-              {/* Comments List */}
-              <div className="max-h-[400px] space-y-4 overflow-y-auto">
-                {localComments.map((comment, index) => (
-                  <motion.div
-                    key={comment.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="flex gap-3"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={comment.author.avatar} />
-                      <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="rounded-lg bg-muted p-3">
-                        <p className="text-sm font-semibold text-brand-charcoal">
-                          {comment.author.name}
-                        </p>
-                        <p className="mt-1 text-sm text-brand-charcoal">{comment.text}</p>
+                {/* Comment Input */}
+                <div className="mb-4 flex gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=You" />
+                    <AvatarFallback>You</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-1 gap-2">
+                    <Input
+                      placeholder="Add a comment..."
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleComment()}
+                    />
+                    <Button
+                      size="icon"
+                      onClick={handleComment}
+                      disabled={!comment.trim()}
+                      className="bg-brand-crimson hover:bg-brand-crimson/90"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator className="my-4" />
+
+                {/* Comments List */}
+                <div className="max-h-[400px] space-y-4 overflow-y-auto">
+                  {localComments.map((comment, index) => (
+                    <motion.div
+                      key={comment.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex gap-3"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={comment.author.avatar} />
+                        <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="rounded-lg bg-muted p-3">
+                          <p className="text-sm font-semibold text-brand-charcoal">
+                            {comment.author.name}
+                          </p>
+                          <p className="mt-1 text-sm text-brand-charcoal">{comment.text}</p>
+                        </div>
+                        <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
+                          <button className="hover:text-brand-crimson">
+                            Like ({comment.likes})
+                          </button>
+                          <button className="hover:text-brand-blue">Reply</button>
+                          <span>{comment.timestamp}</span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
-                        <button className="hover:text-brand-crimson">Like ({comment.likes})</button>
-                        <button className="hover:text-brand-blue">Reply</button>
-                        <span>{comment.timestamp}</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </motion.div>

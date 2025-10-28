@@ -139,13 +139,15 @@ export const LookbooksPage = () => {
       >
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-heading text-3xl font-bold text-brand-charcoal">Lookbooks</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+          <div className="flex-1">
+            <h1 className="font-heading text-2xl font-bold text-brand-charcoal sm:text-3xl">
+              Lookbooks
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
               Curated outfit collections from our fashion community
             </p>
           </div>
-          <Button className="bg-brand-crimson hover:bg-brand-crimson/90">
+          <Button className="w-full bg-brand-crimson hover:bg-brand-crimson/90 sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Create Lookbook
           </Button>
@@ -203,17 +205,17 @@ export const LookbooksPage = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="trending">
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Trending
+            <TabsTrigger value="trending" className="gap-1 sm:gap-2">
+              <TrendingUp className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Trending</span>
             </TabsTrigger>
-            <TabsTrigger value="following">
-              <Users className="mr-2 h-4 w-4" />
-              Following
+            <TabsTrigger value="following" className="gap-1 sm:gap-2">
+              <Users className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Following</span>
             </TabsTrigger>
-            <TabsTrigger value="saved">
-              <Bookmark className="mr-2 h-4 w-4" />
-              Saved
+            <TabsTrigger value="saved" className="gap-1 sm:gap-2">
+              <Bookmark className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Saved</span>
             </TabsTrigger>
           </TabsList>
 
@@ -256,11 +258,11 @@ export const LookbooksPage = () => {
                           </motion.div>
                         )}
 
-                        {/* Quick Actions */}
+                        {/* Quick Actions - Desktop (hover) */}
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           whileHover={{ opacity: 1, y: 0 }}
-                          className="absolute right-3 top-3 flex gap-2"
+                          className="absolute right-3 top-3 hidden gap-2 lg:flex"
                         >
                           <Button
                             size="icon"
@@ -277,6 +279,24 @@ export const LookbooksPage = () => {
                             <Bookmark className="h-4 w-4" />
                           </Button>
                         </motion.div>
+
+                        {/* Quick Actions - Mobile (always visible) */}
+                        <div className="absolute right-3 top-3 flex gap-2 lg:hidden">
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white"
+                          >
+                            <Heart className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white"
+                          >
+                            <Bookmark className="h-4 w-4" />
+                          </Button>
+                        </div>
 
                         {/* Bottom Info Overlay */}
                         <div className="absolute bottom-0 left-0 right-0 p-4">
