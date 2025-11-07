@@ -212,115 +212,48 @@ export const OutfitCard = ({
             </div>
           </motion.div>
 
-          {/* Mobile Quick Actions Bar - Always visible on mobile */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2.5 lg:hidden">
-            <div className="flex gap-2">
-              {/* Social Actions */}
-              <div className="flex gap-1.5">
+          {/* Minimal Info Overlay - Always visible */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-3 lg:p-4">
+            <div className="flex items-end justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="mb-1 truncate text-sm font-bold leading-tight text-white lg:text-base">
+                  {name}
+                </h3>
+                <div className="flex flex-wrap items-center gap-1.5 lg:gap-2">
+                  <p className="text-lg font-bold text-white lg:text-xl">${displayPrice}</p>
+                  <span className="text-xs text-white/60">• {likes} likes</span>
+                </div>
+              </div>
+              {/* Quick Action Icons */}
+              <div className="flex gap-1">
                 <Button
                   size="icon"
-                  variant={isLiked ? 'default' : 'secondary'}
-                  className={cn(
-                    'h-8 w-8 backdrop-blur-sm',
-                    isLiked && 'bg-brand-crimson hover:bg-brand-crimson/90'
-                  )}
+                  variant="ghost"
+                  className="h-8 w-8 bg-white/20 backdrop-blur-sm hover:bg-white/30 lg:h-9 lg:w-9"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleLike()
                   }}
                 >
-                  <Heart className={cn('h-3.5 w-3.5', isLiked && 'fill-current')} />
+                  <Heart
+                    className={cn(
+                      'h-3.5 w-3.5 text-white lg:h-4 lg:w-4',
+                      isLiked && 'fill-current'
+                    )}
+                  />
                 </Button>
                 <Button
                   size="icon"
-                  variant={isSaved ? 'default' : 'secondary'}
-                  className={cn(
-                    'h-8 w-8 backdrop-blur-sm',
-                    isSaved && 'bg-brand-blue hover:bg-brand-blue/90'
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleSave()
-                  }}
-                >
-                  <Bookmark className={cn('h-3.5 w-3.5', isSaved && 'fill-current')} />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="h-8 w-8 backdrop-blur-sm"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleShare()
-                  }}
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-
-              {/* Primary Actions */}
-              <div className="ml-auto flex flex-1 gap-1.5">
-                <Button
-                  size="sm"
-                  className="flex-1 bg-brand-blue text-white backdrop-blur-sm hover:bg-brand-blue/90"
+                  variant="ghost"
+                  className="h-8 w-8 bg-white/20 backdrop-blur-sm hover:bg-white/30 lg:h-9 lg:w-9"
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowTryOn(true)
                   }}
                 >
-                  <Scan className="mr-1 h-3.5 w-3.5" />
-                  <span className="text-xs">Try On</span>
-                </Button>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-white text-brand-charcoal backdrop-blur-sm hover:bg-white/90"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleAddToCart()
-                  }}
-                >
-                  <ShoppingBag className="mr-1 h-3.5 w-3.5" />
-                  <span className="text-xs">Shop</span>
+                  <Scan className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4" />
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4">
-          <h3 className="mb-2 text-lg font-semibold leading-tight">{name}</h3>
-
-          {/* Tags */}
-          <div className="mb-3 flex flex-wrap gap-1">
-            {tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-
-          {/* Items Preview */}
-          <div className="mb-3 space-y-1">
-            {items.slice(0, 2).map((item, idx) => (
-              <p key={idx} className="text-xs text-muted-foreground">
-                • {item.name}
-                {item.price ? ` - $${item.price}` : ''}
-              </p>
-            ))}
-            {items.length > 2 && (
-              <p className="text-xs text-muted-foreground">+{items.length - 2} more items</p>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between border-t pt-3">
-            <div>
-              <p className="text-xs text-muted-foreground">Total Price</p>
-              <p className="text-lg font-bold text-brand-crimson">${displayPrice}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">{likes} likes</p>
             </div>
           </div>
         </div>
