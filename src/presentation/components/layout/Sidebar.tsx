@@ -29,12 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '../ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 
 const navItems = [
   { icon: Home, label: 'Home', path: '/home', primary: true },
@@ -64,6 +59,8 @@ export const Sidebar = () => {
     const newState = !isCollapsed
     setIsCollapsed(newState)
     localStorage.setItem('sidebar-collapsed', JSON.stringify(newState))
+    // Dispatch custom event for same-tab updates
+    window.dispatchEvent(new Event('sidebar-toggle'))
   }
 
   const primaryItems = navItems.filter((item) => item.primary)
@@ -76,7 +73,7 @@ export const Sidebar = () => {
         initial={{ x: -280 }}
         animate={{
           x: 0,
-          width: isCollapsed ? '5rem' : '16rem'
+          width: isCollapsed ? '5rem' : '16rem',
         }}
         transition={{ duration: 0.3 }}
         className="fixed left-0 top-0 z-40 hidden h-screen border-r bg-background lg:block"
@@ -88,16 +85,16 @@ export const Sidebar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="border-b p-4 mt-4"
+              className="mt-4 border-b p-4"
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
                   <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" />
                   <AvatarFallback>SC</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">Sarah Chen</p>
-                  <p className="text-xs text-muted-foreground truncate">Fashion Enthusiast</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">Sarah Chen</p>
+                  <p className="truncate text-xs text-muted-foreground">Fashion Enthusiast</p>
                 </div>
                 <button className="text-muted-foreground hover:text-foreground">
                   <Bell className="h-5 w-5" />
@@ -111,13 +108,13 @@ export const Sidebar = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex justify-center border-b p-4 mt-4"
+              className="mt-4 flex justify-center border-b p-4"
             >
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link to="/profile/me">
-                      <Avatar className="h-10 w-10 ring-2 ring-brand-crimson/20 cursor-pointer">
+                      <Avatar className="h-10 w-10 cursor-pointer ring-2 ring-brand-crimson/20">
                         <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" />
                         <AvatarFallback>SC</AvatarFallback>
                       </Avatar>
@@ -199,7 +196,7 @@ export const Sidebar = () => {
           </nav>
 
           {/* Bottom Actions */}
-          <div className="border-t p-4 space-y-1">
+          <div className="space-y-1 border-t p-4">
             <TooltipProvider>
               {isCollapsed ? (
                 <Tooltip>
@@ -234,8 +231,8 @@ export const Sidebar = () => {
             <button
               onClick={toggleCollapsed}
               className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
-                isCollapsed && "justify-center"
+                'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+                isCollapsed && 'justify-center'
               )}
             >
               {isCollapsed ? (
@@ -268,9 +265,7 @@ export const Sidebar = () => {
                   whileTap={{ scale: 0.9 }}
                   className={cn(
                     'flex flex-col items-center gap-1 rounded-lg px-4 py-2 transition-colors',
-                    isActive
-                      ? 'text-brand-crimson'
-                      : 'text-muted-foreground'
+                    isActive ? 'text-brand-crimson' : 'text-muted-foreground'
                   )}
                 >
                   <Icon className="h-6 w-6" />

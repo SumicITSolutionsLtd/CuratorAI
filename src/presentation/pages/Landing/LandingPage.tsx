@@ -761,7 +761,6 @@ export const LandingPage = () => {
                 Contact Sales
               </Button>
             </div>
-            <p className="mt-6 text-sm opacity-75">No credit card required • Cancel anytime</p>
           </motion.div>
         </div>
       </section>
@@ -772,7 +771,12 @@ export const LandingPage = () => {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5">
             <div>
               <div className="mb-4">
-                <Logo size="sm" showTagline={true} variant="light" />
+                <h1 className="mb-2 font-logo text-2xl font-bold leading-tight text-brand-ivory">
+                  CuratorAI
+                </h1>
+                <p className="font-logo text-sm italic leading-tight text-brand-ivory/80">
+                  Where Fashion Meets Intelligence
+                </p>
               </div>
             </div>
 

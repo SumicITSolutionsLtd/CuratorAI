@@ -1,16 +1,17 @@
 import { motion } from 'framer-motion'
 import { OutfitCard } from './OutfitCard'
 import { Skeleton } from '../ui/skeleton'
+import { Outfit } from '@/shared/types/outfit'
 
 interface OutfitGridProps {
-  outfits: any[]
+  outfits: Outfit[]
   isLoading?: boolean
 }
 
 export const OutfitGrid = ({ outfits, isLoading }: OutfitGridProps) => {
   if (isLoading) {
     return (
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3">
         {[...Array(8)].map((_, i) => (
           <div key={i} className="space-y-3">
             <Skeleton className="aspect-[3/4] w-full" />
@@ -33,7 +34,7 @@ export const OutfitGrid = ({ outfits, isLoading }: OutfitGridProps) => {
           },
         },
       }}
-      className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3"
     >
       {outfits.map((outfit, index) => (
         <OutfitCard

@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import {
   Heart,
   Bookmark,
@@ -36,6 +37,7 @@ interface OutfitCardProps {
 }
 
 export const OutfitCard = ({
+  id,
   name,
   image,
   imageUrl,
@@ -48,11 +50,11 @@ export const OutfitCard = ({
   isLiked: initialLiked = false,
   isSaved: initialSaved = false,
 }: OutfitCardProps) => {
+  const navigate = useNavigate()
   const displayImage = image || imageUrl
   const displayPrice = totalPrice || price || 0
   const [isLiked, setIsLiked] = useState(initialLiked)
   const [isSaved, setIsSaved] = useState(initialSaved)
-  const [isHovered, setIsHovered] = useState(false)
   const [showTryOn, setShowTryOn] = useState(false)
 
   const handleLike = () => {
@@ -91,14 +93,19 @@ export const OutfitCard = ({
     showToast.addedToCart(name)
   }
 
+  const handleCardClick = () => {
+    if (id) {
+      navigate(`/items/${id}`)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -8 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-      className="group"
+      className="group cursor-pointer"
+      onClick={handleCardClick}
     >
       <Card className="overflow-hidden border-2 transition-all duration-300 hover:border-brand-crimson/50 hover:shadow-2xl hover:shadow-brand-crimson/10">
         {/* Image Container */}
@@ -134,82 +141,6 @@ export const OutfitCard = ({
               <Sparkles className="mr-1 h-3 w-3" />
               {matchScore}% Match
             </Badge>
-          </motion.div>
-
-          {/* Quick Actions Overlay - Desktop (hover) */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            className="absolute inset-0 hidden bg-gradient-to-t from-black/70 via-black/20 to-black/0 lg:block"
-          >
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <div className="space-y-2">
-                {/* Icon Actions Row */}
-                <div className="flex gap-2">
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                    <Button
-                      size="sm"
-                      variant={isLiked ? 'default' : 'secondary'}
-                      className={cn(
-                        'backdrop-blur-sm',
-                        isLiked && 'bg-brand-crimson hover:bg-brand-crimson/90'
-                      )}
-                      onClick={handleLike}
-                    >
-                      <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
-                    </Button>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                    <Button
-                      size="sm"
-                      variant={isSaved ? 'default' : 'secondary'}
-                      className={cn(
-                        'backdrop-blur-sm',
-                        isSaved && 'bg-brand-blue hover:bg-brand-blue/90'
-                      )}
-                      onClick={handleSave}
-                    >
-                      <Bookmark className={cn('h-4 w-4', isSaved && 'fill-current')} />
-                    </Button>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="backdrop-blur-sm"
-                      onClick={handleShare}
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </motion.div>
-                </div>
-
-                {/* Primary Action Buttons */}
-                <div className="grid grid-cols-2 gap-2">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button
-                      size="sm"
-                      className="w-full bg-brand-blue text-white backdrop-blur-sm hover:bg-brand-blue/90"
-                      onClick={() => setShowTryOn(true)}
-                    >
-                      <Scan className="mr-1.5 h-4 w-4" />
-                      Try On
-                    </Button>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button
-                      size="sm"
-                      className="w-full bg-white text-brand-charcoal backdrop-blur-sm hover:bg-white/90"
-                    >
-                      <ShoppingBag className="mr-1.5 h-4 w-4" />
-                      Shop
-                    </Button>
-                  </motion.div>
-                </div>
-              </div>
-            </div>
           </motion.div>
 
           {/* Minimal Info Overlay - Always visible */}

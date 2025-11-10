@@ -16,6 +16,7 @@ import { SavedPage } from '../pages/Saved/SavedPage'
 import { SettingsPage } from '../pages/Settings/SettingsPage'
 import { ProfilePage } from '../pages/Profile/ProfilePage'
 import { NotificationsPage } from '../pages/Notifications/NotificationsPage'
+import { OutfitDetailPage } from '../pages/Outfit/OutfitDetailPage'
 
 export const AppRoutes = () => {
   return (
@@ -27,6 +28,10 @@ export const AppRoutes = () => {
 
       {/* Protected Routes */}
       <Route path="/home" element={<HomePage />} />
+
+      {/* Outfit/Item Routes */}
+      <Route path="/outfits/:outfitId" element={<OutfitDetailPage />} />
+      <Route path="/items/:outfitId" element={<OutfitDetailPage />} />
 
       {/* Wardrobe Routes */}
       <Route path="/wardrobe" element={<WardrobePage />} />

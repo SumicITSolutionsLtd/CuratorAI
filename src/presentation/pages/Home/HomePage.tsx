@@ -257,7 +257,7 @@ export const HomePage = () => {
         </motion.div>
 
         {/* Main Content - Three Column Layout (Desktop) / Mobile with Drawers */}
-        <div className="grid gap-4 xl:grid-cols-[240px_1fr_280px]">
+        <div className="xl:grid xl:grid-cols-[240px_1fr_280px] xl:gap-4">
           {/* Left: Filters (Desktop Only) */}
           <div className="hidden xl:block">
             <div className="sticky top-6 self-start">
