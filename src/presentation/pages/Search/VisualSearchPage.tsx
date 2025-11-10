@@ -5,11 +5,12 @@ import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import { Button } from '@/presentation/components/ui/button'
 import { Card } from '@/presentation/components/ui/card'
 import { OutfitGrid } from '@/presentation/components/outfit/OutfitGrid'
+import { Outfit } from '@/shared/types/outfit'
 
 export const VisualSearchPage = () => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [results, setResults] = useState<unknown[]>([])
+  const [results, setResults] = useState<Outfit[]>([])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
