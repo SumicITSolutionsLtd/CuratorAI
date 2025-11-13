@@ -1,70 +1,123 @@
-import { motion } from 'framer-motion'
-import { Plus } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Plus, TrendingUp, Sparkles } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import { PostCard } from '@/presentation/components/social/PostCard'
+import { FeedFilters, SortOption } from '@/presentation/components/social/FeedFilters'
 import { Button } from '@/presentation/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/presentation/components/ui/tabs'
+import { Skeleton } from '@/presentation/components/ui/skeleton'
+import { forYouPosts, followingPosts, trendingPosts } from '@/shared/mocks/socialMockData'
+import { SocialPost } from '@/domain/entities/Social'
 
-const mockPosts = [
-  {
-    id: '1',
-    author: {
-      name: 'Emily Rodriguez',
-      username: 'emily_style',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
-    },
-    images: ['https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600'],
-    caption: 'Perfect summer outfit for brunch with the girls! ☀️💕',
-    tags: ['OOTD', 'SummerStyle', 'BrunchLook'],
-    likes: 1234,
-    comments: 45,
-    timeAgo: '2h',
-  },
-  {
-    id: '2',
-    author: {
-      name: 'Alex Chen',
-      username: 'alexfashion',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
-    },
-    images: ['https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=600'],
-    caption: 'Street style vibes in the city 🏙️',
-    tags: ['StreetWear', 'UrbanStyle', 'OOTD'],
-    likes: 892,
-    comments: 23,
-    timeAgo: '4h',
-  },
-  {
-    id: '3',
-    author: {
-      name: 'Sarah Johnson',
-      username: 'sarahjstyle',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    },
-    images: ['https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=600'],
-    caption: 'Office chic for the win! 💼✨',
-    tags: ['WorkWear', 'Professional', 'FashionInspo'],
-    likes: 1567,
-    comments: 67,
-    timeAgo: '6h',
-  },
-  {
-    id: '4',
-    author: {
-      name: 'Maya Patel',
-      username: 'mayastyle',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maya',
-    },
-    images: ['https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600'],
-    caption: 'Boho vibes for festival season! 🌸🎪',
-    tags: ['BohoChic', 'Festival', 'FreeSpirit'],
-    likes: 2103,
-    comments: 89,
-    timeAgo: '8h',
-  },
-]
+type FeedType = 'forYou' | 'following' | 'trending'
+
+// Helper to format time ago
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 60) return `${diffMins}m`
+  if (diffHours < 24) return `${diffHours}h`
+  return `${diffDays}d`
+}
 
 export const FeedPage = () => {
+  const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState<FeedType>('forYou')
+  const [isLoading, setIsLoading] = useState(false)
+  const [sortBy, setSortBy] = useState<SortOption>('recent')
+  const [visibleCount, setVisibleCount] = useState(6)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  // Simulate loading when switching tabs
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as FeedType)
+    setIsLoading(true)
+    setVisibleCount(6) // Reset visible count
+    setTimeout(() => setIsLoading(false), 600)
+  }
+
+  // Get posts based on active tab
+  const getBasePosts = (): SocialPost[] => {
+    switch (activeTab) {
+      case 'forYou':
+        return forYouPosts
+      case 'following':
+        return followingPosts
+      case 'trending':
+        return trendingPosts
+      default:
+        return forYouPosts
+    }
+  }
+
+  // Sort posts based on selected option
+  const allPosts = useMemo(() => {
+    const posts = [...getBasePosts()]
+
+    switch (sortBy) {
+      case 'recent':
+        return posts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      case 'popular':
+        return posts.sort((a, b) => b.likes - a.likes)
+      case 'trending':
+        // Trending score based on engagement and recency
+        return posts.sort((a, b) => {
+          const aScore =
+            (a.likes + a.comments * 2 + a.shares * 3) /
+            Math.max(1, (Date.now() - a.createdAt.getTime()) / 3600000)
+          const bScore =
+            (b.likes + b.comments * 2 + b.shares * 3) /
+            Math.max(1, (Date.now() - b.createdAt.getTime()) / 3600000)
+          return bScore - aScore
+        })
+      default:
+        return posts
+    }
+  }, [activeTab, sortBy])
+
+  // Get visible posts
+  const currentPosts = allPosts.slice(0, visibleCount)
+  const hasMore = visibleCount < allPosts.length
+
+  // Load more posts
+  const loadMore = () => {
+    if (isLoadingMore) return
+    setIsLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + 6)
+      setIsLoadingMore(false)
+    }, 1000)
+  }
+
+  // Infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY
+      const scrollHeight = document.documentElement.scrollHeight
+      const clientHeight = window.innerHeight
+
+      // Load more when user is 200px from bottom
+      if (
+        scrollTop + clientHeight >= scrollHeight - 200 &&
+        !isLoadingMore &&
+        !isLoading &&
+        visibleCount < allPosts.length
+      ) {
+        loadMore()
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadingMore, isLoading, visibleCount, allPosts.length])
+
   return (
     <MainLayout>
       <div className="mx-auto max-w-2xl space-y-6">
@@ -74,8 +127,16 @@ export const FeedPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between"
         >
-          <h1 className="text-2xl font-bold sm:text-3xl">Feed</h1>
-          <Button className="bg-brand-crimson hover:bg-brand-crimson/90">
+          <div>
+            <h1 className="font-montserrat text-2xl font-bold sm:text-3xl">Feed</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Discover the latest fashion inspiration
+            </p>
+          </div>
+          <Button
+            onClick={() => navigate('/posts/create')}
+            className="bg-brand-crimson shadow-lg shadow-brand-crimson/25 hover:bg-brand-crimson/90"
+          >
             <Plus className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Create Post</span>
             <span className="sm:hidden">Post</span>
@@ -83,43 +144,266 @@ export const FeedPage = () => {
         </motion.div>
 
         {/* Tabs */}
-        <Tabs defaultValue="forYou" className="w-full">
-          <TabsList className="w-full">
-            <TabsTrigger value="forYou" className="flex-1">
-              For You
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="forYou" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span>For You</span>
             </TabsTrigger>
-            <TabsTrigger value="following" className="flex-1">
-              Following
+            <TabsTrigger value="following" className="flex items-center gap-2">
+              <span>Following</span>
             </TabsTrigger>
-            <TabsTrigger value="trending" className="flex-1">
-              Trending
+            <TabsTrigger value="trending" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              <span>Trending</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="forYou" className="mt-6 space-y-6">
-            {mockPosts.map((post, index) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <PostCard {...post} />
-              </motion.div>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="following" className="mt-6">
-            <div className="rounded-lg border bg-muted/50 p-12 text-center">
-              <p className="text-muted-foreground">Follow more users to see their posts here</p>
+          {/* Filters */}
+          {!isLoading && currentPosts.length > 0 && (
+            <div className="mt-6">
+              <FeedFilters sortBy={sortBy} onSortChange={setSortBy} />
             </div>
-          </TabsContent>
+          )}
 
-          <TabsContent value="trending" className="mt-6">
-            <div className="rounded-lg border bg-muted/50 p-12 text-center">
-              <p className="text-muted-foreground">Trending posts will appear here</p>
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="mt-6 space-y-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="space-y-4 rounded-xl border bg-card p-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                  <Skeleton className="aspect-square w-full rounded-lg" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </div>
+              ))}
             </div>
-          </TabsContent>
+          ) : (
+            <>
+              {/* For You Tab */}
+              <TabsContent value="forYou" className="mt-6">
+                <AnimatePresence mode="popLayout">
+                  {currentPosts.length > 0 ? (
+                    <div className="space-y-6">
+                      {currentPosts.map((post, index) => (
+                        <motion.div
+                          key={post.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <PostCard
+                            id={post.id}
+                            author={{
+                              name: post.author.fullName,
+                              username: post.author.username,
+                              avatar: post.author.photoUrl || '',
+                            }}
+                            images={post.images}
+                            caption={post.caption}
+                            tags={post.tags}
+                            likes={post.likes}
+                            comments={post.comments}
+                            timeAgo={formatTimeAgo(post.createdAt)}
+                            isLiked={post.isLiked}
+                            isSaved={post.isSaved}
+                          />
+                        </motion.div>
+                      ))}
+
+                      {/* Load More Indicator */}
+                      {isLoadingMore && (
+                        <div className="py-8 text-center">
+                          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-crimson border-t-transparent" />
+                            Loading more posts...
+                          </div>
+                        </div>
+                      )}
+
+                      {/* End of Feed */}
+                      {!hasMore && currentPosts.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="py-8 text-center text-sm text-muted-foreground"
+                        >
+                          You're all caught up! ✨
+                        </motion.div>
+                      )}
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="rounded-xl border bg-muted/30 p-16 text-center"
+                    >
+                      <Sparkles className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
+                      <p className="text-lg font-medium text-muted-foreground">No posts yet</p>
+                      <p className="mt-1 text-sm text-muted-foreground/70">
+                        Check back later for personalized content
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </TabsContent>
+
+              {/* Following Tab */}
+              <TabsContent value="following" className="mt-6">
+                <AnimatePresence mode="popLayout">
+                  {currentPosts.length > 0 ? (
+                    <div className="space-y-6">
+                      {currentPosts.map((post, index) => (
+                        <motion.div
+                          key={post.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <PostCard
+                            id={post.id}
+                            author={{
+                              name: post.author.fullName,
+                              username: post.author.username,
+                              avatar: post.author.photoUrl || '',
+                            }}
+                            images={post.images}
+                            caption={post.caption}
+                            tags={post.tags}
+                            likes={post.likes}
+                            comments={post.comments}
+                            timeAgo={formatTimeAgo(post.createdAt)}
+                            isLiked={post.isLiked}
+                            isSaved={post.isSaved}
+                          />
+                        </motion.div>
+                      ))}
+
+                      {/* Load More Indicator */}
+                      {isLoadingMore && (
+                        <div className="py-8 text-center">
+                          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-crimson border-t-transparent" />
+                            Loading more posts...
+                          </div>
+                        </div>
+                      )}
+
+                      {/* End of Feed */}
+                      {!hasMore && currentPosts.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="py-8 text-center text-sm text-muted-foreground"
+                        >
+                          You're all caught up! ✨
+                        </motion.div>
+                      )}
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="rounded-xl border bg-muted/30 p-16 text-center"
+                    >
+                      <p className="text-lg font-medium text-muted-foreground">
+                        No posts from following
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground/70">
+                        Follow more users to see their posts here
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="mt-4"
+                        onClick={() => navigate('/discover')}
+                      >
+                        Discover Users
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </TabsContent>
+
+              {/* Trending Tab */}
+              <TabsContent value="trending" className="mt-6">
+                <AnimatePresence mode="popLayout">
+                  {currentPosts.length > 0 ? (
+                    <div className="space-y-6">
+                      {currentPosts.map((post, index) => (
+                        <motion.div
+                          key={post.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <PostCard
+                            id={post.id}
+                            author={{
+                              name: post.author.fullName,
+                              username: post.author.username,
+                              avatar: post.author.photoUrl || '',
+                            }}
+                            images={post.images}
+                            caption={post.caption}
+                            tags={post.tags}
+                            likes={post.likes}
+                            comments={post.comments}
+                            timeAgo={formatTimeAgo(post.createdAt)}
+                            isLiked={post.isLiked}
+                            isSaved={post.isSaved}
+                          />
+                        </motion.div>
+                      ))}
+
+                      {/* Load More Indicator */}
+                      {isLoadingMore && (
+                        <div className="py-8 text-center">
+                          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-crimson border-t-transparent" />
+                            Loading more posts...
+                          </div>
+                        </div>
+                      )}
+
+                      {/* End of Feed */}
+                      {!hasMore && currentPosts.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="py-8 text-center text-sm text-muted-foreground"
+                        >
+                          You're all caught up! ✨
+                        </motion.div>
+                      )}
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="rounded-xl border bg-muted/30 p-16 text-center"
+                    >
+                      <TrendingUp className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
+                      <p className="text-lg font-medium text-muted-foreground">No trending posts</p>
+                      <p className="mt-1 text-sm text-muted-foreground/70">
+                        Trending content will appear here
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </div>
     </MainLayout>
