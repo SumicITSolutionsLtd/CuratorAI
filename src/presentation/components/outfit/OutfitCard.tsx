@@ -151,8 +151,16 @@ export const OutfitCard = ({
                   {name}
                 </h3>
                 <div className="flex flex-wrap items-center gap-1.5 lg:gap-2">
-                  <p className="text-lg font-bold text-white lg:text-xl">${displayPrice}</p>
-                  <span className="text-xs text-white/60">• {likes} likes</span>
+                  {tags.slice(0, 2).map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="bg-white/20 px-2 py-0.5 text-xs text-white backdrop-blur-sm"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                  <span className="text-xs text-white/80">• {likes} likes</span>
                 </div>
               </div>
               {/* Quick Action Icons */}

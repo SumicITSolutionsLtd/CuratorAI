@@ -10,7 +10,7 @@ import { useState, useRef } from 'react'
 export const ControlPanel = () => {
   const [aiPrompt, setAiPrompt] = useState('')
   const [spiciness, setSpiciness] = useState([60])
-  const [budget, setBudget] = useState([300])
+  const [budget, setBudget] = useState([500])
   const [ecoFocus, setEcoFocus] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -90,13 +90,16 @@ export const ControlPanel = () => {
           </div>
           <Slider
             min={0}
-            max={1000}
-            step={50}
+            max={5000}
+            step={100}
             value={budget}
             onValueChange={setBudget}
             className="mb-2"
           />
-          <p className="text-xs text-muted-foreground">Target total ≈ ${budget[0]}</p>
+          <p className="text-xs text-muted-foreground">
+            Target total ≈ ${budget[0].toLocaleString()}
+            {budget[0] >= 5000 && '+'}
+          </p>
         </div>
 
         {/* Eco/Sustainable Focus */}

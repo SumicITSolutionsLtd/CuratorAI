@@ -1,4 +1,4 @@
-# CuratorAI - Where Fashion Meets Intelligence
+ultra# CuratorAI - Where Fashion Meets Intelligence
 
 AI-powered fashion recommendation platform that combines computer vision, machine learning, and social features to deliver personalized outfit recommendations.
 
@@ -41,11 +41,13 @@ src/
 ## 🎨 Design System
 
 ### Colors
+
 - **Primary**: Deep Charcoal Black (`#111111`), Ivory White (`#F8F8F8`)
 - **Accent**: Crimson Red (`#D72638`), Royal Blue (`#3A6FF7`)
 - **Neutral**: Cool Gray (`#7A7A7A`), Soft Beige (`#E8E2D3`)
 
 ### Typography
+
 - **Logo/Tagline**: Playfair Display
 - **Headings**: Montserrat Bold
 - **Body Text**: Inter Regular
@@ -60,23 +62,27 @@ src/
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/your-org/curatorai.git
 cd curatorai
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
 ```
 
 4. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -94,6 +100,7 @@ The application will be available at `http://localhost:5173`
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React 18** - UI library
 - **TypeScript** - Type safety
 - **Vite** - Build tool and dev server
@@ -102,19 +109,23 @@ The application will be available at `http://localhost:5173`
 - **Framer Motion** - Animation library
 
 ### State Management
+
 - **Redux Toolkit** - State management
 - **React Redux** - React bindings for Redux
 
 ### Routing
+
 - **React Router v6** - Client-side routing
 
 ### API & Data
+
 - **Axios** - HTTP client
 - **Socket.io Client** - Real-time communication
 - **React Hook Form** - Form management
 - **Zod** - Schema validation
 
 ### Utilities
+
 - **date-fns** - Date manipulation
 - **clsx** & **tailwind-merge** - Conditional class management
 - **class-variance-authority** - Component variants
@@ -122,11 +133,13 @@ The application will be available at `http://localhost:5173`
 ## 📁 Project Structure
 
 ### Domain Layer (Core Business Logic)
+
 **Entities**: User, Outfit, Wardrobe, Social, Lookbook, Cart, Notification, Admin, VirtualTryOn, Search
 
 **Repository Interfaces**: Define contracts for data access without implementation details
 
 ### Application Layer (Use Cases)
+
 - Authentication (Login, Register, Password Reset)
 - Outfit Recommendations
 - Wardrobe Management
@@ -135,12 +148,14 @@ The application will be available at `http://localhost:5173`
 - Shopping Cart
 
 ### Infrastructure Layer (External Services)
+
 - API Client with interceptors
 - Repository implementations
 - WebSocket service
 - Third-party integrations
 
 ### Presentation Layer (UI)
+
 - **Pages**: Landing, Auth, Home, Wardrobe, Search, Feed, Lookbooks, Cart, Admin
 - **Components**: Reusable UI components from shadcn/ui
 - **Routes**: Route configuration with React Router
@@ -148,6 +163,7 @@ The application will be available at `http://localhost:5173`
 ## 🔐 Authentication
 
 The application supports multiple authentication methods:
+
 - Email/Password
 - Google OAuth
 - Facebook OAuth
@@ -190,6 +206,7 @@ JWT tokens are stored in localStorage with automatic refresh on expiration.
 ## 📱 Features Roadmap
 
 ### MVP (Current)
+
 - ✅ Authentication (Login, Register, OAuth)
 - ✅ Outfit Recommendations
 - ✅ Visual Search
@@ -200,6 +217,7 @@ JWT tokens are stored in localStorage with automatic refresh on expiration.
 - ✅ Admin Dashboard
 
 ### Future Enhancements
+
 - [ ] Virtual Try-On with AR
 - [ ] Advanced ML recommendations
 - [ ] Mobile app (React Native)
