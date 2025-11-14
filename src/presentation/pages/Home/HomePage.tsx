@@ -23,6 +23,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/presentation/components/ui/sheet'
+import { showToast } from '@/shared/utils/toast'
 
 const mockOutfits = [
   {
@@ -216,6 +217,13 @@ export const HomePage = () => {
               <motion.button
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  showToast.success(
+                    'Quick Style Loading...',
+                    'Generating instant outfit recommendations'
+                  )
+                  console.log('[Analytics] Quick Style clicked')
+                }}
                 className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-crimson hover:shadow-md"
               >
                 <Zap className="mb-2 h-6 w-6 text-brand-crimson" />
@@ -226,6 +234,10 @@ export const HomePage = () => {
               <motion.button
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  showToast.success('Color Mood Opening...', 'Pick your palette and vibe')
+                  console.log('[Analytics] Color Mood clicked')
+                }}
                 className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-blue hover:shadow-md"
               >
                 <Palette className="mb-2 h-6 w-6 text-brand-blue" />
@@ -236,6 +248,10 @@ export const HomePage = () => {
               <motion.button
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  showToast.success('Event Ready Loading...', 'Finding looks for your occasion')
+                  console.log('[Analytics] Event Ready clicked')
+                }}
                 className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-crimson hover:shadow-md"
               >
                 <Calendar className="mb-2 h-6 w-6 text-brand-crimson" />
@@ -246,6 +262,13 @@ export const HomePage = () => {
               <motion.button
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  showToast.success(
+                    'Local Trends Loading...',
+                    "Discovering what's trending near you"
+                  )
+                  console.log('[Analytics] Local Trends clicked')
+                }}
                 className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-blue hover:shadow-md"
               >
                 <MapPin className="mb-2 h-6 w-6 text-brand-blue" />

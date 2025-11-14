@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -19,7 +19,6 @@ import { cn } from '@/shared/utils/cn'
 import { showToast } from '@/shared/utils/toast'
 import { mockOutfitDetail, swapAlternatives, trackSwapEvent } from '@/shared/mocks/outfitMockData'
 import { StyleSwapDrawer, SwapAlternative } from '@/presentation/components/outfit/StyleSwapDrawer'
-import { ShareDialog } from '@/presentation/components/outfit/ShareDialog'
 import type { OutfitItem, SellerType } from '@/shared/mocks/outfitMockData'
 
 const sellerConfig: Record<
@@ -51,26 +50,6 @@ export const OutfitDetailPage = () => {
   const [outfit, setOutfit] = useState(mockOutfitDetail)
   const [selectedItemForSwap, setSelectedItemForSwap] = useState<OutfitItem | null>(null)
   const [swapDrawerOpen, setSwapDrawerOpen] = useState(false)
-  const [shareDialogOpen, setShareDialogOpen] = useState(false)
-  const [downloadsRemaining, setDownloadsRemaining] = useState(3)
-  const [isPremium] = useState(false) // TODO: Get from user context
-
-  // Load download count from localStorage
-  useEffect(() => {
-    const lastDownloadDate = localStorage.getItem('lastDownloadDate')
-    const downloadCount = localStorage.getItem('downloadCount')
-    const today = new Date().toDateString()
-
-    if (lastDownloadDate !== today) {
-      // Reset downloads for new day
-      localStorage.setItem('lastDownloadDate', today)
-      localStorage.setItem('downloadCount', '0')
-      setDownloadsRemaining(3)
-    } else {
-      const used = parseInt(downloadCount || '0', 10)
-      setDownloadsRemaining(Math.max(0, 3 - used))
-    }
-  }, [])
 
   const handleSwapItem = (itemId: string) => {
     const item = outfit.items.find((i) => i.id === itemId)
@@ -132,34 +111,12 @@ export const OutfitDetailPage = () => {
   }
 
   const handleDownloadLook = () => {
-    if (!isPremium && downloadsRemaining === 0) {
-      showToast.success('Daily Limit Reached', 'Upgrade to Premium for unlimited downloads')
-      return
-    }
-
-    // Track download
-    if (!isPremium) {
-      const currentCount = parseInt(localStorage.getItem('downloadCount') || '0', 10)
-      localStorage.setItem('downloadCount', (currentCount + 1).toString())
-      setDownloadsRemaining(Math.max(0, downloadsRemaining - 1))
-    }
-
-    // In production, this would generate the image with/without watermark
-    const hasWatermark = !isPremium
-    showToast.success(
-      'Downloading Look',
-      hasWatermark ? 'Your outfit includes a CuratorAI watermark' : 'Downloading high-quality image'
-    )
-
-    console.log('[Analytics] Download', {
-      hasWatermark,
-      isPremium,
-      remainingDownloads: downloadsRemaining - 1,
-    })
+    showToast.success('Downloading Look', 'Your outfit is being prepared with watermark')
   }
 
   const handleShare = () => {
-    setShareDialogOpen(true)
+    navigator.clipboard.writeText(window.location.href)
+    showToast.success('Link Copied!', 'Share this look with your friends')
   }
 
   const handleTrySimilar = () => {
@@ -524,16 +481,6 @@ export const OutfitDetailPage = () => {
           onSwap={handleSwapApplied}
         />
       )}
-
-      {/* Share Dialog */}
-      <ShareDialog
-        open={shareDialogOpen}
-        onOpenChange={setShareDialogOpen}
-        outfitName={outfit.name}
-        onDownload={handleDownloadLook}
-        downloadsRemaining={downloadsRemaining}
-        isPremium={isPremium}
-      />
     </MainLayout>
   )
 }
