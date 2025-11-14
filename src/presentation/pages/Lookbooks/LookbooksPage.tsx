@@ -18,6 +18,7 @@ import { Card } from '@/presentation/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/presentation/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/components/ui/tabs'
 import { Link } from 'react-router-dom'
+import { showToast } from '@/shared/utils/toast'
 
 const lookbooks = [
   {
@@ -147,7 +148,14 @@ export const LookbooksPage = () => {
               Curated outfit collections from our fashion community
             </p>
           </div>
-          <Button className="w-full bg-brand-crimson hover:bg-brand-crimson/90 sm:w-auto">
+          <Button
+            className="w-full bg-brand-crimson hover:bg-brand-crimson/90 sm:w-auto"
+            onClick={() => {
+              showToast.success('Create Lookbook', 'Opening lookbook creator...')
+              console.log('[Analytics] Create Lookbook clicked')
+              // TODO: Navigate to /lookbooks/create when page is built
+            }}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Create Lookbook
           </Button>
