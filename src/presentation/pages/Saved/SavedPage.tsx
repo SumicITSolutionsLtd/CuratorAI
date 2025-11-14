@@ -19,6 +19,7 @@ import { Card } from '@/presentation/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/components/ui/tabs'
 import { OutfitCard } from '@/presentation/components/outfit/OutfitCard'
 import { cn } from '@/shared/utils/cn'
+import { showToast } from '@/shared/utils/toast'
 
 const collections = [
   { id: 'all', name: 'All Saved', icon: Heart, count: 47, color: 'text-brand-crimson' },
@@ -101,7 +102,14 @@ export const SavedPage = () => {
               Your curated collection of favorite outfits and lookbooks
             </p>
           </div>
-          <Button className="bg-brand-crimson hover:bg-brand-crimson/90">
+          <Button
+            className="bg-brand-crimson hover:bg-brand-crimson/90"
+            onClick={() => {
+              showToast.success('Create Collection', 'Opening collection creator...')
+              console.log('[Analytics] Create Collection clicked')
+              // TODO: Navigate to /collections/create or show collection creation modal
+            }}
+          >
             <Plus className="mr-2 h-4 w-4" />
             New Collection
           </Button>
@@ -148,7 +156,15 @@ export const SavedPage = () => {
               <Folder className="h-5 w-5 text-brand-crimson" />
               <h2 className="font-semibold text-brand-charcoal">My Collections</h2>
             </div>
-            <Button variant="ghost" size="sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                showToast.success('Create Collection', 'Opening collection creator...')
+                console.log('[Analytics] Create Collection (My Collections) clicked')
+                // TODO: Navigate to /collections/create or show collection creation modal
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create New
             </Button>
