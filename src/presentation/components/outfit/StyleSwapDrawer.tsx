@@ -75,7 +75,10 @@ export const StyleSwapDrawer = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] p-0">
+      <SheetContent
+        side="right"
+        className="inset-x-0 inset-y-auto bottom-0 left-auto right-auto top-auto h-[90vh] max-w-full border-t p-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom lg:inset-x-auto lg:inset-y-0 lg:bottom-0 lg:left-auto lg:right-0 lg:top-0 lg:h-screen lg:max-w-2xl lg:border-l lg:border-t-0 lg:data-[state=closed]:slide-out-to-right lg:data-[state=open]:slide-in-from-right"
+      >
         <div className="flex h-full flex-col">
           <SheetHeader className="border-b p-6">
             <div className="flex items-start justify-between">
