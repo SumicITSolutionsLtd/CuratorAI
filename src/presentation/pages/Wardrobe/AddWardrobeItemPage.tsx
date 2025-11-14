@@ -1,7 +1,16 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
-import { ArrowLeft, Upload, X, Plus, Loader2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  X,
+  Plus,
+  Loader2,
+  Camera,
+  Image as ImageIcon,
+  Cloud,
+  Link as LinkIcon,
+} from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Label } from '@/presentation/components/ui/label'
@@ -25,6 +34,8 @@ export const AddWardrobeItemPage = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { toast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [images, setImages] = useState<string[]>([])
@@ -66,6 +77,33 @@ export const AddWardrobeItemPage = () => {
 
   const handleRemoveImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleCameraUpload = () => {
+    cameraInputRef.current?.click()
+  }
+
+  const handleGalleryUpload = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleGoogleDriveUpload = () => {
+    toast({
+      title: 'Google Drive Upload',
+      description:
+        'Google Drive integration coming soon! This will allow you to upload images directly from your Drive.',
+    })
+    console.log('[Analytics] Google Drive Upload clicked')
+    // TODO: Implement Google Drive OAuth integration
+  }
+
+  const handleUrlUpload = () => {
+    toast({
+      title: 'URL Upload',
+      description: 'Upload from URL coming soon! Paste a link to add images directly.',
+    })
+    console.log('[Analytics] URL Upload clicked')
+    // TODO: Implement URL image upload
   }
 
   const handleAddTag = () => {
@@ -187,35 +225,98 @@ export const AddWardrobeItemPage = () => {
           <Card className="p-6">
             <h2 className="mb-4 text-lg font-semibold">Images</h2>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                {images.map((image, index) => (
-                  <div key={index} className="group relative aspect-square">
-                    <img
-                      src={image}
-                      alt={`Upload ${index + 1}`}
-                      className="h-full w-full rounded-lg object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(index)}
-                      className="absolute right-2 top-2 rounded-full bg-black/50 p-1 opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
-                    >
-                      <X className="h-4 w-4 text-white" />
-                    </button>
-                  </div>
-                ))}
-                <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-brand-crimson hover:bg-brand-crimson/5">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                  <span className="mt-2 text-sm text-muted-foreground">Upload Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
+              {/* Upload Options */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleCameraUpload}
+                  className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 p-4 transition-colors hover:border-brand-crimson hover:bg-brand-crimson/5"
+                >
+                  <Camera className="h-6 w-6 text-brand-crimson" />
+                  <span className="text-xs font-medium text-brand-charcoal">Camera</span>
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleGalleryUpload}
+                  className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 p-4 transition-colors hover:border-brand-blue hover:bg-brand-blue/5"
+                >
+                  <ImageIcon className="h-6 w-6 text-brand-blue" />
+                  <span className="text-xs font-medium text-brand-charcoal">Gallery</span>
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleGoogleDriveUpload}
+                  className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 p-4 transition-colors hover:border-brand-crimson hover:bg-brand-crimson/5"
+                >
+                  <Cloud className="h-6 w-6 text-brand-crimson" />
+                  <span className="text-xs font-medium text-brand-charcoal">Drive</span>
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleUrlUpload}
+                  className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 p-4 transition-colors hover:border-brand-blue hover:bg-brand-blue/5"
+                >
+                  <LinkIcon className="h-6 w-6 text-brand-blue" />
+                  <span className="text-xs font-medium text-brand-charcoal">URL</span>
+                </motion.button>
               </div>
+
+              {/* Hidden file inputs */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+
+              {/* Image Preview Grid */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                  {images.map((image, index) => (
+                    <div key={index} className="group relative aspect-square">
+                      <img
+                        src={image}
+                        alt={`Upload ${index + 1}`}
+                        className="h-full w-full rounded-lg object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(index)}
+                        className="absolute right-2 top-2 rounded-full bg-black/50 p-1 opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+                      >
+                        <X className="h-4 w-4 text-white" />
+                      </button>
+                      {index === 0 && (
+                        <div className="absolute bottom-2 left-2">
+                          <Badge className="bg-brand-crimson text-xs">Primary</Badge>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <p className="text-xs text-muted-foreground">
                 Upload up to 5 images. First image will be the primary image.
               </p>
