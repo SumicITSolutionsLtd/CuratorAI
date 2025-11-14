@@ -153,7 +153,10 @@ export const CommentDrawer = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="flex h-[90vh] flex-col p-0">
+      <SheetContent
+        side="right"
+        className="inset-x-0 inset-y-auto bottom-0 left-auto right-auto top-auto flex h-[90vh] max-w-full flex-col border-t p-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom lg:inset-x-auto lg:inset-y-0 lg:bottom-0 lg:left-auto lg:right-0 lg:top-0 lg:h-screen lg:max-w-lg lg:border-l lg:border-t-0 lg:data-[state=closed]:slide-out-to-right lg:data-[state=open]:slide-in-from-right"
+      >
         <SheetHeader className="border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <SheetTitle className="font-montserrat text-xl">Comments ({commentCount})</SheetTitle>
