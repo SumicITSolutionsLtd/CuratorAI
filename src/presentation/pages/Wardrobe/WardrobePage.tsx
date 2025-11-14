@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
   Plus,
@@ -13,117 +13,229 @@ import {
   Sparkles,
   TrendingUp,
   Calendar,
+  Loader2,
+  X,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Badge } from '@/presentation/components/ui/badge'
 import { Card } from '@/presentation/components/ui/card'
 import { cn } from '@/shared/utils/cn'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAppDispatch, useAppSelector } from '@/shared/store/hooks'
+import {
+  fetchWardrobe,
+  fetchWardrobeStats,
+  setSelectedCategory,
+  setSearchQuery as setStoreSearchQuery,
+} from '@/shared/store/slices/wardrobeSlice'
+import { WardrobeItem } from '@/domain/entities/Wardrobe'
+import { sortItems } from '@/shared/mocks/wardrobeMockData'
+import { FilterDialog, FilterValues } from '@/presentation/components/wardrobe/FilterDialog'
+import { SortMenu, SortOption } from '@/presentation/components/wardrobe/SortMenu'
+import { setSortBy, setFilters } from '@/shared/store/slices/wardrobeSlice'
 
-const categories = [
-  { id: 'all', name: 'All Items', icon: Grid3x3, count: 127, color: 'text-brand-crimson' },
-  { id: 'tops', name: 'Tops', icon: Shirt, count: 45, color: 'text-brand-blue' },
-  { id: 'bottoms', name: 'Bottoms', icon: ShoppingBag, count: 32, color: 'text-purple-500' },
-  { id: 'accessories', name: 'Accessories', icon: Watch, count: 28, color: 'text-amber-500' },
-  { id: 'shoes', name: 'Shoes', icon: Sparkles, count: 22, color: 'text-green-500' },
-]
+const formatLastWorn = (item: WardrobeItem): string => {
+  const now = new Date()
+  const updated = new Date(item.updatedAt)
+  const diffDays = Math.floor((now.getTime() - updated.getTime()) / (1000 * 60 * 60 * 24))
 
-const wardrobeItems = [
-  {
-    id: 1,
-    name: 'Silk Blouse',
-    category: 'Tops',
-    brand: 'Zara',
-    color: 'Ivory',
-    season: 'Summer',
-    timesWorn: 12,
-    image: 'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=400&h=500&fit=crop',
-    lastWorn: '2 days ago',
-  },
-  {
-    id: 2,
-    name: 'High-Waisted Jeans',
-    category: 'Bottoms',
-    brand: "Levi's",
-    color: 'Dark Blue',
-    season: 'All Season',
-    timesWorn: 28,
-    image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=500&fit=crop',
-    lastWorn: '1 day ago',
-  },
-  {
-    id: 3,
-    name: 'Leather Jacket',
-    category: 'Tops',
-    brand: 'AllSaints',
-    color: 'Black',
-    season: 'Fall/Winter',
-    timesWorn: 15,
-    image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop',
-    lastWorn: '5 days ago',
-  },
-  {
-    id: 4,
-    name: 'Floral Midi Dress',
-    category: 'Dresses',
-    brand: 'H&M',
-    color: 'Multicolor',
-    season: 'Spring/Summer',
-    timesWorn: 8,
-    image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&h=500&fit=crop',
-    lastWorn: '1 week ago',
-  },
-  {
-    id: 5,
-    name: 'White Sneakers',
-    category: 'Shoes',
-    brand: 'Nike',
-    color: 'White',
-    season: 'All Season',
-    timesWorn: 45,
-    image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=500&fit=crop',
-    lastWorn: 'Today',
-  },
-  {
-    id: 6,
-    name: 'Cashmere Sweater',
-    category: 'Tops',
-    brand: 'Uniqlo',
-    color: 'Beige',
-    season: 'Fall/Winter',
-    timesWorn: 18,
-    image: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=400&h=500&fit=crop',
-    lastWorn: '3 days ago',
-  },
-  {
-    id: 7,
-    name: 'Gold Hoop Earrings',
-    category: 'Accessories',
-    brand: 'Mejuri',
-    color: 'Gold',
-    season: 'All Season',
-    timesWorn: 22,
-    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=500&fit=crop',
-    lastWorn: '2 days ago',
-  },
-  {
-    id: 8,
-    name: 'Pleated Skirt',
-    category: 'Bottoms',
-    brand: 'COS',
-    color: 'Navy',
-    season: 'Spring/Fall',
-    timesWorn: 10,
-    image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400&h=500&fit=crop',
-    lastWorn: '4 days ago',
-  },
-]
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return '1 day ago'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 14) return '1 week ago'
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  if (diffDays < 60) return '1 month ago'
+  return `${Math.floor(diffDays / 30)} months ago`
+}
 
 export const WardrobePage = () => {
+  const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [localSearchQuery, setLocalSearchQuery] = useState('')
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false)
+
+  const {
+    items,
+    stats,
+    selectedCategory,
+    searchQuery,
+    sortBy,
+    filters,
+    isLoading,
+    isLoadingStats,
+    error,
+  } = useAppSelector((state) => state.wardrobe)
+
+  // Fetch wardrobe data on mount
+  useEffect(() => {
+    dispatch(fetchWardrobe())
+    dispatch(fetchWardrobeStats())
+  }, [dispatch])
+
+  // Sync local search with store
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      dispatch(setStoreSearchQuery(localSearchQuery))
+    }, 300)
+    return () => clearTimeout(debounce)
+  }, [localSearchQuery, dispatch])
+
+  // Calculate category counts
+  const categoryCounts = useMemo(() => {
+    return {
+      all: items.length,
+      top: items.filter((item) => item.category === 'top').length,
+      bottom: items.filter((item) => item.category === 'bottom').length,
+      shoes: items.filter((item) => item.category === 'shoes').length,
+      accessory: items.filter((item) => item.category === 'accessory').length,
+      dress: items.filter((item) => item.category === 'dress').length,
+      outerwear: items.filter((item) => item.category === 'outerwear').length,
+      bag: items.filter((item) => item.category === 'bag').length,
+    }
+  }, [items])
+
+  const categories = [
+    {
+      id: 'all' as const,
+      name: 'All Items',
+      icon: Grid3x3,
+      count: categoryCounts.all,
+      color: 'text-brand-crimson',
+    },
+    {
+      id: 'top' as const,
+      name: 'Tops',
+      icon: Shirt,
+      count: categoryCounts.top,
+      color: 'text-brand-blue',
+    },
+    {
+      id: 'bottom' as const,
+      name: 'Bottoms',
+      icon: ShoppingBag,
+      count: categoryCounts.bottom,
+      color: 'text-purple-500',
+    },
+    {
+      id: 'dress' as const,
+      name: 'Dresses',
+      icon: ShoppingBag,
+      count: categoryCounts.dress,
+      color: 'text-pink-500',
+    },
+    {
+      id: 'shoes' as const,
+      name: 'Shoes',
+      icon: Sparkles,
+      count: categoryCounts.shoes,
+      color: 'text-green-500',
+    },
+    {
+      id: 'accessory' as const,
+      name: 'Accessories',
+      icon: Watch,
+      count: categoryCounts.accessory,
+      color: 'text-amber-500',
+    },
+    {
+      id: 'outerwear' as const,
+      name: 'Outerwear',
+      icon: Shirt,
+      count: categoryCounts.outerwear,
+      color: 'text-indigo-500',
+    },
+    {
+      id: 'bag' as const,
+      name: 'Bags',
+      icon: ShoppingBag,
+      count: categoryCounts.bag,
+      color: 'text-rose-500',
+    },
+  ]
+
+  // Filter and search items
+  const filteredItems = useMemo(() => {
+    let filtered = [...items]
+
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter((item) => item.category === selectedCategory)
+    }
+
+    // Apply search
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (item) =>
+          item.name.toLowerCase().includes(lowerQuery) ||
+          item.brand?.toLowerCase().includes(lowerQuery) ||
+          item.color.toLowerCase().includes(lowerQuery) ||
+          item.tags.some((tag) => tag.toLowerCase().includes(lowerQuery))
+      )
+    }
+
+    // Apply advanced filters
+    if (filters.brand) {
+      filtered = filtered.filter((item) => item.brand === filters.brand)
+    }
+    if (filters.color) {
+      filtered = filtered.filter((item) =>
+        item.color.toLowerCase().includes(filters.color!.toLowerCase())
+      )
+    }
+    if (filters.season) {
+      filtered = filtered.filter((item) =>
+        item.attributes.some(
+          (attr) =>
+            attr.key === 'season' &&
+            attr.value.toLowerCase().includes(filters.season!.toLowerCase())
+        )
+      )
+    }
+    if (filters.minPrice) {
+      filtered = filtered.filter((item) => item.price && item.price >= filters.minPrice!)
+    }
+    if (filters.maxPrice) {
+      filtered = filtered.filter((item) => item.price && item.price <= filters.maxPrice!)
+    }
+
+    // Apply sorting
+    return sortItems(filtered, sortBy)
+  }, [items, selectedCategory, searchQuery, sortBy, filters])
+
+  const handleAddItem = () => {
+    navigate('/wardrobe/add')
+  }
+
+  const handleClearSearch = () => {
+    setLocalSearchQuery('')
+    dispatch(setStoreSearchQuery(''))
+  }
+
+  const handleFilterApply = (newFilters: FilterValues) => {
+    dispatch(setFilters(newFilters))
+  }
+
+  const handleSortChange = (newSort: SortOption) => {
+    dispatch(setSortBy(newSort))
+  }
+
+  const activeFiltersCount = Object.values(filters).filter(Boolean).length
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex h-96 items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-red-600">Error loading wardrobe</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -150,7 +262,10 @@ export const WardrobePage = () => {
                 <span className="sm:hidden">Create</span>
               </Button>
             </Link>
-            <Button className="flex-1 bg-brand-crimson hover:bg-brand-crimson/90 sm:flex-none">
+            <Button
+              onClick={handleAddItem}
+              className="flex-1 bg-brand-crimson hover:bg-brand-crimson/90 sm:flex-none"
+            >
               <Plus className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Add Item</span>
               <span className="sm:hidden">Add</span>
@@ -167,8 +282,16 @@ export const WardrobePage = () => {
                   <Shirt className="h-5 w-5 text-brand-crimson" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">127</p>
-                  <p className="text-xs text-muted-foreground">Total Items</p>
+                  {isLoadingStats ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-brand-charcoal">
+                        {stats?.totalItems || 0}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Total Items</p>
+                    </>
+                  )}
                 </div>
               </div>
             </Card>
@@ -181,8 +304,16 @@ export const WardrobePage = () => {
                   <Sparkles className="h-5 w-5 text-brand-blue" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">45</p>
-                  <p className="text-xs text-muted-foreground">Outfits Created</p>
+                  {isLoadingStats ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-brand-charcoal">
+                        {stats?.totalOutfits || 0}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Outfits Created</p>
+                    </>
+                  )}
                 </div>
               </div>
             </Card>
@@ -195,8 +326,16 @@ export const WardrobePage = () => {
                   <TrendingUp className="h-5 w-5 text-brand-blue" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">$3,240</p>
-                  <p className="text-xs text-muted-foreground">Total Value</p>
+                  {isLoadingStats ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-brand-charcoal">
+                        ${stats?.totalValue.toFixed(0) || 0}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Total Value</p>
+                    </>
+                  )}
                 </div>
               </div>
             </Card>
@@ -209,8 +348,16 @@ export const WardrobePage = () => {
                   <Calendar className="h-5 w-5 text-brand-crimson" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">23</p>
-                  <p className="text-xs text-muted-foreground">Worn This Month</p>
+                  {isLoadingStats ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-brand-charcoal">
+                        {stats?.mostWornCategory || 'N/A'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Most Worn</p>
+                    </>
+                  )}
                 </div>
               </div>
             </Card>
@@ -226,7 +373,7 @@ export const WardrobePage = () => {
                 key={category.id}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedCategory(category.id)}
+                onClick={() => dispatch(setSelectedCategory(category.id))}
                 className={cn(
                   'flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all',
                   selectedCategory === category.id
@@ -250,15 +397,31 @@ export const WardrobePage = () => {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search your wardrobe..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              value={localSearchQuery}
+              onChange={(e) => setLocalSearchQuery(e.target.value)}
+              className="pl-10 pr-10"
             />
+            {localSearchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
+            <div className="relative">
+              <Button variant="outline" size="icon" onClick={() => setFilterDialogOpen(true)}>
+                <Filter className="h-4 w-4" />
+              </Button>
+              {activeFiltersCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-crimson text-xs text-white">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </div>
+            <SortMenu currentSort={sortBy} onSortChange={handleSortChange} />
             <div className="flex rounded-lg border p-1">
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -286,86 +449,142 @@ export const WardrobePage = () => {
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex h-96 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-brand-crimson" />
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && filteredItems.length === 0 && (
+          <div className="flex h-96 flex-col items-center justify-center">
+            <Shirt className="h-16 w-16 text-muted-foreground/50" />
+            <p className="mt-4 text-lg font-semibold text-muted-foreground">
+              {searchQuery ? 'No items found' : 'Your wardrobe is empty'}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {searchQuery
+                ? 'Try adjusting your search or filters'
+                : 'Add your first item to get started'}
+            </p>
+            {!searchQuery && (
+              <Button onClick={handleAddItem} className="mt-6 bg-brand-crimson">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Your First Item
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Wardrobe Items Grid */}
-        <div
-          className={cn(
-            'grid gap-4',
-            viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
-          )}
-        >
-          {wardrobeItems.map((item, index) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+        {!isLoading && filteredItems.length > 0 && (
+          <AnimatePresence mode="popLayout">
+            <div
+              className={cn(
+                'grid gap-4',
+                viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
+              )}
             >
-              <Link to={`/wardrobe/items/${item.id}`}>
-                <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand-crimson/20">
-                  {/* Image */}
-                  <div className="relative aspect-[3/4] overflow-hidden bg-brand-beige">
-                    <motion.img
-                      src={item.image}
-                      alt={item.name}
-                      className="h-full w-full object-cover"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    {/* Desktop hover overlay */}
-                    <div className="absolute inset-0 hidden bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 lg:block" />
+              {filteredItems.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: index * 0.02 }}
+                >
+                  <Link to={`/wardrobe/items/${item.id}`}>
+                    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand-crimson/20">
+                      {/* Image */}
+                      <div className="relative aspect-[3/4] overflow-hidden bg-brand-beige">
+                        <motion.img
+                          src={item.images[0]}
+                          alt={item.name}
+                          className="h-full w-full object-cover"
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ duration: 0.3 }}
+                        />
+                        {/* Desktop hover overlay */}
+                        <div className="absolute inset-0 hidden bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 lg:block" />
 
-                    {/* Quick Stats Overlay - Desktop (hover) */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileHover={{ opacity: 1, y: 0 }}
-                      className="absolute bottom-2 left-2 right-2 hidden gap-2 lg:flex"
-                    >
-                      <Badge className="bg-white/90 text-brand-charcoal hover:bg-white">
-                        Worn {item.timesWorn}×
-                      </Badge>
-                      <Badge className="bg-white/90 text-brand-charcoal hover:bg-white">
-                        {item.lastWorn}
-                      </Badge>
-                    </motion.div>
+                        {/* Quick Stats Overlay - Desktop (hover) */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          whileHover={{ opacity: 1, y: 0 }}
+                          className="absolute bottom-2 left-2 right-2 hidden gap-2 lg:flex"
+                        >
+                          <Badge className="bg-white/90 text-brand-charcoal hover:bg-white">
+                            Worn {item.timesWorn}×
+                          </Badge>
+                          <Badge className="bg-white/90 text-brand-charcoal hover:bg-white">
+                            {formatLastWorn(item)}
+                          </Badge>
+                        </motion.div>
 
-                    {/* Mobile Stats - Always visible */}
-                    <div className="absolute bottom-2 left-2 right-2 flex gap-2 lg:hidden">
-                      <Badge className="bg-white/95 text-brand-charcoal backdrop-blur-sm">
-                        Worn {item.timesWorn}×
-                      </Badge>
-                      <Badge className="bg-white/95 text-brand-charcoal backdrop-blur-sm">
-                        {item.lastWorn}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Item Info */}
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="truncate font-semibold text-brand-charcoal">{item.name}</h3>
-                        <p className="text-xs text-muted-foreground">{item.brand}</p>
+                        {/* Mobile Stats - Always visible */}
+                        <div className="absolute bottom-2 left-2 right-2 flex gap-2 lg:hidden">
+                          <Badge className="bg-white/95 text-brand-charcoal backdrop-blur-sm">
+                            Worn {item.timesWorn}×
+                          </Badge>
+                          <Badge className="bg-white/95 text-brand-charcoal backdrop-blur-sm">
+                            {formatLastWorn(item)}
+                          </Badge>
+                        </div>
                       </div>
-                      <Badge variant="outline" className="shrink-0 text-xs">
-                        {item.category}
-                      </Badge>
-                    </div>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                      <div
-                        className="h-3 w-3 rounded-full border"
-                        style={{ backgroundColor: item.color.toLowerCase() }}
-                      />
-                      <span>{item.color}</span>
-                      <span>•</span>
-                      <span>{item.season}</span>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+
+                      {/* Item Info */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="truncate font-semibold text-brand-charcoal">
+                              {item.name}
+                            </h3>
+                            <p className="text-xs text-muted-foreground">
+                              {item.brand || 'No brand'}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="shrink-0 text-xs capitalize">
+                            {item.category}
+                          </Badge>
+                        </div>
+                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                          <div
+                            className="h-3 w-3 rounded-full border"
+                            style={{
+                              backgroundColor: item.color.includes('/')
+                                ? undefined
+                                : item.color.toLowerCase(),
+                              background: item.color.includes('/')
+                                ? 'linear-gradient(135deg, navy 50%, white 50%)'
+                                : undefined,
+                            }}
+                          />
+                          <span>{item.color}</span>
+                          <span>•</span>
+                          <span>
+                            {item.attributes.find((attr) => attr.key === 'season')?.value ||
+                              'All Season'}
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </AnimatePresence>
+        )}
       </motion.div>
+
+      {/* Filter Dialog */}
+      <FilterDialog
+        open={filterDialogOpen}
+        onOpenChange={setFilterDialogOpen}
+        onApply={handleFilterApply}
+        currentFilters={filters}
+      />
     </MainLayout>
   )
 }

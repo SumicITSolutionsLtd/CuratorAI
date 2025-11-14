@@ -8,6 +8,9 @@ import { FeedPage } from '../pages/Social/FeedPage'
 import { CreatePostPage } from '../pages/Social/CreatePostPage'
 import { PostDetailPage } from '../pages/Social/PostDetailPage'
 import { WardrobePage } from '../pages/Wardrobe/WardrobePage'
+import { AddWardrobeItemPage } from '../pages/Wardrobe/AddWardrobeItemPage'
+import { WardrobeItemDetailPage } from '../pages/Wardrobe/WardrobeItemDetailPage'
+import { CreateOutfitPage } from '../pages/Wardrobe/CreateOutfitPage'
 import { CartPage } from '../pages/Cart/CartPage'
 import { LookbooksPage } from '../pages/Lookbooks/LookbooksPage'
 import { LookbookDetailPage } from '../pages/Lookbooks/LookbookDetailPage'
@@ -35,8 +38,9 @@ export const AppRoutes = () => {
 
       {/* Wardrobe Routes */}
       <Route path="/wardrobe" element={<WardrobePage />} />
-      <Route path="/wardrobe/items/:itemId" element={<div>Item Detail</div>} />
-      <Route path="/wardrobe/create-outfit" element={<div>Create Outfit</div>} />
+      <Route path="/wardrobe/add" element={<AddWardrobeItemPage />} />
+      <Route path="/wardrobe/items/:itemId" element={<WardrobeItemDetailPage />} />
+      <Route path="/wardrobe/create-outfit" element={<CreateOutfitPage />} />
 
       {/* Search Routes */}
       <Route path="/search/visual" element={<VisualSearchPage />} />
