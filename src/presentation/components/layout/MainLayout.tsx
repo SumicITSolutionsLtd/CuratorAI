@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { FloatingCreateButton } from '../common/FloatingCreateButton'
 
 interface MainLayoutProps {
   children: ReactNode
@@ -46,6 +47,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         {/* Content with bottom padding for mobile nav */}
         <main className="flex-1 p-3 pb-24 sm:p-4 lg:pb-4">{children}</main>
       </div>
+
+      {/* Global Floating Create Outfit Button */}
+      <FloatingCreateButton />
     </div>
   )
 }
