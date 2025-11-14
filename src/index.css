@@ -53,8 +53,15 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: auto;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background font-inter text-foreground;
+    position: relative;
+    overflow-x: hidden;
+    min-height: 100vh;
   }
   h1,
   h2,
