@@ -43,7 +43,7 @@ export const fetchWardrobe = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await wardrobeRepository.getWardrobe(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch wardrobe')
     }
   }
@@ -54,7 +54,7 @@ export const fetchWardrobeStats = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await wardrobeRepository.getWardrobeStats(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch stats')
     }
   }
@@ -65,7 +65,7 @@ export const addWardrobeItem = createAsyncThunk(
   async (item: Omit<WardrobeItem, 'id' | 'createdAt' | 'updatedAt'>, { rejectWithValue }) => {
     try {
       return await wardrobeRepository.addItem(item)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to add item')
     }
   }
@@ -76,7 +76,7 @@ export const updateWardrobeItem = createAsyncThunk(
   async ({ id, updates }: { id: string; updates: Partial<WardrobeItem> }, { rejectWithValue }) => {
     try {
       return await wardrobeRepository.updateItem(id, updates)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update item')
     }
   }
@@ -88,7 +88,7 @@ export const deleteWardrobeItem = createAsyncThunk(
     try {
       await wardrobeRepository.deleteItem(itemId)
       return itemId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete item')
     }
   }
@@ -100,7 +100,7 @@ export const incrementTimesWorn = createAsyncThunk(
     try {
       const updatedItem = await wardrobeRepository.incrementTimesWorn(itemId)
       return { itemId, timesWorn: updatedItem.timesWorn }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to increment times worn')
     }
   }

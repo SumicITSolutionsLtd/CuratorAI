@@ -83,7 +83,7 @@ export const SavedPage = () => {
     try {
       await dispatch(unsaveOutfit({ userId: user.id, outfitId })).unwrap()
       showToast.success('Removed', 'Outfit removed from saved items')
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast.error('Failed to remove', error.message || 'Could not remove outfit')
     }
   }

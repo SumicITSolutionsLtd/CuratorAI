@@ -80,7 +80,7 @@ export const NotificationsPage = () => {
   const handleMarkAsRead = async (id: string) => {
     try {
       await dispatch(markNotificationAsRead(id)).unwrap()
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast.error('Failed to mark as read', error.message)
     }
   }
@@ -92,7 +92,7 @@ export const NotificationsPage = () => {
     try {
       await dispatch(markAllNotificationsAsRead(user.id)).unwrap()
       showToast.success('All notifications marked as read')
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast.error('Failed to mark all as read', error.message)
     }
   }
@@ -102,7 +102,7 @@ export const NotificationsPage = () => {
     try {
       await dispatch(deleteNotification(id)).unwrap()
       showToast.success('Notification deleted')
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast.error('Failed to delete notification', error.message)
     }
   }

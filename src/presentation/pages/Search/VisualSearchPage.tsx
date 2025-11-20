@@ -53,7 +53,7 @@ export const VisualSearchPage = () => {
       } else {
         showToast.info('No Results', 'No similar items found. Try another image.')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast.error('Search Failed', error.message || 'Failed to perform visual search')
       console.error('Visual search error:', error)
     }
@@ -70,7 +70,7 @@ export const VisualSearchPage = () => {
     id: result.id || '',
     name: result.outfit?.name || 'Similar Item',
     imageUrl: result.outfit?.imageUrl || '',
-    items: result.outfit?.items?.map((item: any) => ({
+    items: result.outfit?.items?.map((item: unknown) => ({
       name: item.name || '',
       price: item.price || 0,
     })) || [],

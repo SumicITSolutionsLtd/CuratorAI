@@ -35,7 +35,7 @@ export const performVisualSearch = createAsyncThunk(
   async (request: VisualSearchRequest, { rejectWithValue }) => {
     try {
       return await searchRepository.performVisualSearch(request)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Visual search failed')
     }
   }
@@ -46,7 +46,7 @@ export const uploadSearchImage = createAsyncThunk(
   async (image: File, { rejectWithValue }) => {
     try {
       return await searchRepository.uploadSearchImage(image)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Image upload failed')
     }
   }
@@ -57,7 +57,7 @@ export const getProcessingStatus = createAsyncThunk(
   async (searchId: string, { rejectWithValue }) => {
     try {
       return await searchRepository.getProcessingStatus(searchId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get processing status')
     }
   }
@@ -70,7 +70,7 @@ export const getRecentSearches = createAsyncThunk(
   async ({ userId, limit = 10 }: { userId: string; limit?: number }, { rejectWithValue }) => {
     try {
       return await searchRepository.getRecentSearches(userId, limit)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch recent searches')
     }
   }
@@ -82,7 +82,7 @@ export const deleteSearchHistory = createAsyncThunk(
     try {
       await searchRepository.deleteSearchHistory(userId)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete search history')
     }
   }

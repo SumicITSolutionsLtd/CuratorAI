@@ -65,17 +65,17 @@ export class ApiClient {
     return response.data
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.post<T>(url, data, config)
     return response.data
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.put<T>(url, data, config)
     return response.data
   }
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.patch<T>(url, data, config)
     return response.data
   }
@@ -102,5 +102,5 @@ export class ApiClient {
 }
 
 // Create singleton instances
-export const apiClient = new ApiClient(import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1')
-export const mlApiClient = new ApiClient(import.meta.env.VITE_ML_API_URL || 'http://localhost:5000')
+export const apiClient = new ApiClient(import.meta.env.VITE_API_URL || 'https://curator-ai-backend.vercel.app/api/v1')
+export const mlApiClient = new ApiClient(import.meta.env.VITE_ML_API_URL || 'https://curator-ai-backend.vercel.app/ml')

@@ -27,7 +27,7 @@ export const LoginPage = () => {
     try {
       await loginWithOAuth(provider)
       navigate('/home')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`OAuth ${provider} login failed:`, error)
 
       // Show user-friendly error message

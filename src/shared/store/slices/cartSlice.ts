@@ -40,7 +40,7 @@ export const fetchCart = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await cartRepository.getCart(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch cart')
     }
   }
@@ -51,7 +51,7 @@ export const addToCart = createAsyncThunk(
   async ({ userId, item }: { userId: string; item: Omit<CartItem, 'id'> }, { rejectWithValue }) => {
     try {
       return await cartRepository.addItem(userId, item)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to add item')
     }
   }
@@ -65,7 +65,7 @@ export const updateQuantity = createAsyncThunk(
   ) => {
     try {
       return await cartRepository.updateItemQuantity(userId, itemId, quantity)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update quantity')
     }
   }
@@ -76,7 +76,7 @@ export const removeFromCart = createAsyncThunk(
   async ({ userId, itemId }: { userId: string; itemId: string }, { rejectWithValue }) => {
     try {
       return await cartRepository.removeItem(userId, itemId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to remove item')
     }
   }
@@ -87,7 +87,7 @@ export const applyPromoCode = createAsyncThunk(
   async ({ userId, code }: { userId: string; code: string }, { rejectWithValue }) => {
     try {
       return await cartRepository.applyPromoCode(userId, code)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to apply promo code')
     }
   }
@@ -98,7 +98,7 @@ export const removePromoCode = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await cartRepository.removePromoCode(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to remove promo code')
     }
   }
@@ -109,7 +109,7 @@ export const clearCart = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       await cartRepository.clearCart(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to clear cart')
     }
   }
@@ -120,7 +120,7 @@ export const fetchShippingMethods = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await cartRepository.getShippingMethods()
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch shipping methods')
     }
   }
@@ -131,7 +131,7 @@ export const calculateShipping = createAsyncThunk(
   async ({ address, items }: { address: ShippingAddress; items: CartItem[] }, { rejectWithValue }) => {
     try {
       return await cartRepository.calculateShipping(address, items)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to calculate shipping')
     }
   }

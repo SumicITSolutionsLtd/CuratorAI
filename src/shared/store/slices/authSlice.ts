@@ -31,7 +31,7 @@ export const login = createAsyncThunk(
       localStorage.setItem('curatorai_access_token', response.tokens.accessToken)
       localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
       return response.user
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Login failed')
     }
   }
@@ -45,7 +45,7 @@ export const loginWithOAuth = createAsyncThunk(
       localStorage.setItem('curatorai_access_token', response.tokens.accessToken)
       localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
       return response.user
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'OAuth login failed')
     }
   }
@@ -59,7 +59,7 @@ export const register = createAsyncThunk(
       localStorage.setItem('curatorai_access_token', response.tokens.accessToken)
       localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
       return response.user
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Registration failed')
     }
   }
@@ -82,7 +82,7 @@ export const requestPasswordReset = createAsyncThunk(
     try {
       await authRepository.requestPasswordReset(email)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to send reset email')
     }
   }
@@ -94,7 +94,7 @@ export const resetPassword = createAsyncThunk(
     try {
       await authRepository.resetPassword(token, newPassword)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to reset password')
     }
   }
@@ -106,7 +106,7 @@ export const verifyEmail = createAsyncThunk(
     try {
       await authRepository.verifyEmail(code)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Email verification failed')
     }
   }
@@ -118,7 +118,7 @@ export const requestEmailVerification = createAsyncThunk(
     try {
       await authRepository.requestEmailVerification()
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(
         error.response?.data?.message || 'Failed to send verification email'
       )
@@ -131,7 +131,7 @@ export const completeRegistration = createAsyncThunk(
   async (preferences: StylePreferenceCompletion, { rejectWithValue }) => {
     try {
       return await authRepository.completeRegistration(preferences)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(
         error.response?.data?.message || 'Failed to complete registration'
       )

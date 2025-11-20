@@ -31,7 +31,7 @@ export const useAuth = () => {
 
       const oauthProvider: OAuthProvider = { provider, token }
       await dispatch(loginWithOAuth(oauthProvider))
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Re-throw the error so it can be caught by the component
       throw error
     }

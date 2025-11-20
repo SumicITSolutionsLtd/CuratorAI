@@ -40,7 +40,7 @@ export const fetchRecommendations = createAsyncThunk(
       const state = getState() as any
       const filters = state.outfit.filters
       return await outfitRepository.getRecommendations(userId, filters, page, limit)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch recommendations')
     }
   }
@@ -53,7 +53,7 @@ export const fetchOutfitById = createAsyncThunk(
   async (outfitId: string, { rejectWithValue }) => {
     try {
       return await outfitRepository.getOutfitById(outfitId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch outfit')
     }
   }
@@ -64,7 +64,7 @@ export const createOutfit = createAsyncThunk(
   async (outfit: Omit<Outfit, 'id' | 'createdAt' | 'updatedAt'>, { rejectWithValue }) => {
     try {
       return await outfitRepository.createOutfit(outfit)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create outfit')
     }
   }
@@ -78,7 +78,7 @@ export const updateOutfit = createAsyncThunk(
   ) => {
     try {
       return await outfitRepository.updateOutfit(outfitId, updates)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update outfit')
     }
   }
@@ -90,7 +90,7 @@ export const deleteOutfit = createAsyncThunk(
     try {
       await outfitRepository.deleteOutfit(outfitId)
       return outfitId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete outfit')
     }
   }
@@ -104,7 +104,7 @@ export const likeOutfit = createAsyncThunk(
     try {
       await outfitRepository.likeOutfit(userId, outfitId)
       return outfitId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to like outfit')
     }
   }
@@ -116,7 +116,7 @@ export const unlikeOutfit = createAsyncThunk(
     try {
       await outfitRepository.unlikeOutfit(userId, outfitId)
       return outfitId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unlike outfit')
     }
   }
@@ -128,7 +128,7 @@ export const saveOutfit = createAsyncThunk(
     try {
       await outfitRepository.saveOutfit(userId, outfitId)
       return outfitId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to save outfit')
     }
   }
@@ -140,7 +140,7 @@ export const unsaveOutfit = createAsyncThunk(
     try {
       await outfitRepository.unsaveOutfit(userId, outfitId)
       return outfitId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unsave outfit')
     }
   }
@@ -156,7 +156,7 @@ export const fetchSavedOutfits = createAsyncThunk(
   ) => {
     try {
       return await outfitRepository.getSavedOutfits(userId, page, limit)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch saved outfits')
     }
   }
@@ -177,7 +177,7 @@ export const provideFeedback = createAsyncThunk(
     try {
       await outfitRepository.provideFeedback(outfitId, helpful, feedback)
       return outfitId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to provide feedback')
     }
   }

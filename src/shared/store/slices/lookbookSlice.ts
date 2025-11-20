@@ -35,7 +35,7 @@ export const fetchLookbooks = createAsyncThunk(
   ) => {
     try {
       return await lookbookRepository.getLookbooks(filter, page, limit)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch lookbooks')
     }
   }
@@ -46,7 +46,7 @@ export const fetchFeaturedLookbooks = createAsyncThunk(
   async (limit: number | undefined, { rejectWithValue }) => {
     try {
       return await lookbookRepository.getFeaturedLookbooks(limit)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch featured lookbooks')
     }
   }
@@ -57,7 +57,7 @@ export const fetchLookbookById = createAsyncThunk(
   async (lookbookId: string, { rejectWithValue }) => {
     try {
       return await lookbookRepository.getLookbookById(lookbookId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch lookbook')
     }
   }
@@ -68,7 +68,7 @@ export const createLookbook = createAsyncThunk(
   async (lookbook: Omit<Lookbook, 'id' | 'createdAt' | 'updatedAt'>, { rejectWithValue }) => {
     try {
       return await lookbookRepository.createLookbook(lookbook)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create lookbook')
     }
   }
@@ -79,7 +79,7 @@ export const updateLookbook = createAsyncThunk(
   async ({ lookbookId, updates }: { lookbookId: string; updates: Partial<Lookbook> }, { rejectWithValue }) => {
     try {
       return await lookbookRepository.updateLookbook(lookbookId, updates)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update lookbook')
     }
   }
@@ -91,7 +91,7 @@ export const deleteLookbook = createAsyncThunk(
     try {
       await lookbookRepository.deleteLookbook(lookbookId)
       return lookbookId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete lookbook')
     }
   }
@@ -103,7 +103,7 @@ export const likeLookbook = createAsyncThunk(
     try {
       await lookbookRepository.likeLookbook(userId, lookbookId)
       return lookbookId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to like lookbook')
     }
   }
@@ -115,7 +115,7 @@ export const unlikeLookbook = createAsyncThunk(
     try {
       await lookbookRepository.unlikeLookbook(userId, lookbookId)
       return lookbookId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unlike lookbook')
     }
   }

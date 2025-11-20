@@ -30,7 +30,7 @@ export const getUserById = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await userRepository.getUserById(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get user')
     }
   }
@@ -41,7 +41,7 @@ export const updateProfile = createAsyncThunk(
   async ({ userId, profile }: { userId: string; profile: Partial<UserProfile> }, { rejectWithValue }) => {
     try {
       return await userRepository.updateProfile(userId, profile)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update profile')
     }
   }
@@ -52,7 +52,7 @@ export const updatePreferences = createAsyncThunk(
   async ({ userId, preferences }: { userId: string; preferences: Partial<UserPreferences> }, { rejectWithValue }) => {
     try {
       return await userRepository.updatePreferences(userId, preferences)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update preferences')
     }
   }
@@ -63,7 +63,7 @@ export const searchUsers = createAsyncThunk(
   async ({ query, limit }: { query: string; limit?: number }, { rejectWithValue }) => {
     try {
       return await userRepository.searchUsers(query, limit)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to search users')
     }
   }
@@ -75,7 +75,7 @@ export const followUser = createAsyncThunk(
     try {
       await userRepository.followUser(userId, targetUserId)
       return targetUserId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to follow user')
     }
   }
@@ -87,7 +87,7 @@ export const unfollowUser = createAsyncThunk(
     try {
       await userRepository.unfollowUser(userId, targetUserId)
       return targetUserId
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unfollow user')
     }
   }
@@ -98,7 +98,7 @@ export const getFollowers = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await userRepository.getFollowers(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get followers')
     }
   }
@@ -109,7 +109,7 @@ export const getFollowing = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await userRepository.getFollowing(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get following')
     }
   }
@@ -120,7 +120,7 @@ export const deleteUser = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       await userRepository.deleteUser(userId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete user')
     }
   }

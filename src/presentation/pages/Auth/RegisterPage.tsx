@@ -85,7 +85,7 @@ export const RegisterPage = () => {
 
       await store.dispatch(loginWithOAuth({ provider, token }))
       navigate('/home')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`OAuth ${provider} registration failed:`, error)
       setRegistrationError(error.message || `Failed to register with ${provider}`)
     }
