@@ -1,4 +1,9 @@
-import { IAuthRepository, AuthResponse, AuthTokens } from '@domain/repositories/IAuthRepository'
+import {
+  IAuthRepository,
+  AuthResponse,
+  AuthTokens,
+  StylePreferenceCompletion,
+} from '@domain/repositories/IAuthRepository'
 import { User, RegisterData, AuthCredentials, OAuthProvider } from '@domain/entities/User'
 import { apiClient } from '../api/ApiClient'
 
@@ -13,7 +18,7 @@ export class AuthRepository implements IAuthRepository {
 
   async loginWithOAuth(provider: OAuthProvider): Promise<AuthResponse> {
     return await apiClient.post<AuthResponse>(`/auth/oauth/${provider.provider}`, {
-      token: provider.token,
+      access_token: provider.token,
     })
   }
 
@@ -28,7 +33,11 @@ export class AuthRepository implements IAuthRepository {
   }
 
   async verifyEmail(code: string): Promise<void> {
-    await apiClient.post('/auth/verify-email', { code })
+    await apiClient.post('/auth/verify-email/confirm', { code })
+  }
+
+  async requestEmailVerification(): Promise<void> {
+    await apiClient.post('/auth/verify-email/request')
   }
 
   async requestPasswordReset(email: string): Promise<void> {
@@ -45,5 +54,9 @@ export class AuthRepository implements IAuthRepository {
     } catch {
       return null
     }
+  }
+
+  async completeRegistration(preferences: StylePreferenceCompletion): Promise<User> {
+    return await apiClient.post<User>('/auth/register/complete', preferences)
   }
 }

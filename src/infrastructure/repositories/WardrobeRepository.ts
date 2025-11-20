@@ -45,7 +45,7 @@ export class WardrobeRepository implements IWardrobeRepository {
     return response.imageUrl
   }
 
-  async incrementTimesWorn(itemId: string): Promise<void> {
-    await apiClient.post(`/wardrobe/items/${itemId}/worn`)
+  async incrementTimesWorn(itemId: string): Promise<WardrobeItem> {
+    return await apiClient.post<WardrobeItem>(`/wardrobe/items/${itemId}/worn`)
   }
 }

@@ -26,9 +26,11 @@ export interface Outfit {
   currency: string
   isPublic: boolean
   tags: string[]
-  likes: number
-  saves: number
-  shares: number
+  likes?: number
+  saves?: number
+  shares?: number
+  isLiked?: boolean
+  isSaved?: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -40,6 +42,9 @@ export interface OutfitRecommendation {
   score: number
   reasons: string[]
   matchPercentage: number
+  likes: number
+  isLiked: boolean
+  isSaved: boolean
   createdAt: Date
 }
 

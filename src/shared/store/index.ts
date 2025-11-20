@@ -7,6 +7,7 @@ import socialReducer from './slices/socialSlice'
 import searchReducer from './slices/searchSlice'
 import cartReducer from './slices/cartSlice'
 import notificationReducer from './slices/notificationSlice'
+import lookbookReducer from './slices/lookbookSlice'
 import uiReducer from './slices/uiSlice'
 
 export const store = configureStore({
@@ -19,6 +20,7 @@ export const store = configureStore({
     search: searchReducer,
     cart: cartReducer,
     notification: notificationReducer,
+    lookbook: lookbookReducer,
     ui: uiReducer,
   },
   middleware: (getDefaultMiddleware) =>

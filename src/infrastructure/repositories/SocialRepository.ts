@@ -5,7 +5,14 @@ import { apiClient } from '../api/ApiClient'
 
 export class SocialRepository implements ISocialRepository {
   async getFeed(filter: FeedFilter): Promise<PaginatedResponse<SocialPost>> {
-    return await apiClient.post<PaginatedResponse<SocialPost>>('/social/feed', filter)
+    const params = new URLSearchParams()
+    if (filter.type) params.append('type', filter.type)
+    if (filter.limit) params.append('limit', filter.limit.toString())
+    if (filter.offset) params.append('offset', filter.offset.toString())
+
+    return await apiClient.get<PaginatedResponse<SocialPost>>(
+      `/social/feed?${params.toString()}`
+    )
   }
 
   async getPostById(postId: string): Promise<SocialPost> {

@@ -11,7 +11,7 @@ import { useAuth } from '@/shared/hooks/useAuth'
 
 export const LoginPage = () => {
   const navigate = useNavigate()
-  const { login, isLoading, error } = useAuth()
+  const { login, loginWithOAuth, isLoading, error } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -23,9 +23,24 @@ export const LoginPage = () => {
     navigate('/home')
   }
 
-  const handleOAuthLogin = (provider: 'google' | 'facebook') => {
-    // TODO: Implement OAuth login
-    console.log(`Login with ${provider}`)
+  const handleOAuthLogin = async (provider: 'google' | 'facebook') => {
+    try {
+      await loginWithOAuth(provider)
+      navigate('/home')
+    } catch (error: any) {
+      console.error(`OAuth ${provider} login failed:`, error)
+
+      // Show user-friendly error message
+      let errorMessage = `Failed to login with ${provider === 'google' ? 'Google' : 'Facebook'}.`
+
+      if (error.message?.includes('not configured')) {
+        errorMessage = `${provider === 'google' ? 'Google' : 'Facebook'} login is not configured yet. Please use email/password login or contact support.`
+      } else if (error.message?.includes('popup was closed') || error.message?.includes('cancelled')) {
+        errorMessage = 'Login was cancelled. Please try again.'
+      }
+
+      alert(errorMessage)
+    }
   }
 
   return (

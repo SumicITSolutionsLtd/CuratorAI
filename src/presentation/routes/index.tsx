@@ -2,6 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { LandingPage } from '../pages/Landing/LandingPage'
 import { LoginPage } from '../pages/Auth/LoginPage'
 import { RegisterPage } from '../pages/Auth/RegisterPage'
+import { ForgotPasswordPage } from '../pages/Auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '../pages/Auth/ResetPasswordPage'
+import { VerifyEmailPage } from '../pages/Auth/VerifyEmailPage'
 import { HomePage } from '../pages/Home/HomePage'
 import { VisualSearchPage } from '../pages/Search/VisualSearchPage'
 import { FeedPage } from '../pages/Social/FeedPage'
@@ -20,6 +23,7 @@ import { SettingsPage } from '../pages/Settings/SettingsPage'
 import { ProfilePage } from '../pages/Profile/ProfilePage'
 import { NotificationsPage } from '../pages/Notifications/NotificationsPage'
 import { OutfitDetailPage } from '../pages/Outfit/OutfitDetailPage'
+import { ProtectedRoute } from '../components/auth/ProtectedRoute'
 
 export const AppRoutes = () => {
   return (
@@ -28,52 +32,55 @@ export const AppRoutes = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       {/* Protected Routes */}
-      <Route path="/home" element={<HomePage />} />
+      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
 
       {/* Outfit/Item Routes */}
-      <Route path="/outfits/:outfitId" element={<OutfitDetailPage />} />
-      <Route path="/items/:outfitId" element={<OutfitDetailPage />} />
+      <Route path="/outfits/:outfitId" element={<ProtectedRoute><OutfitDetailPage /></ProtectedRoute>} />
+      <Route path="/items/:outfitId" element={<ProtectedRoute><OutfitDetailPage /></ProtectedRoute>} />
 
       {/* Wardrobe Routes */}
-      <Route path="/wardrobe" element={<WardrobePage />} />
-      <Route path="/wardrobe/add" element={<AddWardrobeItemPage />} />
-      <Route path="/wardrobe/items/:itemId" element={<WardrobeItemDetailPage />} />
-      <Route path="/wardrobe/create-outfit" element={<CreateOutfitPage />} />
+      <Route path="/wardrobe" element={<ProtectedRoute><WardrobePage /></ProtectedRoute>} />
+      <Route path="/wardrobe/add" element={<ProtectedRoute><AddWardrobeItemPage /></ProtectedRoute>} />
+      <Route path="/wardrobe/items/:itemId" element={<ProtectedRoute><WardrobeItemDetailPage /></ProtectedRoute>} />
+      <Route path="/wardrobe/create-outfit" element={<ProtectedRoute><CreateOutfitPage /></ProtectedRoute>} />
 
       {/* Search Routes */}
-      <Route path="/search/visual" element={<VisualSearchPage />} />
-      <Route path="/search/results" element={<div>Search Results</div>} />
+      <Route path="/search/visual" element={<ProtectedRoute><VisualSearchPage /></ProtectedRoute>} />
+      <Route path="/search/results" element={<ProtectedRoute><div>Search Results</div></ProtectedRoute>} />
 
       {/* Social Routes */}
-      <Route path="/feed" element={<FeedPage />} />
-      <Route path="/posts/:postId" element={<PostDetailPage />} />
-      <Route path="/posts/create" element={<CreatePostPage />} />
+      <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+      <Route path="/posts/:postId" element={<ProtectedRoute><PostDetailPage /></ProtectedRoute>} />
+      <Route path="/posts/create" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
 
       {/* Lookbook Routes */}
-      <Route path="/lookbooks" element={<LookbooksPage />} />
-      <Route path="/lookbooks/:lookbookId" element={<LookbookDetailPage />} />
+      <Route path="/lookbooks" element={<ProtectedRoute><LookbooksPage /></ProtectedRoute>} />
+      <Route path="/lookbooks/:lookbookId" element={<ProtectedRoute><LookbookDetailPage /></ProtectedRoute>} />
 
       {/* Cart & Checkout */}
-      <Route path="/cart" element={<CartPage />} />
-      <Route path="/checkout" element={<div>Checkout</div>} />
+      <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+      <Route path="/checkout" element={<ProtectedRoute><div>Checkout</div></ProtectedRoute>} />
 
       {/* Saved Items */}
-      <Route path="/saved" element={<SavedPage />} />
+      <Route path="/saved" element={<ProtectedRoute><SavedPage /></ProtectedRoute>} />
 
       {/* Virtual Try-On */}
-      <Route path="/try-on" element={<TryOnPage />} />
+      <Route path="/try-on" element={<ProtectedRoute><TryOnPage /></ProtectedRoute>} />
 
       {/* Profile & Settings */}
-      <Route path="/profile/:userId" element={<ProfilePage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/notifications" element={<NotificationsPage />} />
+      <Route path="/profile/:userId" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
       {/* Admin Routes */}
-      <Route path="/admin" element={<div>Admin Dashboard - Coming Soon!</div>} />
-      <Route path="/admin/users" element={<div>User Management</div>} />
-      <Route path="/admin/moderation" element={<div>Content Moderation</div>} />
+      <Route path="/admin" element={<ProtectedRoute><div>Admin Dashboard - Coming Soon!</div></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute><div>User Management</div></ProtectedRoute>} />
+      <Route path="/admin/moderation" element={<ProtectedRoute><div>Content Moderation</div></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -11,6 +11,13 @@ export interface AuthResponse {
   tokens: AuthTokens
 }
 
+export interface StylePreferenceCompletion {
+  shop_for: string
+  styles: string[]
+  dress_for: string[]
+  budget_range: string
+}
+
 export interface IAuthRepository {
   register(data: RegisterData): Promise<AuthResponse>
   login(credentials: AuthCredentials): Promise<AuthResponse>
@@ -18,7 +25,9 @@ export interface IAuthRepository {
   logout(): Promise<void>
   refreshToken(refreshToken: string): Promise<AuthTokens>
   verifyEmail(code: string): Promise<void>
+  requestEmailVerification(): Promise<void>
   requestPasswordReset(email: string): Promise<void>
   resetPassword(token: string, newPassword: string): Promise<void>
   getCurrentUser(): Promise<User | null>
+  completeRegistration(preferences: StylePreferenceCompletion): Promise<User>
 }

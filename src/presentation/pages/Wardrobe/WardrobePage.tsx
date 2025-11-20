@@ -68,11 +68,15 @@ export const WardrobePage = () => {
     error,
   } = useAppSelector((state) => state.wardrobe)
 
+  const { user } = useAppSelector((state) => state.auth)
+
   // Fetch wardrobe data on mount
   useEffect(() => {
-    dispatch(fetchWardrobe())
-    dispatch(fetchWardrobeStats())
-  }, [dispatch])
+    if (user?.id) {
+      dispatch(fetchWardrobe(user.id))
+      dispatch(fetchWardrobeStats(user.id))
+    }
+  }, [dispatch, user?.id])
 
   // Sync local search with store
   useEffect(() => {

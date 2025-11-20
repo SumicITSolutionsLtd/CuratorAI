@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
@@ -11,6 +11,7 @@ import {
   Users,
   Calendar,
   Sparkles,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Badge } from '@/presentation/components/ui/badge'
@@ -19,8 +20,22 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/presentation/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/components/ui/tabs'
 import { Link } from 'react-router-dom'
 import { showToast } from '@/shared/utils/toast'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { fetchLookbooks, fetchFeaturedLookbooks } from '@/shared/store/slices/lookbookSlice'
 
-const lookbooks = [
+// Format time ago
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date()
+  const diffMs = now.getTime() - new Date(date).getTime()
+  const diffDays = Math.floor(diffMs / 86400000)
+  if (diffDays < 1) return 'Today'
+  if (diffDays < 7) return `${diffDays}d ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+  return `${Math.floor(diffDays / 30)}mo ago`
+}
+
+const mockLookbooks = [
   {
     id: 1,
     title: 'Summer Essentials 2024',
@@ -126,10 +141,24 @@ const lookbooks = [
 ]
 
 export const LookbooksPage = () => {
+  const dispatch = useAppDispatch()
+  const { lookbooks, featuredLookbooks, isLoading } = useAppSelector((state) => state.lookbook)
+
   const [activeTab, setActiveTab] = useState('trending')
 
-  const filteredLookbooks =
-    activeTab === 'trending' ? lookbooks.filter((lb) => lb.trending) : lookbooks
+  // Fetch lookbooks on mount
+  useEffect(() => {
+    if (activeTab === 'trending') {
+      dispatch(fetchFeaturedLookbooks(20))
+    } else {
+      dispatch(fetchLookbooks({ page: 1, limit: 20 }))
+    }
+  }, [dispatch, activeTab])
+
+  // Use backend data, fallback to mock for empty state
+  const activeLookbooks = activeTab === 'trending' ? featuredLookbooks : lookbooks
+  const displayLookbooks = activeLookbooks.length > 0 ? activeLookbooks : mockLookbooks
+  const filteredLookbooks = activeTab === 'trending' ? displayLookbooks.slice(0, 6) : displayLookbooks
 
   return (
     <MainLayout>
@@ -170,7 +199,7 @@ export const LookbooksPage = () => {
                   <BookOpen className="h-5 w-5 text-brand-crimson" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">{lookbooks.length}</p>
+                  <p className="text-2xl font-bold text-brand-charcoal">{displayLookbooks.length}</p>
                   <p className="text-xs text-muted-foreground">Total Lookbooks</p>
                 </div>
               </div>
@@ -185,7 +214,7 @@ export const LookbooksPage = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-brand-charcoal">
-                    {lookbooks.reduce((sum, lb) => sum + lb.likes, 0).toLocaleString()}
+                    {displayLookbooks.reduce((sum, lb: any) => sum + (lb.likes || 0), 0).toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground">Total Likes</p>
                 </div>
@@ -201,7 +230,7 @@ export const LookbooksPage = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-brand-charcoal">
-                    {lookbooks.filter((lb) => lb.trending).length}
+                    {featuredLookbooks.length || displayLookbooks.filter((lb: any) => lb.trending).length}
                   </p>
                   <p className="text-xs text-muted-foreground">Trending Now</p>
                 </div>
@@ -228,9 +257,17 @@ export const LookbooksPage = () => {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6">
-            {/* Lookbooks Grid */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredLookbooks.map((lookbook, index) => (
+            {isLoading ? (
+              <div className="flex min-h-[400px] items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-crimson" />
+                  <p className="text-lg font-semibold">Loading lookbooks...</p>
+                </div>
+              </div>
+            ) : (
+              /* Lookbooks Grid */
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredLookbooks.map((lookbook: any, index: number) => (
                 <motion.div
                   key={lookbook.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -253,7 +290,7 @@ export const LookbooksPage = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                         {/* Trending Badge */}
-                        {lookbook.trending && (
+                        {(lookbook.trending || lookbook.featured) && (
                           <motion.div
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -341,28 +378,37 @@ export const LookbooksPage = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6 ring-2 ring-brand-crimson/20">
-                              <AvatarImage src={lookbook.author.avatar} />
-                              <AvatarFallback>{lookbook.author.name[0]}</AvatarFallback>
+                              <AvatarImage src={lookbook.creator?.photoUrl || lookbook.author?.avatar} />
+                              <AvatarFallback>
+                                {(lookbook.creator?.username || lookbook.author?.name)?.[0]}
+                              </AvatarFallback>
                             </Avatar>
                             <span className="text-xs font-medium text-brand-charcoal">
-                              {lookbook.author.name}
+                              {lookbook.creator?.fullName || lookbook.author?.name}
                             </span>
                           </div>
                           <Badge variant="outline" className="text-xs">
-                            {lookbook.outfitCount} outfits
+                            {lookbook.outfits?.length || lookbook.outfitCount} outfits
                           </Badge>
                         </div>
 
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span>{lookbook.createdAt}</span>
+                          <span>
+                            {lookbook.createdAt
+                              ? typeof lookbook.createdAt === 'string'
+                                ? lookbook.createdAt
+                                : formatTimeAgo(lookbook.createdAt)
+                              : 'Recently'}
+                          </span>
                         </div>
                       </div>
                     </Card>
                   </Link>
                 </motion.div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </motion.div>

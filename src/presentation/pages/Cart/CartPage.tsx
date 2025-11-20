@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
@@ -20,8 +20,11 @@ import { Badge } from '@/presentation/components/ui/badge'
 import { Card } from '@/presentation/components/ui/card'
 import { Separator } from '@/presentation/components/ui/separator'
 import { Link } from 'react-router-dom'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { fetchCart } from '@/shared/store/slices/cartSlice'
 
-const cartItems = [
+const mockCartItems = [
   {
     id: 1,
     name: 'Silk Midi Dress',
@@ -61,32 +64,49 @@ const cartItems = [
 ]
 
 export const CartPage = () => {
-  const [items, setItems] = useState(cartItems)
+  const dispatch = useAppDispatch()
+  const { user } = useAppSelector((state) => state.auth)
+  const cartState = useAppSelector((state) => state.cart)
+
+  // Local state for mock functionality
+  const [localItems, setLocalItems] = useState<any[]>(mockCartItems)
   const [promoCode, setPromoCode] = useState('')
   const [promoApplied, setPromoApplied] = useState(false)
 
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  // Fetch cart on mount
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchCart(user.id))
+    }
+  }, [dispatch, user?.id])
+
+  // Use backend items if available, otherwise use local mock
+  const items: any[] = cartState.items.length > 0 ? cartState.items : localItems
+  const setItems = setLocalItems
+
+  // Calculate values
+  const subtotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0)
   const shipping = subtotal > 200 ? 0 : 15.0
   const discount = promoApplied ? subtotal * 0.1 : 0
   const tax = (subtotal - discount) * 0.08
   const total = subtotal + shipping - discount + tax
 
-  const updateQuantity = (id: number, delta: number) => {
+  const updateQuantity = (id: string | number, delta: number) => {
     setItems(
       items
-        .map((item) =>
-          item.id === id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
+        .map((item: any) =>
+          item.id == id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
         )
-        .filter((item) => item.quantity > 0)
+        .filter((item: any) => item.quantity > 0)
     )
   }
 
-  const removeItem = (id: number) => {
-    setItems(items.filter((item) => item.id !== id))
+  const removeItem = (id: string | number) => {
+    setItems(items.filter((item: any) => item.id != id))
   }
 
-  const applyPromo = () => {
-    if (promoCode.toLowerCase() === 'curator10') {
+  const applyPromoCode = () => {
+    if (promoCode.toLowerCase() === 'curator10' || promoCode.toLowerCase() === 'save10') {
       setPromoApplied(true)
     }
   }
@@ -251,7 +271,7 @@ export const CartPage = () => {
                     />
                   </div>
                   <Button
-                    onClick={applyPromo}
+                    onClick={applyPromoCode}
                     disabled={promoApplied}
                     className="bg-brand-blue hover:bg-brand-blue/90"
                   >

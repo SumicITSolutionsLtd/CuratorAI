@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
@@ -12,6 +12,7 @@ import {
   List,
   MoreHorizontal,
   Trash2,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Badge } from '@/presentation/components/ui/badge'
@@ -20,72 +21,72 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/compone
 import { OutfitCard } from '@/presentation/components/outfit/OutfitCard'
 import { cn } from '@/shared/utils/cn'
 import { showToast } from '@/shared/utils/toast'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { fetchSavedOutfits, unsaveOutfit } from '@/shared/store/slices/outfitSlice'
 
-const collections = [
-  { id: 'all', name: 'All Saved', icon: Heart, count: 47, color: 'text-brand-crimson' },
-  { id: 'outfits', name: 'Outfits', icon: Shirt, count: 28, color: 'text-brand-blue' },
-  { id: 'lookbooks', name: 'Lookbooks', icon: BookOpen, count: 12, color: 'text-brand-blue' },
-  { id: 'items', name: 'Items', icon: ShoppingBag, count: 7, color: 'text-brand-crimson' },
-]
+// Helper to format time ago
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date()
+  const diffMs = now.getTime() - new Date(date).getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
 
-const savedOutfits = [
-  {
-    id: 1,
-    name: 'Summer Brunch',
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=800&fit=crop',
-    items: [
-      { name: 'Linen Dress', brand: 'Reformation' },
-      { name: 'Sandals', brand: 'Ancient Greek' },
-    ],
-    matchScore: 95,
-    price: 248,
-    likes: 432,
-    savedAt: '2 days ago',
-  },
-  {
-    id: 2,
-    name: 'Office Look',
-    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600&h=800&fit=crop',
-    items: [
-      { name: 'Blazer', brand: 'Zara' },
-      { name: 'Trousers', brand: 'COS' },
-    ],
-    matchScore: 92,
-    price: 179,
-    likes: 521,
-    savedAt: '5 days ago',
-  },
-  {
-    id: 3,
-    name: 'Weekend Casual',
-    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&h=800&fit=crop',
-    items: [
-      { name: 'Denim Jacket', brand: "Levi's" },
-      { name: 'White Tee', brand: 'Everlane' },
-    ],
-    matchScore: 88,
-    price: 95,
-    likes: 387,
-    savedAt: '1 week ago',
-  },
-  {
-    id: 4,
-    name: 'Evening Elegance',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=800&fit=crop',
-    items: [
-      { name: 'Silk Dress', brand: 'Reformation' },
-      { name: 'Heels', brand: 'Stuart Weitzman' },
-    ],
-    matchScore: 94,
-    price: 398,
-    likes: 612,
-    savedAt: '3 days ago',
-  },
-]
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  return `${diffDays}d ago`
+}
 
 export const SavedPage = () => {
+  const dispatch = useAppDispatch()
+  const { user } = useAppSelector((state) => state.auth)
+  const { savedOutfits, isLoading } = useAppSelector((state) => state.outfit)
+
   const [selectedCollection, setSelectedCollection] = useState('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  // Fetch saved outfits on mount
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchSavedOutfits({ userId: user.id, page: 1, limit: 20 }))
+    }
+  }, [dispatch, user?.id])
+
+  // Calculate collection counts
+  const collections = [
+    { id: 'all', name: 'All Saved', icon: Heart, count: savedOutfits.length, color: 'text-brand-crimson' },
+    { id: 'outfits', name: 'Outfits', icon: Shirt, count: savedOutfits.length, color: 'text-brand-blue' },
+    { id: 'lookbooks', name: 'Lookbooks', icon: BookOpen, count: 0, color: 'text-brand-blue' },
+    { id: 'items', name: 'Items', icon: ShoppingBag, count: 0, color: 'text-brand-crimson' },
+  ]
+
+  // Transform saved outfits to match UI format
+  const transformedOutfits = savedOutfits.map((outfit) => ({
+    id: outfit.id,
+    name: outfit.name,
+    image: outfit.items[0]?.imageUrl || '',
+    items: outfit.items.map((item) => ({
+      name: item.name,
+      brand: item.brand,
+    })),
+    matchScore: 0, // Saved outfits don't have match score
+    price: outfit.totalPrice,
+    likes: outfit.likes || 0,
+    savedAt: formatTimeAgo(outfit.createdAt),
+  }))
+
+  // Handle unsave outfit
+  const handleUnsave = async (outfitId: string) => {
+    if (!user?.id) return
+
+    try {
+      await dispatch(unsaveOutfit({ userId: user.id, outfitId })).unwrap()
+      showToast.success('Removed', 'Outfit removed from saved items')
+    } catch (error: any) {
+      showToast.error('Failed to remove', error.message || 'Could not remove outfit')
+    }
+  }
 
   return (
     <MainLayout>
@@ -267,46 +268,65 @@ export const SavedPage = () => {
             </TabsList>
 
             <TabsContent value="outfits" className="mt-6">
-              <div
-                className={cn(
-                  'grid gap-4',
-                  viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
-                )}
-              >
-                {savedOutfits.map((outfit, index) => (
-                  <motion.div
-                    key={outfit.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="group relative"
-                  >
-                    <OutfitCard {...outfit} />
-
-                    {/* Saved Badge */}
+              {isLoading ? (
+                <div className="flex min-h-[400px] items-center justify-center">
+                  <div className="text-center">
+                    <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-crimson" />
+                    <p className="text-lg font-semibold">Loading your saved outfits...</p>
+                    <p className="text-sm text-muted-foreground">This won't take long</p>
+                  </div>
+                </div>
+              ) : transformedOutfits.length === 0 ? (
+                <div className="py-12 text-center">
+                  <Heart className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">No saved outfits yet</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Save outfits you love to see them here
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    'grid gap-4',
+                    viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
+                  )}
+                >
+                  {transformedOutfits.map((outfit, index) => (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      className="absolute right-2 top-2 z-10"
+                      key={outfit.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group relative"
                     >
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="h-8 w-8 rounded-full bg-white/90 shadow-lg hover:bg-white"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </motion.div>
+                      <OutfitCard {...outfit} />
 
-                    {/* Saved Date */}
-                    <div className="absolute bottom-2 left-2 z-10">
-                      <Badge className="bg-white/90 text-xs text-brand-charcoal hover:bg-white">
-                        Saved {outfit.savedAt}
-                      </Badge>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                      {/* Unsave Button */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute right-2 top-2 z-10"
+                      >
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="h-8 w-8 rounded-full bg-white/90 shadow-lg hover:bg-white"
+                          onClick={() => handleUnsave(outfit.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </motion.div>
+
+                      {/* Saved Date */}
+                      <div className="absolute bottom-2 left-2 z-10">
+                        <Badge className="bg-white/90 text-xs text-brand-charcoal hover:bg-white">
+                          Saved {outfit.savedAt}
+                        </Badge>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="lookbooks" className="mt-6">

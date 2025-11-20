@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
@@ -22,8 +22,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/compone
 import { OutfitCard } from '@/presentation/components/outfit/OutfitCard'
 import { Link } from 'react-router-dom'
 import { cn } from '@/shared/utils/cn'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { fetchFeed } from '@/shared/store/slices/socialSlice'
 
-const profile = {
+// Format join date
+const formatJoinDate = (date?: Date) => {
+  if (!date) return 'Recently joined'
+  return `Joined ${new Date(date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+}
+
+const mockProfile = {
   name: 'Sarah Chen',
   username: '@sarahchen',
   bio: 'Fashion enthusiast • Style curator • Coffee lover ☕\nSharing my daily outfits and fashion finds',
@@ -93,8 +102,35 @@ const posts = [
 ]
 
 export const ProfilePage = () => {
-  const [isFollowing, setIsFollowing] = useState(profile.isFollowing)
+  const dispatch = useAppDispatch()
+  const { user } = useAppSelector((state) => state.auth)
+
+  const [isFollowing, setIsFollowing] = useState(false)
   const [activeTab, setActiveTab] = useState('posts')
+
+  // Fetch user's posts on mount
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchFeed({ type: 'forYou', limit: 20, offset: 0 }))
+    }
+  }, [dispatch, user?.id])
+
+  // Use current user data or fall back to mock
+  const displayProfile = user
+    ? {
+        name: user.fullName || mockProfile.name,
+        username: `@${user.username}` || mockProfile.username,
+        bio: mockProfile.bio, // Bio not in User entity yet
+        avatar: mockProfile.avatar, // photoUrl not in User entity yet
+        coverImage: mockProfile.coverImage,
+        location: mockProfile.location,
+        website: mockProfile.website,
+        joinedDate: formatJoinDate(user.createdAt),
+        stats: mockProfile.stats, // Would come from backend in real app
+        isFollowing: false,
+        isOwnProfile: true,
+      }
+    : mockProfile
 
   return (
     <MainLayout>
@@ -106,7 +142,7 @@ export const ProfilePage = () => {
         {/* Cover Image */}
         <Card className="overflow-hidden">
           <div className="relative h-48 bg-gradient-to-br from-brand-crimson/20 to-brand-blue/20 sm:h-64">
-            <img src={profile.coverImage} alt="Cover" className="h-full w-full object-cover" />
+            <img src={displayProfile.coverImage} alt="Cover" className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
 
@@ -115,21 +151,21 @@ export const ProfilePage = () => {
             <div className="-mt-16 flex flex-col gap-4 sm:-mt-20 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
                 <Avatar className="h-32 w-32 shadow-xl ring-4 ring-background">
-                  <AvatarImage src={profile.avatar} />
-                  <AvatarFallback className="text-2xl">{profile.name[0]}</AvatarFallback>
+                  <AvatarImage src={displayProfile.avatar} />
+                  <AvatarFallback className="text-2xl">{displayProfile.name[0]}</AvatarFallback>
                 </Avatar>
 
                 <div className="space-y-1 pb-2">
                   <h1 className="font-heading text-2xl font-bold text-brand-charcoal">
-                    {profile.name}
+                    {displayProfile.name}
                   </h1>
-                  <p className="text-sm text-muted-foreground">{profile.username}</p>
+                  <p className="text-sm text-muted-foreground">{displayProfile.username}</p>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-2">
-                {profile.isOwnProfile ? (
+                {displayProfile.isOwnProfile ? (
                   <>
                     <Link to="/settings">
                       <Button variant="outline" className="w-full sm:w-auto">
@@ -179,31 +215,31 @@ export const ProfilePage = () => {
 
             {/* Bio */}
             <div className="mt-6 space-y-3">
-              <p className="whitespace-pre-line text-sm text-brand-charcoal">{profile.bio}</p>
+              <p className="whitespace-pre-line text-sm text-brand-charcoal">{displayProfile.bio}</p>
 
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                {profile.location && (
+                {displayProfile.location && (
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    <span>{profile.location}</span>
+                    <span>{displayProfile.location}</span>
                   </div>
                 )}
-                {profile.website && (
+                {displayProfile.website && (
                   <div className="flex items-center gap-1">
                     <LinkIcon className="h-4 w-4" />
                     <a
-                      href={`https://${profile.website}`}
+                      href={`https://${displayProfile.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-brand-blue hover:underline"
                     >
-                      {profile.website}
+                      {displayProfile.website}
                     </a>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  <span>{profile.joinedDate}</span>
+                  <span>{displayProfile.joinedDate}</span>
                 </div>
               </div>
             </div>
@@ -212,19 +248,19 @@ export const ProfilePage = () => {
             <div className="mt-6 flex gap-6">
               <button className="group">
                 <span className="font-bold text-brand-charcoal transition-colors group-hover:text-brand-crimson">
-                  {profile.stats.posts}
+                  {displayProfile.stats.posts}
                 </span>
                 <span className="ml-1 text-sm text-muted-foreground">Posts</span>
               </button>
               <button className="group">
                 <span className="font-bold text-brand-charcoal transition-colors group-hover:text-brand-crimson">
-                  {profile.stats.followers.toLocaleString()}
+                  {displayProfile.stats.followers.toLocaleString()}
                 </span>
                 <span className="ml-1 text-sm text-muted-foreground">Followers</span>
               </button>
               <button className="group">
                 <span className="font-bold text-brand-charcoal transition-colors group-hover:text-brand-crimson">
-                  {profile.stats.following}
+                  {displayProfile.stats.following}
                 </span>
                 <span className="ml-1 text-sm text-muted-foreground">Following</span>
               </button>
@@ -272,7 +308,7 @@ export const ProfilePage = () => {
           </TabsContent>
 
           <TabsContent value="liked" className="mt-6">
-            {profile.isOwnProfile ? (
+            {displayProfile.isOwnProfile ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {posts.slice(0, 2).map((post, index) => (
                   <motion.div

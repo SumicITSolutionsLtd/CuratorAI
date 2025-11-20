@@ -42,6 +42,7 @@ export const WardrobeItemDetailPage = () => {
   const { toast } = useToast()
 
   const { items, isLoading } = useAppSelector((state) => state.wardrobe)
+  const { user } = useAppSelector((state) => state.auth)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -49,10 +50,10 @@ export const WardrobeItemDetailPage = () => {
   const item = items.find((i) => i.id === itemId)
 
   useEffect(() => {
-    if (items.length === 0) {
-      dispatch(fetchWardrobe())
+    if (items.length === 0 && user?.id) {
+      dispatch(fetchWardrobe(user.id))
     }
-  }, [dispatch, items.length])
+  }, [dispatch, items.length, user?.id])
 
   const handlePreviousImage = () => {
     if (!item) return

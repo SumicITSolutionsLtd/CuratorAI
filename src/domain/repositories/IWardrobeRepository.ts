@@ -9,5 +9,5 @@ export interface IWardrobeRepository {
   getItemById(itemId: string): Promise<WardrobeItem>
   getItemsByCategory(userId: string, category: string): Promise<WardrobeItem[]>
   uploadItemImage(itemId: string, image: File): Promise<string>
-  incrementTimesWorn(itemId: string): Promise<void>
+  incrementTimesWorn(itemId: string): Promise<WardrobeItem>
 }

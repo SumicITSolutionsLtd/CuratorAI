@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { register, completeRegistration } from '@/shared/store/slices/authSlice'
 import {
   Mail,
   Lock,
@@ -39,7 +42,10 @@ const passwordRequirements: PasswordRequirement[] = [
 
 export const RegisterPage = () => {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const { isLoading: _isLoading } = useAppSelector((state) => state.auth)
   const [step, setStep] = useState(1)
+  const [registrationError, setRegistrationError] = useState<string | null>(null)
 
   // Step 2: Account Details
   const [fullName, setFullName] = useState('')
@@ -64,32 +70,72 @@ export const RegisterPage = () => {
     setPasswordStrength((strength / passwordRequirements.length) * 100)
   }, [password])
 
-  const handleOAuthRegister = (provider: 'google' | 'facebook') => {
-    // TODO: Implement OAuth registration
-    console.log(`Register with ${provider}`)
+  const handleOAuthRegister = async (provider: 'google' | 'facebook') => {
+    try {
+      const { loginWithGoogle, loginWithFacebook } = await import('@/shared/utils/oauth')
+      const { loginWithOAuth } = await import('@/shared/store/slices/authSlice')
+      const { store } = await import('@/shared/store')
+
+      let token: string
+      if (provider === 'google') {
+        token = await loginWithGoogle()
+      } else {
+        token = await loginWithFacebook()
+      }
+
+      await store.dispatch(loginWithOAuth({ provider, token }))
+      navigate('/home')
+    } catch (error: any) {
+      console.error(`OAuth ${provider} registration failed:`, error)
+      setRegistrationError(error.message || `Failed to register with ${provider}`)
+    }
   }
 
-  const handleStep2Submit = (e: React.FormEvent) => {
+  const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password !== confirmPassword) {
-      alert('Passwords do not match!')
+      setRegistrationError('Passwords do not match!')
       return
     }
-    setStep(3)
+
+    setRegistrationError(null)
+
+    // Generate username from email (before @ symbol)
+    const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
+
+    // Register the user
+    const result = await dispatch(
+      register({
+        fullName,
+        email,
+        username,
+        password,
+        agreeToTerms: agreedToTerms,
+      })
+    )
+
+    if (register.fulfilled.match(result)) {
+      // Registration successful, move to style preferences
+      setStep(3)
+    } else if (register.rejected.match(result)) {
+      setRegistrationError(result.payload as string)
+    }
   }
 
-  const handleCompleteRegistration = () => {
-    // TODO: Submit registration data
-    console.log({
-      fullName,
-      email,
-      password,
-      gender: selectedGender,
+  const handleCompleteRegistration = async () => {
+    // Complete registration with style preferences
+    const preferences = {
+      shop_for: selectedGender,
       styles: selectedStyles,
-      occasions: selectedOccasions,
-      budget: selectedBudget,
-    })
-    navigate('/home')
+      dress_for: selectedOccasions,
+      budget_range: selectedBudget,
+    }
+
+    const result = await dispatch(completeRegistration(preferences))
+
+    if (completeRegistration.fulfilled.match(result)) {
+      navigate('/home')
+    }
   }
 
   const genderOptions = ['Men', 'Women', 'Non-binary', 'Prefer not to say']
@@ -479,6 +525,17 @@ export const RegisterPage = () => {
                       </Link>
                     </span>
                   </label>
+
+                  {/* Error Message */}
+                  {registrationError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-lg border-2 border-red-200 bg-red-50 p-3 text-center text-sm font-medium text-red-600"
+                    >
+                      {registrationError}
+                    </motion.div>
+                  )}
 
                   {/* Submit Button */}
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

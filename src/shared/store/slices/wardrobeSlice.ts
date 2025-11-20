@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { WardrobeItem, Wardrobe, WardrobeStats } from '@domain/entities/Wardrobe'
-import { mockWardrobe, mockWardrobeStats, getItemById } from '@/shared/mocks/wardrobeMockData'
+import { WardrobeRepository } from '@infrastructure/repositories/WardrobeRepository'
+
+const wardrobeRepository = new WardrobeRepository()
 
 interface WardrobeState {
   wardrobe: Wardrobe | null
@@ -36,70 +38,71 @@ const initialState: WardrobeState = {
 
 // Async Thunks
 
-export const fetchWardrobe = createAsyncThunk('wardrobe/fetchWardrobe', async () => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 500))
-  return mockWardrobe
-})
+export const fetchWardrobe = createAsyncThunk(
+  'wardrobe/fetchWardrobe',
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      return await wardrobeRepository.getWardrobe(userId)
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch wardrobe')
+    }
+  }
+)
 
-export const fetchWardrobeStats = createAsyncThunk('wardrobe/fetchWardrobeStats', async () => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  return mockWardrobeStats
-})
+export const fetchWardrobeStats = createAsyncThunk(
+  'wardrobe/fetchWardrobeStats',
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      return await wardrobeRepository.getWardrobeStats(userId)
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch stats')
+    }
+  }
+)
 
 export const addWardrobeItem = createAsyncThunk(
   'wardrobe/addItem',
-  async (item: Omit<WardrobeItem, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    const newItem: WardrobeItem = {
-      ...item,
-      id: `item-${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  async (item: Omit<WardrobeItem, 'id' | 'createdAt' | 'updatedAt'>, { rejectWithValue }) => {
+    try {
+      return await wardrobeRepository.addItem(item)
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to add item')
     }
-    return newItem
   }
 )
 
 export const updateWardrobeItem = createAsyncThunk(
   'wardrobe/updateItem',
-  async ({ id, updates }: { id: string; updates: Partial<WardrobeItem> }) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    const existingItem = getItemById(id)
-    if (!existingItem) {
-      throw new Error('Item not found')
+  async ({ id, updates }: { id: string; updates: Partial<WardrobeItem> }, { rejectWithValue }) => {
+    try {
+      return await wardrobeRepository.updateItem(id, updates)
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update item')
     }
-    const updatedItem: WardrobeItem = {
-      ...existingItem,
-      ...updates,
-      updatedAt: new Date(),
-    }
-    return updatedItem
   }
 )
 
 export const deleteWardrobeItem = createAsyncThunk(
   'wardrobe/deleteItem',
-  async (itemId: string) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    return itemId
+  async (itemId: string, { rejectWithValue }) => {
+    try {
+      await wardrobeRepository.deleteItem(itemId)
+      return itemId
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete item')
+    }
   }
 )
 
 export const incrementTimesWorn = createAsyncThunk(
   'wardrobe/incrementTimesWorn',
-  async (itemId: string) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    const item = getItemById(itemId)
-    if (!item) {
-      throw new Error('Item not found')
+  async (itemId: string, { rejectWithValue }) => {
+    try {
+      const updatedItem = await wardrobeRepository.incrementTimesWorn(itemId)
+      return { itemId, timesWorn: updatedItem.timesWorn }
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to increment times worn')
     }
-    return { itemId, timesWorn: item.timesWorn + 1 }
   }
 )
 
@@ -157,7 +160,7 @@ const wardrobeSlice = createSlice({
       })
       .addCase(fetchWardrobe.rejected, (state, action) => {
         state.isLoading = false
-        state.error = action.error.message || 'Failed to fetch wardrobe'
+        state.error = action.payload as string
       })
 
     // Fetch Stats
@@ -171,7 +174,7 @@ const wardrobeSlice = createSlice({
       })
       .addCase(fetchWardrobeStats.rejected, (state, action) => {
         state.isLoadingStats = false
-        state.error = action.error.message || 'Failed to fetch stats'
+        state.error = action.payload as string
       })
 
     // Add Item
@@ -190,7 +193,7 @@ const wardrobeSlice = createSlice({
       })
       .addCase(addWardrobeItem.rejected, (state, action) => {
         state.isLoading = false
-        state.error = action.error.message || 'Failed to add item'
+        state.error = action.payload as string
       })
 
     // Update Item
@@ -216,7 +219,7 @@ const wardrobeSlice = createSlice({
       })
       .addCase(updateWardrobeItem.rejected, (state, action) => {
         state.isLoading = false
-        state.error = action.error.message || 'Failed to update item'
+        state.error = action.payload as string
       })
 
     // Delete Item
@@ -235,16 +238,31 @@ const wardrobeSlice = createSlice({
       })
       .addCase(deleteWardrobeItem.rejected, (state, action) => {
         state.isLoading = false
-        state.error = action.error.message || 'Failed to delete item'
+        state.error = action.payload as string
       })
 
     // Increment Times Worn
-    builder.addCase(incrementTimesWorn.fulfilled, (state, action) => {
-      const index = state.items.findIndex((item) => item.id === action.payload.itemId)
-      if (index !== -1) {
-        state.items[index].timesWorn = action.payload.timesWorn
-      }
-    })
+    builder
+      .addCase(incrementTimesWorn.pending, () => {
+        // Optionally show loading state
+      })
+      .addCase(incrementTimesWorn.fulfilled, (state, action) => {
+        const index = state.items.findIndex((item) => item.id === action.payload.itemId)
+        if (index !== -1) {
+          state.items[index].timesWorn = action.payload.timesWorn
+        }
+        if (state.wardrobe) {
+          const wardrobeIndex = state.wardrobe.items.findIndex(
+            (item) => item.id === action.payload.itemId
+          )
+          if (wardrobeIndex !== -1) {
+            state.wardrobe.items[wardrobeIndex].timesWorn = action.payload.timesWorn
+          }
+        }
+      })
+      .addCase(incrementTimesWorn.rejected, (state, action) => {
+        state.error = action.payload as string
+      })
   },
 })
 

@@ -21,6 +21,7 @@ export const CreateOutfitPage = () => {
   const { toast } = useToast()
 
   const { items, isLoading } = useAppSelector((state) => state.wardrobe)
+  const { user } = useAppSelector((state) => state.auth)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<WardrobeItem['category'] | 'all'>('all')
@@ -36,10 +37,10 @@ export const CreateOutfitPage = () => {
   const [currentTag, setCurrentTag] = useState('')
 
   useEffect(() => {
-    if (items.length === 0) {
-      dispatch(fetchWardrobe())
+    if (items.length === 0 && user?.id) {
+      dispatch(fetchWardrobe(user.id))
     }
-  }, [dispatch, items.length])
+  }, [dispatch, items.length, user?.id])
 
   const categories: Array<{ id: WardrobeItem['category'] | 'all'; name: string }> = [
     { id: 'all', name: 'All' },

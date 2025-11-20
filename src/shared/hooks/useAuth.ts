@@ -1,7 +1,8 @@
 import { useAppSelector } from './useAppSelector'
 import { useAppDispatch } from './useAppDispatch'
-import { login, register, logout } from '../store/slices/authSlice'
-import { AuthCredentials, RegisterData } from '@domain/entities/User'
+import { login, register, logout, loginWithOAuth } from '../store/slices/authSlice'
+import { AuthCredentials, RegisterData, OAuthProvider } from '@domain/entities/User'
+import { loginWithGoogle, loginWithFacebook } from '../utils/oauth'
 
 export const useAuth = () => {
   const dispatch = useAppDispatch()
@@ -19,6 +20,23 @@ export const useAuth = () => {
     await dispatch(logout())
   }
 
+  const handleOAuthLogin = async (provider: 'google' | 'facebook') => {
+    try {
+      let token: string
+      if (provider === 'google') {
+        token = await loginWithGoogle()
+      } else {
+        token = await loginWithFacebook()
+      }
+
+      const oauthProvider: OAuthProvider = { provider, token }
+      await dispatch(loginWithOAuth(oauthProvider))
+    } catch (error: any) {
+      // Re-throw the error so it can be caught by the component
+      throw error
+    }
+  }
+
   return {
     user,
     isAuthenticated,
@@ -27,5 +45,6 @@ export const useAuth = () => {
     login: handleLogin,
     register: handleRegister,
     logout: handleLogout,
+    loginWithOAuth: handleOAuthLogin,
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
@@ -10,6 +10,7 @@ import {
   Check,
   MoreHorizontal,
   Filter,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Card } from '@/presentation/components/ui/card'
@@ -17,97 +18,31 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/presentation/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/components/ui/tabs'
 import { Badge } from '@/presentation/components/ui/badge'
 import { cn } from '@/shared/utils/cn'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import {
+  fetchNotifications,
+  fetchUnreadCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+} from '@/shared/store/slices/notificationSlice'
+import { showToast } from '@/shared/utils/toast'
+import type { NotificationType } from '@/domain/entities/Notification'
 
-const notifications = [
-  {
-    id: 1,
-    type: 'like',
-    user: {
-      name: 'Emma Wilson',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
-    },
-    action: 'liked your outfit',
-    target: 'Summer Brunch Look',
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=100&h=100&fit=crop',
-    timestamp: '2 minutes ago',
-    read: false,
-  },
-  {
-    id: 2,
-    type: 'comment',
-    user: {
-      name: 'Alex Kim',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
-    },
-    action: 'commented on your post',
-    target: '"Love this color combination! 😍"',
-    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop',
-    timestamp: '1 hour ago',
-    read: false,
-  },
-  {
-    id: 3,
-    type: 'follow',
-    user: {
-      name: 'Maya Rodriguez',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maya',
-    },
-    action: 'started following you',
-    target: null,
-    image: null,
-    timestamp: '3 hours ago',
-    read: false,
-  },
-  {
-    id: 4,
-    type: 'recommendation',
-    user: null,
-    action: 'New outfit recommendations',
-    target: '5 new outfits curated for you',
-    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=100&h=100&fit=crop',
-    timestamp: '5 hours ago',
-    read: true,
-  },
-  {
-    id: 5,
-    type: 'like',
-    user: {
-      name: 'Sophie Anderson',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie',
-    },
-    action: 'liked your lookbook',
-    target: 'Fall Wardrobe Essentials',
-    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=100&h=100&fit=crop',
-    timestamp: '1 day ago',
-    read: true,
-  },
-  {
-    id: 6,
-    type: 'follow',
-    user: {
-      name: 'James Chen',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
-    },
-    action: 'started following you',
-    target: null,
-    image: null,
-    timestamp: '2 days ago',
-    read: true,
-  },
-  {
-    id: 7,
-    type: 'comment',
-    user: {
-      name: 'Isabella Martinez',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Isabella',
-    },
-    action: 'commented on your post',
-    target: '"Where did you get those shoes?"',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=100&h=100&fit=crop',
-    timestamp: '3 days ago',
-    read: true,
-  },
-]
+// Helper to format time ago
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date()
+  const diffMs = now.getTime() - new Date(date).getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  return `${diffDays}d ago`
+}
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -125,25 +60,60 @@ const getNotificationIcon = (type: string) => {
 }
 
 export const NotificationsPage = () => {
-  const [notificationList, setNotificationList] = useState(notifications)
-  const [activeTab, setActiveTab] = useState('all')
+  const dispatch = useAppDispatch()
+  const { user } = useAppSelector((state) => state.auth)
+  const { notifications: notificationList, unreadCount, isLoading } = useAppSelector(
+    (state) => state.notification
+  )
 
-  const unreadCount = notificationList.filter((n) => !n.read).length
+  const [activeTab, setActiveTab] = useState<string>('all')
 
-  const markAsRead = (id: number) => {
-    setNotificationList(notificationList.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  // Fetch notifications and unread count on mount
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchNotifications({ userId: user.id }))
+      dispatch(fetchUnreadCount(user.id))
+    }
+  }, [dispatch, user?.id])
+
+  // Mark notification as read
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await dispatch(markNotificationAsRead(id)).unwrap()
+    } catch (error: any) {
+      showToast.error('Failed to mark as read', error.message)
+    }
   }
 
-  const markAllAsRead = () => {
-    setNotificationList(notificationList.map((n) => ({ ...n, read: true })))
+  // Mark all notifications as read
+  const handleMarkAllAsRead = async () => {
+    if (!user?.id) return
+
+    try {
+      await dispatch(markAllNotificationsAsRead(user.id)).unwrap()
+      showToast.success('All notifications marked as read')
+    } catch (error: any) {
+      showToast.error('Failed to mark all as read', error.message)
+    }
   }
 
+  // Delete notification
+  const handleDeleteNotification = async (id: string) => {
+    try {
+      await dispatch(deleteNotification(id)).unwrap()
+      showToast.success('Notification deleted')
+    } catch (error: any) {
+      showToast.error('Failed to delete notification', error.message)
+    }
+  }
+
+  // Filter notifications based on active tab
   const filteredNotifications =
     activeTab === 'all'
       ? notificationList
       : activeTab === 'unread'
-        ? notificationList.filter((n) => !n.read)
-        : notificationList.filter((n) => n.type === activeTab)
+        ? notificationList.filter((n) => !n.isRead)
+        : notificationList.filter((n) => n.type === activeTab as NotificationType)
 
   return (
     <MainLayout>
@@ -167,8 +137,8 @@ export const NotificationsPage = () => {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={markAllAsRead}
-              disabled={unreadCount === 0}
+              onClick={handleMarkAllAsRead}
+              disabled={unreadCount === 0 || isLoading}
               className="flex-1 sm:flex-none"
             >
               <Check className="mr-2 h-4 w-4" />
@@ -228,7 +198,14 @@ export const NotificationsPage = () => {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6 space-y-2">
-            {filteredNotifications.length === 0 ? (
+            {isLoading ? (
+              <div className="flex min-h-[400px] items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-crimson" />
+                  <p className="text-lg font-semibold">Loading notifications...</p>
+                </div>
+              </div>
+            ) : filteredNotifications.length === 0 ? (
               <Card className="p-12 text-center">
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
@@ -257,17 +234,17 @@ export const NotificationsPage = () => {
                   <Card
                     className={cn(
                       'cursor-pointer p-4 transition-all hover:shadow-lg',
-                      !notification.read && 'border-brand-crimson/20 bg-brand-crimson/5'
+                      !notification.isRead && 'border-brand-crimson/20 bg-brand-crimson/5'
                     )}
-                    onClick={() => markAsRead(notification.id)}
+                    onClick={() => handleMarkAsRead(notification.id)}
                   >
                     <div className="flex gap-4">
                       {/* Icon or Avatar */}
                       <div className="relative shrink-0">
-                        {notification.user ? (
+                        {notification.actor ? (
                           <Avatar className="h-12 w-12 ring-2 ring-background">
-                            <AvatarImage src={notification.user.avatar} />
-                            <AvatarFallback>{notification.user.name[0]}</AvatarFallback>
+                            <AvatarImage src={notification.actor.photoUrl} />
+                            <AvatarFallback>{notification.actor.username[0]}</AvatarFallback>
                           </Avatar>
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-brand-crimson/20 to-brand-blue/20">
@@ -282,41 +259,49 @@ export const NotificationsPage = () => {
                       {/* Content */}
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-brand-charcoal">
-                          {notification.user && (
-                            <span className="font-semibold">{notification.user.name} </span>
+                          {notification.actor && (
+                            <span className="font-semibold">{notification.actor.username} </span>
                           )}
-                          <span className="text-muted-foreground">{notification.action}</span>
+                          <span className="text-muted-foreground">{notification.message}</span>
                         </p>
-                        {notification.target && (
+                        {notification.title && (
                           <p className="mt-1 line-clamp-2 text-sm font-medium text-brand-charcoal">
-                            {notification.target}
+                            {notification.title}
                           </p>
                         )}
                         <p className="mt-2 text-xs text-muted-foreground">
-                          {notification.timestamp}
+                          {formatTimeAgo(notification.createdAt)}
                         </p>
                       </div>
 
                       {/* Image */}
-                      {notification.image && (
+                      {notification.imageUrl && (
                         <div className="shrink-0">
                           <img
-                            src={notification.image}
+                            src={notification.imageUrl}
                             alt=""
                             className="h-16 w-16 rounded-lg object-cover"
                           />
                         </div>
                       )}
 
-                      {/* More Options */}
+                      {/* More Options / Delete */}
                       <div className="shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteNotification(notification.id)
+                          }}
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </div>
 
                       {/* Unread Indicator */}
-                      {!notification.read && (
+                      {!notification.isRead && (
                         <div className="absolute right-4 top-4">
                           <div className="h-2 w-2 rounded-full bg-brand-crimson" />
                         </div>
@@ -324,7 +309,7 @@ export const NotificationsPage = () => {
                     </div>
 
                     {/* Action Buttons for Follow Notifications */}
-                    {notification.type === 'follow' && !notification.read && (
+                    {notification.type === 'follow' && !notification.isRead && (
                       <div className="ml-16 mt-4 flex gap-2">
                         <Button size="sm" className="bg-brand-crimson hover:bg-brand-crimson/90">
                           Follow Back

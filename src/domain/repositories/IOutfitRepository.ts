@@ -1,10 +1,10 @@
 import { Outfit, OutfitRecommendation, OutfitFilter } from '../entities/Outfit'
 
 export interface PaginatedResponse<T> {
-  data: T[]
-  total: number
-  page: number
-  limit: number
+  results: T[]
+  count: number
+  currentPage: number
+  totalPages: number
   hasMore: boolean
 }
 
