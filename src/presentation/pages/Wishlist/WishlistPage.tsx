@@ -38,7 +38,7 @@ const formatTimeAgo = (date: Date): string => {
   return `${diffDays}d ago`
 }
 
-export const SavedPage = () => {
+export const WishlistPage = () => {
   const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
   const { savedOutfits, isLoading } = useAppSelector((state) => state.outfit)
@@ -46,7 +46,7 @@ export const SavedPage = () => {
   const [selectedCollection, setSelectedCollection] = useState('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  // Fetch saved outfits on mount
+  // Fetch wishlist outfits on mount
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchSavedOutfits({ userId: user.id, page: 1, limit: 20 }))
@@ -55,13 +55,13 @@ export const SavedPage = () => {
 
   // Calculate collection counts
   const collections = [
-    { id: 'all', name: 'All Saved', icon: Heart, count: savedOutfits.length, color: 'text-brand-crimson' },
+    { id: 'all', name: 'All Items', icon: Heart, count: savedOutfits.length, color: 'text-brand-crimson' },
     { id: 'outfits', name: 'Outfits', icon: Shirt, count: savedOutfits.length, color: 'text-brand-blue' },
     { id: 'lookbooks', name: 'Lookbooks', icon: BookOpen, count: 0, color: 'text-brand-blue' },
     { id: 'items', name: 'Items', icon: ShoppingBag, count: 0, color: 'text-brand-crimson' },
   ]
 
-  // Transform saved outfits to match UI format
+  // Transform wishlist outfits to match UI format
   const transformedOutfits = savedOutfits.map((outfit) => ({
     id: outfit.id,
     name: outfit.name,
@@ -70,19 +70,19 @@ export const SavedPage = () => {
       name: item.name,
       brand: item.brand,
     })),
-    matchScore: 0, // Saved outfits don't have match score
+    matchScore: 0, // Wishlist outfits don't have match score
     price: outfit.totalPrice,
     likes: outfit.likes || 0,
     savedAt: formatTimeAgo(outfit.createdAt),
   }))
 
-  // Handle unsave outfit
-  const handleUnsave = async (outfitId: string) => {
+  // Handle remove from wishlist
+  const handleRemoveFromWishlist = async (outfitId: string) => {
     if (!user?.id) return
 
     try {
       await dispatch(unsaveOutfit({ userId: user.id, outfitId })).unwrap()
-      showToast.success('Removed', 'Outfit removed from saved items')
+      showToast.success('Removed', 'Outfit removed from wishlist')
     } catch (error: unknown) {
       showToast.error('Failed to remove', error.message || 'Could not remove outfit')
     }
@@ -98,7 +98,7 @@ export const SavedPage = () => {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="font-heading text-3xl font-bold text-brand-charcoal">Saved Items</h1>
+            <h1 className="font-heading text-3xl font-bold text-brand-charcoal">My Wishlist</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Your curated collection of favorite outfits and lookbooks
             </p>
@@ -219,10 +219,10 @@ export const SavedPage = () => {
           </div>
         </Card>
 
-        {/* Saved Items Grid */}
+        {/* Wishlist Items Grid */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-xl font-bold text-brand-charcoal">Saved Outfits</h2>
+            <h2 className="font-heading text-xl font-bold text-brand-charcoal">Wishlist Outfits</h2>
             <div className="flex gap-2">
               <div className="flex rounded-lg border p-1">
                 <Button
@@ -272,16 +272,16 @@ export const SavedPage = () => {
                 <div className="flex min-h-[400px] items-center justify-center">
                   <div className="text-center">
                     <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-crimson" />
-                    <p className="text-lg font-semibold">Loading your saved outfits...</p>
+                    <p className="text-lg font-semibold">Loading your wishlist...</p>
                     <p className="text-sm text-muted-foreground">This won't take long</p>
                   </div>
                 </div>
               ) : transformedOutfits.length === 0 ? (
                 <div className="py-12 text-center">
                   <Heart className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
-                  <p className="text-muted-foreground">No saved outfits yet</p>
+                  <p className="text-muted-foreground">Your wishlist is empty</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Save outfits you love to see them here
+                    Add outfits you love to your wishlist
                   </p>
                 </div>
               ) : (
@@ -301,7 +301,7 @@ export const SavedPage = () => {
                     >
                       <OutfitCard {...outfit} />
 
-                      {/* Unsave Button */}
+                      {/* Remove Button */}
                       <motion.div
                         initial={{ opacity: 0 }}
                         whileHover={{ opacity: 1 }}
@@ -311,16 +311,16 @@ export const SavedPage = () => {
                           size="icon"
                           variant="secondary"
                           className="h-8 w-8 rounded-full bg-white/90 shadow-lg hover:bg-white"
-                          onClick={() => handleUnsave(outfit.id)}
+                          onClick={() => handleRemoveFromWishlist(outfit.id)}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </motion.div>
 
-                      {/* Saved Date */}
+                      {/* Added Date */}
                       <div className="absolute bottom-2 left-2 z-10">
                         <Badge className="bg-white/90 text-xs text-brand-charcoal hover:bg-white">
-                          Saved {outfit.savedAt}
+                          Added {outfit.savedAt}
                         </Badge>
                       </div>
                     </motion.div>
@@ -332,14 +332,14 @@ export const SavedPage = () => {
             <TabsContent value="lookbooks" className="mt-6">
               <div className="py-12 text-center">
                 <BookOpen className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">No saved lookbooks yet</p>
+                <p className="text-muted-foreground">No lookbooks in your wishlist yet</p>
               </div>
             </TabsContent>
 
             <TabsContent value="items" className="mt-6">
               <div className="py-12 text-center">
                 <ShoppingBag className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">No saved items yet</p>
+                <p className="text-muted-foreground">No items in your wishlist yet</p>
               </div>
             </TabsContent>
           </Tabs>

@@ -39,7 +39,7 @@ const navItems = [
   { icon: ShoppingCart, label: 'Cart', path: '/cart', badge: 3, primary: true },
   { icon: BookOpen, label: 'Lookbooks', path: '/lookbooks', primary: false },
   { icon: Camera, label: 'Try-On', path: '/try-on', primary: false },
-  { icon: Heart, label: 'Saved', path: '/saved', primary: false },
+  { icon: Heart, label: 'Wishlist', path: '/wishlist', primary: false },
 ]
 
 export const Sidebar = () => {

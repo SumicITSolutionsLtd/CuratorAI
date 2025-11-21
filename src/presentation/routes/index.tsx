@@ -18,7 +18,7 @@ import { CartPage } from '../pages/Cart/CartPage'
 import { LookbooksPage } from '../pages/Lookbooks/LookbooksPage'
 import { LookbookDetailPage } from '../pages/Lookbooks/LookbookDetailPage'
 import { TryOnPage } from '../pages/TryOn/TryOnPage'
-import { SavedPage } from '../pages/Saved/SavedPage'
+import { WishlistPage } from '../pages/Wishlist/WishlistPage'
 import { SettingsPage } from '../pages/Settings/SettingsPage'
 import { ProfilePage } from '../pages/Profile/ProfilePage'
 import { NotificationsPage } from '../pages/Notifications/NotificationsPage'
@@ -66,8 +66,8 @@ export const AppRoutes = () => {
       <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
       <Route path="/checkout" element={<ProtectedRoute><div>Checkout</div></ProtectedRoute>} />
 
-      {/* Saved Items */}
-      <Route path="/saved" element={<ProtectedRoute><SavedPage /></ProtectedRoute>} />
+      {/* Wishlist */}
+      <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
 
       {/* Virtual Try-On */}
       <Route path="/try-on" element={<ProtectedRoute><TryOnPage /></ProtectedRoute>} />
