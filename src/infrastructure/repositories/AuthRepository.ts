@@ -50,7 +50,7 @@ export class AuthRepository implements IAuthRepository {
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      return await apiClient.get<User>('/auth/me')
+      return await apiClient.get<User>('/auth/me/')
     } catch {
       return null
     }
