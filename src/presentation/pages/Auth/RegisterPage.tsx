@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
-import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { register, completeRegistration, loginWithOAuth } from '@/shared/store/slices/authSlice'
 import { loginWithGoogle, loginWithFacebook } from '@/shared/utils/oauth'
 import { store } from '@/shared/store'
+import { showToast } from '@/shared/utils/toast'
 import {
   Mail,
   Lock,
@@ -45,9 +45,7 @@ const passwordRequirements: PasswordRequirement[] = [
 export const RegisterPage = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { isLoading: _isLoading } = useAppSelector((state) => state.auth)
   const [step, setStep] = useState(1)
-  const [registrationError, setRegistrationError] = useState<string | null>(null)
 
   // Step 2: Account Details
   const [fullName, setFullName] = useState('')
@@ -82,23 +80,23 @@ export const RegisterPage = () => {
       }
 
       await store.dispatch(loginWithOAuth({ provider, token }))
+      showToast.success('Welcome!', 'Registration successful')
       navigate('/home')
     } catch (error: unknown) {
       console.error(`OAuth ${provider} registration failed:`, error)
+      const providerName = provider === 'google' ? 'Google' : 'Facebook'
       const errorMsg =
-        error instanceof Error ? error.message : `Failed to register with ${provider}`
-      setRegistrationError(errorMsg)
+        error instanceof Error ? error.message : `Failed to register with ${providerName}`
+      showToast.error(`${providerName} Registration Failed`, errorMsg)
     }
   }
 
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password !== confirmPassword) {
-      setRegistrationError('Passwords do not match!')
+      showToast.error('Password Mismatch', 'Passwords do not match!')
       return
     }
-
-    setRegistrationError(null)
 
     // Generate username from email (before @ symbol)
     const username = email
@@ -119,9 +117,10 @@ export const RegisterPage = () => {
 
     if (register.fulfilled.match(result)) {
       // Registration successful, move to style preferences
+      showToast.success('Account Created!', "Now let's set up your style preferences")
       setStep(3)
     } else if (register.rejected.match(result)) {
-      setRegistrationError(result.payload as string)
+      showToast.error('Registration Failed', result.payload as string)
     }
   }
 
@@ -137,7 +136,10 @@ export const RegisterPage = () => {
     const result = await dispatch(completeRegistration(preferences))
 
     if (completeRegistration.fulfilled.match(result)) {
+      showToast.success('Welcome to CuratorAI!', 'Your account is all set up')
       navigate('/home')
+    } else if (completeRegistration.rejected.match(result)) {
+      showToast.error('Setup Failed', result.payload as string)
     }
   }
 
@@ -528,17 +530,6 @@ export const RegisterPage = () => {
                       </Link>
                     </span>
                   </label>
-
-                  {/* Error Message */}
-                  {registrationError && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="rounded-lg border-2 border-red-200 bg-red-50 p-3 text-center text-sm font-medium text-red-600"
-                    >
-                      {registrationError}
-                    </motion.div>
-                  )}
 
                   {/* Submit Button */}
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

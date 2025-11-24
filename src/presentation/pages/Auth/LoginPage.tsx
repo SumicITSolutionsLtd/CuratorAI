@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
@@ -8,6 +8,7 @@ import { Label } from '@/presentation/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/presentation/components/ui/card'
 import { Logo } from '@/presentation/components/common/Logo'
 import { useAuth } from '@/shared/hooks/useAuth'
+import { showToast } from '@/shared/utils/toast'
 
 export const LoginPage = () => {
   const navigate = useNavigate()
@@ -17,30 +18,44 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
 
+  // Show toast when error occurs
+  useEffect(() => {
+    if (error) {
+      showToast.error('Login Failed', error)
+    }
+  }, [error])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await login({ email, password })
-    navigate('/home')
+    try {
+      await login({ email, password })
+      showToast.success('Welcome back!', 'Login successful')
+      navigate('/home')
+    } catch (err) {
+      // Error will be handled by the error state from useAuth hook
+    }
   }
 
   const handleOAuthLogin = async (provider: 'google' | 'facebook') => {
     try {
       await loginWithOAuth(provider)
+      showToast.success('Welcome back!', 'Login successful')
       navigate('/home')
     } catch (error: unknown) {
       console.error(`OAuth ${provider} login failed:`, error)
 
       // Show user-friendly error message
-      let errorMessage = `Failed to login with ${provider === 'google' ? 'Google' : 'Facebook'}.`
+      const providerName = provider === 'google' ? 'Google' : 'Facebook'
+      let errorMessage = `Failed to login with ${providerName}.`
 
       const errorMsg = error instanceof Error ? error.message : String(error)
       if (errorMsg.includes('not configured')) {
-        errorMessage = `${provider === 'google' ? 'Google' : 'Facebook'} login is not configured yet. Please use email/password login or contact support.`
+        errorMessage = `${providerName} login is not configured yet. Please use email/password login or contact support.`
       } else if (errorMsg.includes('popup was closed') || errorMsg.includes('cancelled')) {
         errorMessage = 'Login was cancelled. Please try again.'
       }
 
-      alert(errorMessage)
+      showToast.error(`${providerName} Login Failed`, errorMessage)
     }
   }
 
@@ -212,17 +227,6 @@ export const LoginPage = () => {
                   Forgot Password?
                 </Link>
               </div>
-
-              {/* Error Message */}
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-lg border-2 border-red-200 bg-red-50 p-3 text-center text-sm font-medium text-red-600"
-                >
-                  {error}
-                </motion.div>
-              )}
 
               {/* Submit Button */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

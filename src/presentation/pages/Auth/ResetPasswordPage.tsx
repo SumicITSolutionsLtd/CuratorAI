@@ -11,6 +11,7 @@ import { cn } from '@/shared/utils/cn'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { resetPassword } from '@/shared/store/slices/authSlice'
+import { showToast } from '@/shared/utils/toast'
 
 interface PasswordRequirement {
   label: string
@@ -50,9 +51,17 @@ export const ResetPasswordPage = () => {
     setPasswordStrength((strength / passwordRequirements.length) * 100)
   }, [newPassword])
 
+  // Show toast when error occurs
+  useEffect(() => {
+    if (error) {
+      showToast.error('Reset Failed', error)
+    }
+  }, [error])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
+      showToast.error('Password Mismatch', 'Passwords do not match')
       return
     }
     if (!token) return
@@ -60,6 +69,7 @@ export const ResetPasswordPage = () => {
     const result = await dispatch(resetPassword({ token, newPassword }))
     if (resetPassword.fulfilled.match(result)) {
       setResetSuccess(true)
+      showToast.success('Password Reset!', 'Your password has been successfully reset')
       setTimeout(() => {
         navigate('/login')
       }, 3000)
@@ -146,9 +156,7 @@ export const ResetPasswordPage = () => {
               transition={{ delay: 0.3 }}
             >
               <h2 className="text-2xl font-bold text-brand-charcoal">Set New Password</h2>
-              <p className="text-sm text-brand-gray">
-                Choose a strong password for your account
-              </p>
+              <p className="text-sm text-brand-gray">Choose a strong password for your account</p>
             </motion.div>
           </CardHeader>
 
@@ -269,24 +277,11 @@ export const ResetPasswordPage = () => {
                 )}
               </div>
 
-              {/* Error Message */}
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-lg border-2 border-red-200 bg-red-50 p-3 text-center text-sm font-medium text-red-600"
-                >
-                  {error}
-                </motion.div>
-              )}
-
               {/* Submit Button */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
                   type="submit"
-                  disabled={
-                    isLoading || passwordStrength < 75 || newPassword !== confirmPassword
-                  }
+                  disabled={isLoading || passwordStrength < 75 || newPassword !== confirmPassword}
                   className="w-full bg-brand-crimson py-6 text-base font-bold shadow-lg transition-all hover:bg-brand-crimson/90 hover:shadow-xl disabled:opacity-50"
                 >
                   {isLoading ? (

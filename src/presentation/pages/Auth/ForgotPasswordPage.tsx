@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, ArrowRight, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react'
@@ -10,12 +10,27 @@ import { Logo } from '@/presentation/components/common/Logo'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { requestPasswordReset } from '@/shared/store/slices/authSlice'
+import { showToast } from '@/shared/utils/toast'
 
 export const ForgotPasswordPage = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { isLoading, error, passwordResetEmailSent } = useAppSelector((state) => state.auth)
   const [email, setEmail] = useState('')
+
+  // Show toast when error occurs
+  useEffect(() => {
+    if (error) {
+      showToast.error('Request Failed', error)
+    }
+  }, [error])
+
+  // Show toast when email is sent successfully
+  useEffect(() => {
+    if (passwordResetEmailSent) {
+      showToast.success('Email Sent!', `Password reset instructions sent to ${email}`)
+    }
+  }, [passwordResetEmailSent, email])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,17 +160,6 @@ export const ForgotPasswordPage = () => {
                   />
                 </div>
               </div>
-
-              {/* Error Message */}
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-lg border-2 border-red-200 bg-red-50 p-3 text-center text-sm font-medium text-red-600"
-                >
-                  {error}
-                </motion.div>
-              )}
 
               {/* Submit Button */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

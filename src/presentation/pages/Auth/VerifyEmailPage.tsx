@@ -10,6 +10,7 @@ import { Logo } from '@/presentation/components/common/Logo'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { verifyEmail, requestEmailVerification } from '@/shared/store/slices/authSlice'
+import { showToast } from '@/shared/utils/toast'
 
 export const VerifyEmailPage = () => {
   const navigate = useNavigate()
@@ -31,10 +32,18 @@ export const VerifyEmailPage = () => {
     }
   }, [codeFromUrl])
 
+  // Show toast when error occurs
+  useEffect(() => {
+    if (error) {
+      showToast.error('Verification Failed', error)
+    }
+  }, [error])
+
   const handleVerification = async (verificationCode: string) => {
     const result = await dispatch(verifyEmail(verificationCode))
     if (verifyEmail.fulfilled.match(result)) {
       setVerificationSuccess(true)
+      showToast.success('Email Verified!', 'Your email has been successfully verified')
       setTimeout(() => {
         navigate('/home')
       }, 3000)
@@ -72,8 +81,7 @@ export const VerifyEmailPage = () => {
 
               <h2 className="mb-3 text-2xl font-bold text-brand-charcoal">Email Verified!</h2>
               <p className="mb-6 text-brand-gray">
-                Your email has been successfully verified. You now have full access to all
-                features.
+                Your email has been successfully verified. You now have full access to all features.
               </p>
 
               <p className="text-sm text-brand-gray">Redirecting to home page...</p>
@@ -149,17 +157,6 @@ export const VerifyEmailPage = () => {
                   />
                 </div>
               </div>
-
-              {/* Error Message */}
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-lg border-2 border-red-200 bg-red-50 p-3 text-center text-sm font-medium text-red-600"
-                >
-                  {error}
-                </motion.div>
-              )}
 
               {/* Submit Button */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
