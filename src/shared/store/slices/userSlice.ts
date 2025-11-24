@@ -30,7 +30,7 @@ export const getUserById = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await userRepository.getUserById(userId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get user')
     }
   }
@@ -38,10 +38,13 @@ export const getUserById = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   'user/updateProfile',
-  async ({ userId, profile }: { userId: string; profile: Partial<UserProfile> }, { rejectWithValue }) => {
+  async (
+    { userId, profile }: { userId: string; profile: Partial<UserProfile> },
+    { rejectWithValue }
+  ) => {
     try {
       return await userRepository.updateProfile(userId, profile)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update profile')
     }
   }
@@ -49,10 +52,13 @@ export const updateProfile = createAsyncThunk(
 
 export const updatePreferences = createAsyncThunk(
   'user/updatePreferences',
-  async ({ userId, preferences }: { userId: string; preferences: Partial<UserPreferences> }, { rejectWithValue }) => {
+  async (
+    { userId, preferences }: { userId: string; preferences: Partial<UserPreferences> },
+    { rejectWithValue }
+  ) => {
     try {
       return await userRepository.updatePreferences(userId, preferences)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update preferences')
     }
   }
@@ -63,7 +69,7 @@ export const searchUsers = createAsyncThunk(
   async ({ query, limit }: { query: string; limit?: number }, { rejectWithValue }) => {
     try {
       return await userRepository.searchUsers(query, limit)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to search users')
     }
   }
@@ -71,11 +77,14 @@ export const searchUsers = createAsyncThunk(
 
 export const followUser = createAsyncThunk(
   'user/followUser',
-  async ({ userId, targetUserId }: { userId: string; targetUserId: string }, { rejectWithValue }) => {
+  async (
+    { userId, targetUserId }: { userId: string; targetUserId: string },
+    { rejectWithValue }
+  ) => {
     try {
       await userRepository.followUser(userId, targetUserId)
       return targetUserId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to follow user')
     }
   }
@@ -83,11 +92,14 @@ export const followUser = createAsyncThunk(
 
 export const unfollowUser = createAsyncThunk(
   'user/unfollowUser',
-  async ({ userId, targetUserId }: { userId: string; targetUserId: string }, { rejectWithValue }) => {
+  async (
+    { userId, targetUserId }: { userId: string; targetUserId: string },
+    { rejectWithValue }
+  ) => {
     try {
       await userRepository.unfollowUser(userId, targetUserId)
       return targetUserId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unfollow user')
     }
   }
@@ -98,7 +110,7 @@ export const getFollowers = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await userRepository.getFollowers(userId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get followers')
     }
   }
@@ -109,7 +121,7 @@ export const getFollowing = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await userRepository.getFollowing(userId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get following')
     }
   }
@@ -120,7 +132,7 @@ export const deleteUser = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       await userRepository.deleteUser(userId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete user')
     }
   }
@@ -234,5 +246,6 @@ const userSlice = createSlice({
   },
 })
 
-export const { setPreferences, clearSelectedUser, clearSearchResults, clearError } = userSlice.actions
+export const { setPreferences, clearSelectedUser, clearSearchResults, clearError } =
+  userSlice.actions
 export default userSlice.reducer

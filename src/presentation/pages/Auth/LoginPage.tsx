@@ -33,9 +33,10 @@ export const LoginPage = () => {
       // Show user-friendly error message
       let errorMessage = `Failed to login with ${provider === 'google' ? 'Google' : 'Facebook'}.`
 
-      if (error.message?.includes('not configured')) {
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      if (errorMsg.includes('not configured')) {
         errorMessage = `${provider === 'google' ? 'Google' : 'Facebook'} login is not configured yet. Please use email/password login or contact support.`
-      } else if (error.message?.includes('popup was closed') || error.message?.includes('cancelled')) {
+      } else if (errorMsg.includes('popup was closed') || errorMsg.includes('cancelled')) {
         errorMessage = 'Login was cancelled. Please try again.'
       }
 

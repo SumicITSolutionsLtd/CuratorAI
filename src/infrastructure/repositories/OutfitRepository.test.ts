@@ -37,6 +37,9 @@ describe('OutfitRepository', () => {
           } as unknown as OutfitRecommendation,
         ],
         count: 1,
+        currentPage: 1,
+        totalPages: 1,
+        hasMore: false,
       }
 
       vi.mocked(apiClient.post).mockResolvedValue(mockResponse)
@@ -57,8 +60,9 @@ describe('OutfitRepository', () => {
       const mockResponse: PaginatedResponse<OutfitRecommendation> = {
         results: [],
         count: 0,
-        next: null,
-        previous: null,
+        currentPage: 1,
+        totalPages: 0,
+        hasMore: false,
       }
 
       vi.mocked(apiClient.post).mockResolvedValue(mockResponse)
@@ -220,6 +224,9 @@ describe('OutfitRepository', () => {
           } as unknown as Outfit,
         ],
         count: 1,
+        currentPage: 1,
+        totalPages: 1,
+        hasMore: false,
       }
 
       vi.mocked(apiClient.get).mockResolvedValue(mockResponse)

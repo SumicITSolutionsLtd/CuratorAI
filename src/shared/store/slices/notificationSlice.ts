@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { Notification, NotificationFilter, NotificationPreferences } from '@domain/entities/Notification'
+import {
+  Notification,
+  NotificationFilter,
+  NotificationPreferences,
+} from '@domain/entities/Notification'
 import { NotificationRepository } from '@infrastructure/repositories/NotificationRepository'
 
 const notificationRepository = new NotificationRepository()
@@ -23,10 +27,13 @@ const initialState: NotificationState = {
 // Async thunks
 export const fetchNotifications = createAsyncThunk(
   'notification/fetchNotifications',
-  async ({ userId, filter }: { userId: string; filter?: NotificationFilter }, { rejectWithValue }) => {
+  async (
+    { userId, filter }: { userId: string; filter?: NotificationFilter },
+    { rejectWithValue }
+  ) => {
     try {
       return await notificationRepository.getNotifications(userId, filter)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch notifications')
     }
   }
@@ -37,7 +44,7 @@ export const fetchUnreadCount = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await notificationRepository.getUnreadCount(userId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch unread count')
     }
   }
@@ -49,7 +56,7 @@ export const markNotificationAsRead = createAsyncThunk(
     try {
       await notificationRepository.markAsRead(notificationId)
       return notificationId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to mark as read')
     }
   }
@@ -60,7 +67,7 @@ export const markAllNotificationsAsRead = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       await notificationRepository.markAllAsRead(userId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to mark all as read')
     }
   }
@@ -72,7 +79,7 @@ export const deleteNotification = createAsyncThunk(
     try {
       await notificationRepository.deleteNotification(notificationId)
       return notificationId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete notification')
     }
   }
@@ -83,7 +90,7 @@ export const fetchNotificationPreferences = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await notificationRepository.getPreferences(userId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch preferences')
     }
   }
@@ -97,7 +104,7 @@ export const updateNotificationPreferences = createAsyncThunk(
   ) => {
     try {
       return await notificationRepository.updatePreferences(userId, preferences)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update preferences')
     }
   }

@@ -7,12 +7,18 @@ import { Card } from '@/presentation/components/ui/card'
 import { OutfitGrid } from '@/presentation/components/outfit/OutfitGrid'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
-import { performVisualSearch, uploadSearchImage, clearResults } from '@/shared/store/slices/searchSlice'
+import {
+  performVisualSearch,
+  uploadSearchImage,
+  clearResults,
+} from '@/shared/store/slices/searchSlice'
 import { showToast } from '@/shared/utils/toast'
 
 export const VisualSearchPage = () => {
   const dispatch = useAppDispatch()
-  const { uploadedImageUrl, results, isProcessing, isLoading } = useAppSelector((state) => state.search)
+  const { uploadedImageUrl, results, isProcessing, isLoading } = useAppSelector(
+    (state) => state.search
+  )
 
   const [detectedStyle, setDetectedStyle] = useState<string>('')
   const [detectedItems, setDetectedItems] = useState<number>(0)
@@ -38,11 +44,13 @@ export const VisualSearchPage = () => {
       await dispatch(uploadSearchImage(file)).unwrap()
 
       // Perform visual search
-      const result = await dispatch(performVisualSearch({
-        image: file,
-        similarityThreshold: 0.7,
-        removeDuplicates: true,
-      })).unwrap()
+      const result = await dispatch(
+        performVisualSearch({
+          image: file,
+          similarityThreshold: 0.7,
+          removeDuplicates: true,
+        })
+      ).unwrap()
 
       // Extract detected information from results
       if (result.results && result.results.length > 0) {
@@ -54,7 +62,8 @@ export const VisualSearchPage = () => {
         showToast.info('No Results', 'No similar items found. Try another image.')
       }
     } catch (error: unknown) {
-      showToast.error('Search Failed', error.message || 'Failed to perform visual search')
+      const errorMsg = error instanceof Error ? error.message : 'Failed to perform visual search'
+      showToast.error('Search Failed', errorMsg)
       console.error('Visual search error:', error)
     }
   }
@@ -70,10 +79,11 @@ export const VisualSearchPage = () => {
     id: result.id || '',
     name: result.outfit?.name || 'Similar Item',
     imageUrl: result.outfit?.imageUrl || '',
-    items: result.outfit?.items?.map((item: unknown) => ({
-      name: item.name || '',
-      price: item.price || 0,
-    })) || [],
+    items:
+      result.outfit?.items?.map((item: any) => ({
+        name: item.name || '',
+        price: item.price || 0,
+      })) || [],
     totalPrice: result.outfit?.totalPrice || 0,
     matchScore: Math.round((result.similarityScore || 0) * 100),
     tags: [],
@@ -180,12 +190,7 @@ export const VisualSearchPage = () => {
                   <div className="p-6">
                     <div className="mb-4 flex items-center justify-between">
                       <h3 className="font-semibold">Your Image</h3>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleReset}
-                        disabled={loading}
-                      >
+                      <Button variant="outline" size="sm" onClick={handleReset} disabled={loading}>
                         Upload New
                       </Button>
                     </div>
@@ -277,7 +282,9 @@ export const VisualSearchPage = () => {
                   className="rounded-xl border bg-muted/30 p-16 text-center"
                 >
                   <Sparkles className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
-                  <p className="text-lg font-medium text-muted-foreground">No similar items found</p>
+                  <p className="text-lg font-medium text-muted-foreground">
+                    No similar items found
+                  </p>
                   <p className="mt-1 text-sm text-muted-foreground/70">
                     Try uploading a different image
                   </p>

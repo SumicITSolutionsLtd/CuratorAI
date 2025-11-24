@@ -62,9 +62,11 @@ const getNotificationIcon = (type: string) => {
 export const NotificationsPage = () => {
   const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
-  const { notifications: notificationList, unreadCount, isLoading } = useAppSelector(
-    (state) => state.notification
-  )
+  const {
+    notifications: notificationList,
+    unreadCount,
+    isLoading,
+  } = useAppSelector((state) => state.notification)
 
   const [activeTab, setActiveTab] = useState<string>('all')
 
@@ -81,7 +83,8 @@ export const NotificationsPage = () => {
     try {
       await dispatch(markNotificationAsRead(id)).unwrap()
     } catch (error: unknown) {
-      showToast.error('Failed to mark as read', error.message)
+      const errorMsg = error instanceof Error ? error.message : 'An error occurred'
+      showToast.error('Failed to mark as read', errorMsg)
     }
   }
 
@@ -93,7 +96,8 @@ export const NotificationsPage = () => {
       await dispatch(markAllNotificationsAsRead(user.id)).unwrap()
       showToast.success('All notifications marked as read')
     } catch (error: unknown) {
-      showToast.error('Failed to mark all as read', error.message)
+      const errorMsg = error instanceof Error ? error.message : 'An error occurred'
+      showToast.error('Failed to mark all as read', errorMsg)
     }
   }
 
@@ -103,7 +107,8 @@ export const NotificationsPage = () => {
       await dispatch(deleteNotification(id)).unwrap()
       showToast.success('Notification deleted')
     } catch (error: unknown) {
-      showToast.error('Failed to delete notification', error.message)
+      const errorMsg = error instanceof Error ? error.message : 'An error occurred'
+      showToast.error('Failed to delete notification', errorMsg)
     }
   }
 
@@ -113,7 +118,7 @@ export const NotificationsPage = () => {
       ? notificationList
       : activeTab === 'unread'
         ? notificationList.filter((n) => !n.isRead)
-        : notificationList.filter((n) => n.type === activeTab as NotificationType)
+        : notificationList.filter((n) => n.type === (activeTab as NotificationType))
 
   return (
     <MainLayout>

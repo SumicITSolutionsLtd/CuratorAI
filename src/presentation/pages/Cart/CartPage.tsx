@@ -85,7 +85,7 @@ export const CartPage = () => {
   const setItems = setLocalItems
 
   // Calculate values
-  const subtotal = items.reduce((sum: any, item: unknown) => sum + (item.price * item.quantity), 0)
+  const subtotal = items.reduce((sum: any, item: any) => sum + item.price * item.quantity, 0)
   const shipping = subtotal > 200 ? 0 : 15.0
   const discount = promoApplied ? subtotal * 0.1 : 0
   const tax = (subtotal - discount) * 0.08
@@ -94,15 +94,15 @@ export const CartPage = () => {
   const updateQuantity = (id: string | number, delta: number) => {
     setItems(
       items
-        .map((item: unknown) =>
+        .map((item: any) =>
           item.id == id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
         )
-        .filter((item: unknown) => item.quantity > 0)
+        .filter((item: any) => item.quantity > 0)
     )
   }
 
   const removeItem = (id: string | number) => {
-    setItems(items.filter((item: unknown) => item.id != id))
+    setItems(items.filter((item: any) => item.id != id))
   }
 
   const applyPromoCode = () => {

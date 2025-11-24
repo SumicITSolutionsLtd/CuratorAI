@@ -34,7 +34,7 @@ export const fetchFeed = createAsyncThunk(
   async (filter: FeedFilter, { rejectWithValue }) => {
     try {
       return await socialRepository.getFeed(filter)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch feed')
     }
   }
@@ -47,7 +47,7 @@ export const fetchPostById = createAsyncThunk(
   async (postId: string, { rejectWithValue }) => {
     try {
       return await socialRepository.getPostById(postId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch post')
     }
   }
@@ -58,7 +58,7 @@ export const createPost = createAsyncThunk(
   async (data: CreatePostData, { rejectWithValue }) => {
     try {
       return await socialRepository.createPost(data)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create post')
     }
   }
@@ -72,7 +72,7 @@ export const updatePost = createAsyncThunk(
   ) => {
     try {
       return await socialRepository.updatePost(postId, updates)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update post')
     }
   }
@@ -84,7 +84,7 @@ export const deletePost = createAsyncThunk(
     try {
       await socialRepository.deletePost(postId)
       return postId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete post')
     }
   }
@@ -98,7 +98,7 @@ export const likePost = createAsyncThunk(
     try {
       await socialRepository.likePost(userId, postId)
       return postId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to like post')
     }
   }
@@ -110,7 +110,7 @@ export const unlikePost = createAsyncThunk(
     try {
       await socialRepository.unlikePost(userId, postId)
       return postId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unlike post')
     }
   }
@@ -122,7 +122,7 @@ export const savePost = createAsyncThunk(
     try {
       await socialRepository.savePost(userId, postId)
       return postId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to save post')
     }
   }
@@ -134,7 +134,7 @@ export const unsavePost = createAsyncThunk(
     try {
       await socialRepository.unsavePost(userId, postId)
       return postId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unsave post')
     }
   }
@@ -146,7 +146,7 @@ export const sharePost = createAsyncThunk(
     try {
       await socialRepository.sharePost(userId, postId)
       return postId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to share post')
     }
   }
@@ -162,7 +162,7 @@ export const fetchComments = createAsyncThunk(
   ) => {
     try {
       return await socialRepository.getComments(postId, page, limit)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch comments')
     }
   }
@@ -181,7 +181,7 @@ export const addComment = createAsyncThunk(
   ) => {
     try {
       return await socialRepository.addComment(userId, postId, content, parentId)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to add comment')
     }
   }
@@ -189,13 +189,10 @@ export const addComment = createAsyncThunk(
 
 export const updateComment = createAsyncThunk(
   'social/updateComment',
-  async (
-    { commentId, content }: { commentId: string; content: string },
-    { rejectWithValue }
-  ) => {
+  async ({ commentId, content }: { commentId: string; content: string }, { rejectWithValue }) => {
     try {
       return await socialRepository.updateComment(commentId, content)
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update comment')
     }
   }
@@ -207,7 +204,7 @@ export const deleteComment = createAsyncThunk(
     try {
       await socialRepository.deleteComment(commentId)
       return commentId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete comment')
     }
   }
@@ -215,14 +212,11 @@ export const deleteComment = createAsyncThunk(
 
 export const likeComment = createAsyncThunk(
   'social/likeComment',
-  async (
-    { userId, commentId }: { userId: string; commentId: string },
-    { rejectWithValue }
-  ) => {
+  async ({ userId, commentId }: { userId: string; commentId: string }, { rejectWithValue }) => {
     try {
       await socialRepository.likeComment(userId, commentId)
       return commentId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to like comment')
     }
   }
@@ -230,14 +224,11 @@ export const likeComment = createAsyncThunk(
 
 export const unlikeComment = createAsyncThunk(
   'social/unlikeComment',
-  async (
-    { userId, commentId }: { userId: string; commentId: string },
-    { rejectWithValue }
-  ) => {
+  async ({ userId, commentId }: { userId: string; commentId: string }, { rejectWithValue }) => {
     try {
       await socialRepository.unlikeComment(userId, commentId)
       return commentId
-    } catch (error: unknown) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unlike comment')
     }
   }

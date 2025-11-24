@@ -3,7 +3,9 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
-import { register, completeRegistration } from '@/shared/store/slices/authSlice'
+import { register, completeRegistration, loginWithOAuth } from '@/shared/store/slices/authSlice'
+import { loginWithGoogle, loginWithFacebook } from '@/shared/utils/oauth'
+import { store } from '@/shared/store'
 import {
   Mail,
   Lock,
@@ -72,10 +74,6 @@ export const RegisterPage = () => {
 
   const handleOAuthRegister = async (provider: 'google' | 'facebook') => {
     try {
-      const { loginWithGoogle, loginWithFacebook } = await import('@/shared/utils/oauth')
-      const { loginWithOAuth } = await import('@/shared/store/slices/authSlice')
-      const { store } = await import('@/shared/store')
-
       let token: string
       if (provider === 'google') {
         token = await loginWithGoogle()
@@ -87,7 +85,9 @@ export const RegisterPage = () => {
       navigate('/home')
     } catch (error: unknown) {
       console.error(`OAuth ${provider} registration failed:`, error)
-      setRegistrationError(error.message || `Failed to register with ${provider}`)
+      const errorMsg =
+        error instanceof Error ? error.message : `Failed to register with ${provider}`
+      setRegistrationError(errorMsg)
     }
   }
 
@@ -101,7 +101,10 @@ export const RegisterPage = () => {
     setRegistrationError(null)
 
     // Generate username from email (before @ symbol)
-    const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
+    const username = email
+      .split('@')[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
 
     // Register the user
     const result = await dispatch(

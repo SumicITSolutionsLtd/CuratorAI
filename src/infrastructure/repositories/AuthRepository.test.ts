@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AuthRepository } from './AuthRepository'
 import { apiClient } from '../api/ApiClient'
-import type { AuthResponse, AuthTokens, StylePreferenceCompletion } from '@domain/repositories/IAuthRepository'
+import type {
+  AuthResponse,
+  AuthTokens,
+  StylePreferenceCompletion,
+} from '@domain/repositories/IAuthRepository'
 import type { RegisterData, AuthCredentials, OAuthProvider, User } from '@domain/entities/User'
 
 // Mock the ApiClient
@@ -44,8 +48,9 @@ describe('AuthRepository', () => {
       const registerData: RegisterData = {
         email: 'test@example.com',
         password: 'password123',
-        firstName: 'Test',
-        lastName: 'User',
+        fullName: 'Test User',
+        username: 'testuser',
+        agreeToTerms: true,
       }
 
       const mockResponse: AuthResponse = {
@@ -73,7 +78,9 @@ describe('AuthRepository', () => {
       const registerData: RegisterData = {
         email: 'test@example.com',
         password: 'password123',
+        fullName: 'Test User',
         username: 'testuser',
+        agreeToTerms: true,
       }
 
       const mockError = new Error('Registration failed')
@@ -222,7 +229,9 @@ describe('AuthRepository', () => {
 
       vi.mocked(apiClient.post).mockRejectedValue(mockError)
 
-      await expect(authRepository.refreshToken(refreshToken)).rejects.toThrow('Invalid refresh token')
+      await expect(authRepository.refreshToken(refreshToken)).rejects.toThrow(
+        'Invalid refresh token'
+      )
     })
   })
 

@@ -55,8 +55,20 @@ export const WishlistPage = () => {
 
   // Calculate collection counts
   const collections = [
-    { id: 'all', name: 'All Items', icon: Heart, count: savedOutfits.length, color: 'text-brand-crimson' },
-    { id: 'outfits', name: 'Outfits', icon: Shirt, count: savedOutfits.length, color: 'text-brand-blue' },
+    {
+      id: 'all',
+      name: 'All Items',
+      icon: Heart,
+      count: savedOutfits.length,
+      color: 'text-brand-crimson',
+    },
+    {
+      id: 'outfits',
+      name: 'Outfits',
+      icon: Shirt,
+      count: savedOutfits.length,
+      color: 'text-brand-blue',
+    },
     { id: 'lookbooks', name: 'Lookbooks', icon: BookOpen, count: 0, color: 'text-brand-blue' },
     { id: 'items', name: 'Items', icon: ShoppingBag, count: 0, color: 'text-brand-crimson' },
   ]
@@ -84,7 +96,8 @@ export const WishlistPage = () => {
       await dispatch(unsaveOutfit({ userId: user.id, outfitId })).unwrap()
       showToast.success('Removed', 'Outfit removed from wishlist')
     } catch (error: unknown) {
-      showToast.error('Failed to remove', error.message || 'Could not remove outfit')
+      const errorMsg = error instanceof Error ? error.message : 'Could not remove outfit'
+      showToast.error('Failed to remove', errorMsg)
     }
   }
 
@@ -288,7 +301,9 @@ export const WishlistPage = () => {
                 <div
                   className={cn(
                     'grid gap-4',
-                    viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
+                    viewMode === 'grid'
+                      ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4'
+                      : 'grid-cols-1'
                   )}
                 >
                   {transformedOutfits.map((outfit, index) => (
