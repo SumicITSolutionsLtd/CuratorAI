@@ -5,6 +5,7 @@ import {
   ImageProcessingStatus,
 } from '@domain/entities/Search'
 import { SearchRepository } from '@infrastructure/repositories/SearchRepository'
+import { extractErrorMessage } from '@/shared/utils/errorHandling'
 
 const searchRepository = new SearchRepository()
 
@@ -36,7 +37,7 @@ export const performVisualSearch = createAsyncThunk(
     try {
       return await searchRepository.performVisualSearch(request)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Visual search failed')
+      return rejectWithValue(extractErrorMessage(error, 'Visual search failed'))
     }
   }
 )
@@ -47,7 +48,7 @@ export const uploadSearchImage = createAsyncThunk(
     try {
       return await searchRepository.uploadSearchImage(image)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Image upload failed')
+      return rejectWithValue(extractErrorMessage(error, 'Image upload failed'))
     }
   }
 )
@@ -58,7 +59,7 @@ export const getProcessingStatus = createAsyncThunk(
     try {
       return await searchRepository.getProcessingStatus(searchId)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to get processing status')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to get processing status'))
     }
   }
 )
@@ -71,7 +72,7 @@ export const getRecentSearches = createAsyncThunk(
     try {
       return await searchRepository.getRecentSearches(userId, limit)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch recent searches')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch recent searches'))
     }
   }
 )
@@ -83,7 +84,7 @@ export const deleteSearchHistory = createAsyncThunk(
       await searchRepository.deleteSearchHistory(userId)
       return true
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete search history')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to delete search history'))
     }
   }
 )

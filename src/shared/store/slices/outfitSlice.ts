@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { Outfit, OutfitRecommendation, OutfitFilter } from '@domain/entities/Outfit'
 import { OutfitRepository } from '@infrastructure/repositories/OutfitRepository'
+import { extractErrorMessage } from '@/shared/utils/errorHandling'
 
 const outfitRepository = new OutfitRepository()
 
@@ -41,7 +42,7 @@ export const fetchRecommendations = createAsyncThunk(
       const filters = state.outfit.filters
       return await outfitRepository.getRecommendations(userId, filters, page, limit)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch recommendations')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch recommendations'))
     }
   }
 )
@@ -54,7 +55,7 @@ export const fetchOutfitById = createAsyncThunk(
     try {
       return await outfitRepository.getOutfitById(outfitId)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch outfit')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch outfit'))
     }
   }
 )
@@ -65,7 +66,7 @@ export const createOutfit = createAsyncThunk(
     try {
       return await outfitRepository.createOutfit(outfit)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create outfit')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to create outfit'))
     }
   }
 )
@@ -79,7 +80,7 @@ export const updateOutfit = createAsyncThunk(
     try {
       return await outfitRepository.updateOutfit(outfitId, updates)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update outfit')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to update outfit'))
     }
   }
 )
@@ -91,7 +92,7 @@ export const deleteOutfit = createAsyncThunk(
       await outfitRepository.deleteOutfit(outfitId)
       return outfitId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete outfit')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to delete outfit'))
     }
   }
 )
@@ -105,7 +106,7 @@ export const likeOutfit = createAsyncThunk(
       await outfitRepository.likeOutfit(userId, outfitId)
       return outfitId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to like outfit')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to like outfit'))
     }
   }
 )
@@ -117,7 +118,7 @@ export const unlikeOutfit = createAsyncThunk(
       await outfitRepository.unlikeOutfit(userId, outfitId)
       return outfitId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to unlike outfit')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to unlike outfit'))
     }
   }
 )
@@ -129,7 +130,7 @@ export const saveOutfit = createAsyncThunk(
       await outfitRepository.saveOutfit(userId, outfitId)
       return outfitId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to save outfit')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to save outfit'))
     }
   }
 )
@@ -141,7 +142,7 @@ export const unsaveOutfit = createAsyncThunk(
       await outfitRepository.unsaveOutfit(userId, outfitId)
       return outfitId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to unsave outfit')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to unsave outfit'))
     }
   }
 )
@@ -157,7 +158,7 @@ export const fetchSavedOutfits = createAsyncThunk(
     try {
       return await outfitRepository.getSavedOutfits(userId, page, limit)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch saved outfits')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch saved outfits'))
     }
   }
 )
@@ -174,7 +175,7 @@ export const provideFeedback = createAsyncThunk(
       await outfitRepository.provideFeedback(outfitId, helpful, feedback)
       return outfitId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to provide feedback')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to provide feedback'))
     }
   }
 )

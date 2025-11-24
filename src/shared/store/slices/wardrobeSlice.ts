@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { WardrobeItem, Wardrobe, WardrobeStats } from '@domain/entities/Wardrobe'
 import { WardrobeRepository } from '@infrastructure/repositories/WardrobeRepository'
+import { extractErrorMessage } from '@/shared/utils/errorHandling'
 
 const wardrobeRepository = new WardrobeRepository()
 
@@ -44,7 +45,7 @@ export const fetchWardrobe = createAsyncThunk(
     try {
       return await wardrobeRepository.getWardrobe(userId)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch wardrobe')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch wardrobe'))
     }
   }
 )
@@ -55,7 +56,7 @@ export const fetchWardrobeStats = createAsyncThunk(
     try {
       return await wardrobeRepository.getWardrobeStats(userId)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch stats')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch stats'))
     }
   }
 )
@@ -66,7 +67,7 @@ export const addWardrobeItem = createAsyncThunk(
     try {
       return await wardrobeRepository.addItem(item)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to add item')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to add item'))
     }
   }
 )
@@ -77,7 +78,7 @@ export const updateWardrobeItem = createAsyncThunk(
     try {
       return await wardrobeRepository.updateItem(id, updates)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update item')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to update item'))
     }
   }
 )
@@ -89,7 +90,7 @@ export const deleteWardrobeItem = createAsyncThunk(
       await wardrobeRepository.deleteItem(itemId)
       return itemId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete item')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to delete item'))
     }
   }
 )
@@ -101,7 +102,7 @@ export const incrementTimesWorn = createAsyncThunk(
       const updatedItem = await wardrobeRepository.incrementTimesWorn(itemId)
       return { itemId, timesWorn: updatedItem.timesWorn }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to increment times worn')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to increment times worn'))
     }
   }
 )

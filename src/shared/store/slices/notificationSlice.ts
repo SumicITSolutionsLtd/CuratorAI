@@ -5,6 +5,7 @@ import {
   NotificationPreferences,
 } from '@domain/entities/Notification'
 import { NotificationRepository } from '@infrastructure/repositories/NotificationRepository'
+import { extractErrorMessage } from '@/shared/utils/errorHandling'
 
 const notificationRepository = new NotificationRepository()
 
@@ -34,7 +35,7 @@ export const fetchNotifications = createAsyncThunk(
     try {
       return await notificationRepository.getNotifications(userId, filter)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch notifications')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch notifications'))
     }
   }
 )
@@ -45,7 +46,7 @@ export const fetchUnreadCount = createAsyncThunk(
     try {
       return await notificationRepository.getUnreadCount(userId)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch unread count')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch unread count'))
     }
   }
 )
@@ -57,7 +58,7 @@ export const markNotificationAsRead = createAsyncThunk(
       await notificationRepository.markAsRead(notificationId)
       return notificationId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to mark as read')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to mark as read'))
     }
   }
 )
@@ -68,7 +69,7 @@ export const markAllNotificationsAsRead = createAsyncThunk(
     try {
       await notificationRepository.markAllAsRead(userId)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to mark all as read')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to mark all as read'))
     }
   }
 )
@@ -80,7 +81,7 @@ export const deleteNotification = createAsyncThunk(
       await notificationRepository.deleteNotification(notificationId)
       return notificationId
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete notification')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to delete notification'))
     }
   }
 )
@@ -91,7 +92,7 @@ export const fetchNotificationPreferences = createAsyncThunk(
     try {
       return await notificationRepository.getPreferences(userId)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch preferences')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch preferences'))
     }
   }
 )
@@ -105,7 +106,7 @@ export const updateNotificationPreferences = createAsyncThunk(
     try {
       return await notificationRepository.updatePreferences(userId, preferences)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update preferences')
+      return rejectWithValue(extractErrorMessage(error, 'Failed to update preferences'))
     }
   }
 )
