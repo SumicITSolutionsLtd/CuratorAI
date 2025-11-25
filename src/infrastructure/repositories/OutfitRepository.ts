@@ -23,7 +23,7 @@ export class OutfitRepository implements IOutfitRepository {
   }
 
   async getOutfitById(outfitId: string): Promise<Outfit> {
-    return await apiClient.get<Outfit>(`/outfits/${outfitId}`)
+    return await apiClient.get<Outfit>(`/outfits/${outfitId}/`)
   }
 
   async createOutfit(_outfit: Omit<Outfit, 'id' | 'createdAt' | 'updatedAt'>): Promise<Outfit> {

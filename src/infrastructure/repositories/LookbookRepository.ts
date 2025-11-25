@@ -51,10 +51,10 @@ export class LookbookRepository implements ILookbookRepository {
   }
 
   async likeLookbook(_userId: string, lookbookId: string): Promise<void> {
-    await apiClient.post<void>(`/lookbooks/${lookbookId}/like`)
+    await apiClient.post<void>(`/lookbooks/${lookbookId}/like/`)
   }
 
   async unlikeLookbook(_userId: string, lookbookId: string): Promise<void> {
-    await apiClient.delete<void>(`/lookbooks/${lookbookId}/like`)
+    await apiClient.delete<void>(`/lookbooks/${lookbookId}/like/`)
   }
 }

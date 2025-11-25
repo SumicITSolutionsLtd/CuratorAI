@@ -60,7 +60,7 @@ describe('LookbookRepository', () => {
 
       const result = await lookbookRepository.getFeaturedLookbooks(8)
 
-      expect(apiClient.get).toHaveBeenCalledWith('/lookbooks/featured', { params: { limit: 8 } })
+      expect(apiClient.get).toHaveBeenCalledWith('/lookbooks/featured/', { params: { limit: 8 } })
       expect(result).toEqual(mockLookbooks)
     })
   })
@@ -79,7 +79,7 @@ describe('LookbookRepository', () => {
 
       const result = await lookbookRepository.getLookbookById(lookbookId)
 
-      expect(apiClient.get).toHaveBeenCalledWith(`/lookbooks/${lookbookId}`)
+      expect(apiClient.get).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/`)
       expect(result).toEqual(mockLookbook)
     })
   })
@@ -103,7 +103,7 @@ describe('LookbookRepository', () => {
 
       const result = await lookbookRepository.createLookbook(newLookbook)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/lookbooks/create', newLookbook)
+      expect(apiClient.post).toHaveBeenCalledWith('/lookbooks/create/', newLookbook)
       expect(result).toEqual(mockCreatedLookbook)
     })
   })
@@ -126,7 +126,7 @@ describe('LookbookRepository', () => {
 
       const result = await lookbookRepository.updateLookbook(lookbookId, updates)
 
-      expect(apiClient.put).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/update`, updates)
+      expect(apiClient.put).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/update/`, updates)
       expect(result).toEqual(mockUpdatedLookbook)
     })
   })
@@ -138,7 +138,7 @@ describe('LookbookRepository', () => {
 
       await lookbookRepository.deleteLookbook(lookbookId)
 
-      expect(apiClient.delete).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/delete`)
+      expect(apiClient.delete).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/delete/`)
     })
   })
 
@@ -150,7 +150,7 @@ describe('LookbookRepository', () => {
 
       await lookbookRepository.likeLookbook(userId, lookbookId)
 
-      expect(apiClient.post).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/like`)
+      expect(apiClient.post).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/like/`)
     })
   })
 
@@ -162,7 +162,7 @@ describe('LookbookRepository', () => {
 
       await lookbookRepository.unlikeLookbook(userId, lookbookId)
 
-      expect(apiClient.delete).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/like`)
+      expect(apiClient.delete).toHaveBeenCalledWith(`/lookbooks/${lookbookId}/like/`)
     })
   })
 })

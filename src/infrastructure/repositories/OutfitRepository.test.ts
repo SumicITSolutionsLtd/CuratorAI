@@ -26,7 +26,7 @@ describe('OutfitRepository', () => {
       const userId = 'user123'
       const filters: OutfitFilter = {
         occasion: ['casual'],
-        season: ['summer'],
+        styles: ['streetwear'],
       }
       const mockResponse: PaginatedResponse<OutfitRecommendation> = {
         results: [
@@ -42,16 +42,13 @@ describe('OutfitRepository', () => {
         hasMore: false,
       }
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse)
+      vi.mocked(apiClient.get).mockResolvedValue(mockResponse)
 
       const result = await outfitRepository.getRecommendations(userId, filters, 1, 12)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/outfits/recommendations', {
-        userId,
-        filters,
-        page: 1,
-        limit: 12,
-      })
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/outfits/?occasion=casual&styles=streetwear&page=1&limit=12'
+      )
       expect(result).toEqual(mockResponse)
     })
 
@@ -65,16 +62,11 @@ describe('OutfitRepository', () => {
         hasMore: false,
       }
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse)
+      vi.mocked(apiClient.get).mockResolvedValue(mockResponse)
 
       const result = await outfitRepository.getRecommendations(userId)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/outfits/recommendations', {
-        userId,
-        filters: undefined,
-        page: 1,
-        limit: 12,
-      })
+      expect(apiClient.get).toHaveBeenCalledWith('/outfits/?page=1&limit=12')
       expect(result).toEqual(mockResponse)
     })
   })
@@ -94,7 +86,7 @@ describe('OutfitRepository', () => {
 
       const result = await outfitRepository.getOutfitById(outfitId)
 
-      expect(apiClient.get).toHaveBeenCalledWith(`/outfits/${outfitId}`)
+      expect(apiClient.get).toHaveBeenCalledWith(`/outfits/${outfitId}/`)
       expect(result).toEqual(mockOutfit)
     })
 
@@ -107,60 +99,38 @@ describe('OutfitRepository', () => {
   })
 
   describe('createOutfit', () => {
-    it('should create a new outfit', async () => {
+    it('should throw error as endpoint not implemented', async () => {
       const newOutfit = {
         name: 'New Outfit',
         items: ['item1', 'item2'],
       } as unknown as Omit<Outfit, 'id' | 'createdAt' | 'updatedAt'>
 
-      const mockCreatedOutfit: Outfit = {
-        id: 'outfit123',
-        ...newOutfit,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as unknown as Outfit
-
-      vi.mocked(apiClient.post).mockResolvedValue(mockCreatedOutfit)
-
-      const result = await outfitRepository.createOutfit(newOutfit)
-
-      expect(apiClient.post).toHaveBeenCalledWith('/outfits', newOutfit)
-      expect(result).toEqual(mockCreatedOutfit)
+      await expect(outfitRepository.createOutfit(newOutfit)).rejects.toThrow(
+        'Create outfit endpoint not implemented in backend API'
+      )
     })
   })
 
   describe('updateOutfit', () => {
-    it('should update an outfit', async () => {
+    it('should throw error as endpoint not implemented', async () => {
       const outfitId = 'outfit123'
       const updates: Partial<Outfit> = {
         name: 'Updated Name',
       }
 
-      const mockUpdatedOutfit: Outfit = {
-        id: outfitId,
-        name: 'Updated Name',
-        items: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as unknown as Outfit
-
-      vi.mocked(apiClient.patch).mockResolvedValue(mockUpdatedOutfit)
-
-      const result = await outfitRepository.updateOutfit(outfitId, updates)
-
-      expect(apiClient.patch).toHaveBeenCalledWith(`/outfits/${outfitId}`, updates)
-      expect(result).toEqual(mockUpdatedOutfit)
+      await expect(outfitRepository.updateOutfit(outfitId, updates)).rejects.toThrow(
+        'Update outfit endpoint not implemented in backend API'
+      )
     })
   })
 
   describe('deleteOutfit', () => {
-    it('should delete an outfit', async () => {
+    it('should throw error as endpoint not implemented', async () => {
       const outfitId = 'outfit123'
-      vi.mocked(apiClient.delete).mockResolvedValue(undefined)
 
-      await outfitRepository.deleteOutfit(outfitId)
-
-      expect(apiClient.delete).toHaveBeenCalledWith(`/outfits/${outfitId}`)
+      await expect(outfitRepository.deleteOutfit(outfitId)).rejects.toThrow(
+        'Delete outfit endpoint not implemented in backend API'
+      )
     })
   })
 
@@ -233,39 +203,29 @@ describe('OutfitRepository', () => {
 
       const result = await outfitRepository.getSavedOutfits(userId, 1, 12)
 
-      expect(apiClient.get).toHaveBeenCalledWith(`/users/${userId}/saved-outfits?page=1&limit=12`)
+      expect(apiClient.get).toHaveBeenCalledWith(`/outfits/user/${userId}/?page=1&limit=12`)
       expect(result).toEqual(mockResponse)
     })
   })
 
   describe('provideFeedback', () => {
-    it('should provide positive feedback for an outfit', async () => {
+    it('should throw error as endpoint not implemented', async () => {
       const outfitId = 'outfit123'
       const helpful = true
       const feedback = 'Great recommendation!'
 
-      vi.mocked(apiClient.post).mockResolvedValue(undefined)
-
-      await outfitRepository.provideFeedback(outfitId, helpful, feedback)
-
-      expect(apiClient.post).toHaveBeenCalledWith(`/outfits/${outfitId}/feedback`, {
-        helpful,
-        feedback,
-      })
+      await expect(outfitRepository.provideFeedback(outfitId, helpful, feedback)).rejects.toThrow(
+        'Outfit feedback endpoint not implemented in backend API'
+      )
     })
 
-    it('should provide negative feedback without comment', async () => {
+    it('should throw error for negative feedback', async () => {
       const outfitId = 'outfit123'
       const helpful = false
 
-      vi.mocked(apiClient.post).mockResolvedValue(undefined)
-
-      await outfitRepository.provideFeedback(outfitId, helpful)
-
-      expect(apiClient.post).toHaveBeenCalledWith(`/outfits/${outfitId}/feedback`, {
-        helpful,
-        feedback: undefined,
-      })
+      await expect(outfitRepository.provideFeedback(outfitId, helpful)).rejects.toThrow(
+        'Outfit feedback endpoint not implemented in backend API'
+      )
     })
   })
 })

@@ -124,7 +124,7 @@ describe('AuthRepository', () => {
 
       const result = await authRepository.login(credentials)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/login', credentials)
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/login/', credentials)
       expect(result).toEqual(mockResponse)
     })
 
@@ -165,7 +165,7 @@ describe('AuthRepository', () => {
 
       const result = await authRepository.loginWithOAuth(oauthProvider)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/oauth/google', {
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/oauth/google/', {
         access_token: 'google_oauth_token',
       })
       expect(result).toEqual(mockResponse)
@@ -194,7 +194,7 @@ describe('AuthRepository', () => {
 
       const result = await authRepository.loginWithOAuth(oauthProvider)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/oauth/facebook', {
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/oauth/facebook/', {
         access_token: 'facebook_oauth_token',
       })
       expect(result).toEqual(mockResponse)
@@ -210,7 +210,7 @@ describe('AuthRepository', () => {
 
       await authRepository.logout()
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/logout')
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/logout/')
       expect(localStorage.removeItem).toHaveBeenCalledWith('curatorai_access_token')
       expect(localStorage.removeItem).toHaveBeenCalledWith('curatorai_refresh_token')
     })
@@ -229,7 +229,7 @@ describe('AuthRepository', () => {
 
       const result = await authRepository.refreshToken(refreshToken)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/refresh', { refreshToken })
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/refresh/', { refresh: refreshToken })
       expect(result).toEqual(mockTokens)
     })
 
@@ -252,7 +252,7 @@ describe('AuthRepository', () => {
 
       await authRepository.verifyEmail(code)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/verify-email/confirm', { code })
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/verify-email/confirm/', { code })
     })
   })
 
@@ -262,7 +262,7 @@ describe('AuthRepository', () => {
 
       await authRepository.requestEmailVerification()
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/verify-email/request')
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/verify-email/request/')
     })
   })
 
@@ -273,7 +273,7 @@ describe('AuthRepository', () => {
 
       await authRepository.requestPasswordReset(email)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/password-reset/request', { email })
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/password-reset/request/', { email })
     })
   })
 
@@ -285,7 +285,7 @@ describe('AuthRepository', () => {
 
       await authRepository.resetPassword(token, newPassword)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/password-reset/confirm', {
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/password-reset/confirm/', {
         token,
         newPassword,
       })
@@ -304,7 +304,7 @@ describe('AuthRepository', () => {
 
       const result = await authRepository.getCurrentUser()
 
-      expect(apiClient.get).toHaveBeenCalledWith('/auth/me')
+      expect(apiClient.get).toHaveBeenCalledWith('/auth/me/')
       expect(result).toEqual(mockUser)
     })
 
@@ -336,7 +336,7 @@ describe('AuthRepository', () => {
 
       const result = await authRepository.completeRegistration(preferences)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/register/complete', preferences)
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/register/complete/', preferences)
       expect(result).toEqual(mockUser)
     })
   })

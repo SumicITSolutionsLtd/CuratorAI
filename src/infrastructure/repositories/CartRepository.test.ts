@@ -51,11 +51,15 @@ describe('CartRepository', () => {
     it('should add item to cart', async () => {
       const userId = 'user123'
       const item = {
-        id: 'item123',
-        productId: 'product123',
-        quantity: 1,
+        outfitItemId: '123',
+        name: 'Test Item',
+        brand: 'Test Brand',
         price: 99.99,
-      } as unknown as CartItem
+        size: 'M',
+        color: 'Blue',
+        quantity: 1,
+        imageUrl: 'https://example.com/image.jpg',
+      } as unknown as Omit<CartItem, 'id'>
 
       const mockUpdatedCart = {
         id: 'cart123',
@@ -69,7 +73,16 @@ describe('CartRepository', () => {
 
       const result = await cartRepository.addItem(userId, item)
 
-      expect(apiClient.post).toHaveBeenCalledWith(`/cart/${userId}/items`, item)
+      expect(apiClient.post).toHaveBeenCalledWith(`/cart/${userId}/items/`, {
+        outfit_item_id: 123,
+        name: 'Test Item',
+        brand: 'Test Brand',
+        price: '99.99',
+        size: 'M',
+        color: 'Blue',
+        quantity: 1,
+        image_url: 'https://example.com/image.jpg',
+      })
       expect(result).toEqual(mockUpdatedCart)
     })
   })
