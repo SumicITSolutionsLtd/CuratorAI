@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
@@ -16,7 +16,7 @@ export const VerifyEmailPage = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const [searchParams] = useSearchParams()
-  const { isLoading, error, user } = useAppSelector((state) => state.auth)
+  const { isLoading, user } = useAppSelector((state) => state.auth)
 
   const [code, setCode] = useState('')
   const [verificationSuccess, setVerificationSuccess] = useState(false)
@@ -25,30 +25,28 @@ export const VerifyEmailPage = () => {
 
   const codeFromUrl = searchParams.get('code')
 
+  const handleVerification = useCallback(
+    async (verificationCode: string) => {
+      const result = await dispatch(verifyEmail(verificationCode))
+      if (verifyEmail.fulfilled.match(result)) {
+        setVerificationSuccess(true)
+        showToast.success('Email Verified!', 'Your email has been successfully verified')
+        setTimeout(() => {
+          navigate('/home')
+        }, 3000)
+      } else if (verifyEmail.rejected.match(result)) {
+        showToast.error('Verification Failed', result.payload as string)
+      }
+    },
+    [dispatch, navigate]
+  )
+
   useEffect(() => {
     if (codeFromUrl) {
       setCode(codeFromUrl)
       handleVerification(codeFromUrl)
     }
-  }, [codeFromUrl])
-
-  // Show toast when error occurs
-  useEffect(() => {
-    if (error) {
-      showToast.error('Verification Failed', error)
-    }
-  }, [error])
-
-  const handleVerification = async (verificationCode: string) => {
-    const result = await dispatch(verifyEmail(verificationCode))
-    if (verifyEmail.fulfilled.match(result)) {
-      setVerificationSuccess(true)
-      showToast.success('Email Verified!', 'Your email has been successfully verified')
-      setTimeout(() => {
-        navigate('/home')
-      }, 3000)
-    }
-  }
+  }, [codeFromUrl, handleVerification])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -198,15 +196,15 @@ export const VerifyEmailPage = () => {
                     onClick={async () => {
                       setResendLoading(true)
                       setResendSuccess(false)
-                      try {
-                        await dispatch(requestEmailVerification()).unwrap()
+                      const result = await dispatch(requestEmailVerification())
+                      if (requestEmailVerification.fulfilled.match(result)) {
                         setResendSuccess(true)
+                        showToast.success('Email Sent', 'Verification email sent successfully')
                         setTimeout(() => setResendSuccess(false), 5000)
-                      } catch (err) {
-                        alert('Failed to send verification email. Please try again.')
-                      } finally {
-                        setResendLoading(false)
+                      } else if (requestEmailVerification.rejected.match(result)) {
+                        showToast.error('Failed', result.payload as string)
                       }
+                      setResendLoading(false)
                     }}
                     disabled={resendLoading}
                     className="font-semibold text-brand-blue transition-colors hover:text-brand-crimson hover:underline disabled:opacity-50"

@@ -12,7 +12,7 @@ import { showToast } from '@/shared/utils/toast'
 
 export const LoginPage = () => {
   const navigate = useNavigate()
-  const { login, loginWithOAuth, isLoading, error } = useAuth()
+  const { login, loginWithOAuth, isLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -25,8 +25,7 @@ export const LoginPage = () => {
       showToast.success('Welcome back!', 'Login successful')
       navigate('/home')
     } catch (err: any) {
-      // Show error toast here instead of in useEffect to prevent duplicate toasts
-      const errorMessage = err?.message || error || 'Invalid email or password'
+      const errorMessage = err?.message || 'Invalid email or password'
       showToast.error('Login Failed', errorMessage)
     }
   }

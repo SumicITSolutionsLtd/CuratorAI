@@ -9,11 +9,19 @@ export const useAuth = () => {
   const { user, isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth)
 
   const handleLogin = async (credentials: AuthCredentials) => {
-    await dispatch(login(credentials))
+    const result = await dispatch(login(credentials))
+    if (login.rejected.match(result)) {
+      throw new Error(result.payload as string)
+    }
+    return result.payload
   }
 
   const handleRegister = async (data: RegisterData) => {
-    await dispatch(register(data))
+    const result = await dispatch(register(data))
+    if (register.rejected.match(result)) {
+      throw new Error(result.payload as string)
+    }
+    return result.payload
   }
 
   const handleLogout = async () => {
@@ -21,20 +29,19 @@ export const useAuth = () => {
   }
 
   const handleOAuthLogin = async (provider: 'google' | 'facebook') => {
-    try {
-      let token: string
-      if (provider === 'google') {
-        token = await loginWithGoogle()
-      } else {
-        token = await loginWithFacebook()
-      }
-
-      const oauthProvider: OAuthProvider = { provider, token }
-      await dispatch(loginWithOAuth(oauthProvider))
-    } catch (error: unknown) {
-      // Re-throw the error so it can be caught by the component
-      throw error
+    let token: string
+    if (provider === 'google') {
+      token = await loginWithGoogle()
+    } else {
+      token = await loginWithFacebook()
     }
+
+    const oauthProvider: OAuthProvider = { provider, token }
+    const result = await dispatch(loginWithOAuth(oauthProvider))
+    if (loginWithOAuth.rejected.match(result)) {
+      throw new Error(result.payload as string)
+    }
+    return result.payload
   }
 
   return {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, ArrowRight, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react'
@@ -15,26 +15,17 @@ import { showToast } from '@/shared/utils/toast'
 export const ForgotPasswordPage = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { isLoading, error, passwordResetEmailSent } = useAppSelector((state) => state.auth)
+  const { isLoading, passwordResetEmailSent } = useAppSelector((state) => state.auth)
   const [email, setEmail] = useState('')
-
-  // Show toast when error occurs
-  useEffect(() => {
-    if (error) {
-      showToast.error('Request Failed', error)
-    }
-  }, [error])
-
-  // Show toast when email is sent successfully
-  useEffect(() => {
-    if (passwordResetEmailSent) {
-      showToast.success('Email Sent!', `Password reset instructions sent to ${email}`)
-    }
-  }, [passwordResetEmailSent, email])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await dispatch(requestPasswordReset(email))
+    const result = await dispatch(requestPasswordReset(email))
+    if (requestPasswordReset.fulfilled.match(result)) {
+      showToast.success('Email Sent!', `Password reset instructions sent to ${email}`)
+    } else if (requestPasswordReset.rejected.match(result)) {
+      showToast.error('Request Failed', result.payload as string)
+    }
   }
 
   if (passwordResetEmailSent) {

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import { register, completeRegistration, loginWithOAuth } from '@/shared/store/slices/authSlice'
 import { loginWithGoogle, loginWithFacebook } from '@/shared/utils/oauth'
-import { store } from '@/shared/store'
 import { showToast } from '@/shared/utils/toast'
 import {
   Mail,
@@ -79,9 +78,15 @@ export const RegisterPage = () => {
         token = await loginWithFacebook()
       }
 
-      await store.dispatch(loginWithOAuth({ provider, token }))
-      showToast.success('Welcome!', 'Registration successful')
-      navigate('/home')
+      const result = await dispatch(loginWithOAuth({ provider, token }))
+
+      if (loginWithOAuth.fulfilled.match(result)) {
+        showToast.success('Welcome!', 'Registration successful')
+        navigate('/home')
+      } else if (loginWithOAuth.rejected.match(result)) {
+        const providerName = provider === 'google' ? 'Google' : 'Facebook'
+        showToast.error(`${providerName} Registration Failed`, result.payload as string)
+      }
     } catch (error: unknown) {
       console.error(`OAuth ${provider} registration failed:`, error)
       const providerName = provider === 'google' ? 'Google' : 'Facebook'

@@ -29,7 +29,7 @@ export const ResetPasswordPage = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const [searchParams] = useSearchParams()
-  const { isLoading, error } = useAppSelector((state) => state.auth)
+  const { isLoading } = useAppSelector((state) => state.auth)
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -51,13 +51,6 @@ export const ResetPasswordPage = () => {
     setPasswordStrength((strength / passwordRequirements.length) * 100)
   }, [newPassword])
 
-  // Show toast when error occurs
-  useEffect(() => {
-    if (error) {
-      showToast.error('Reset Failed', error)
-    }
-  }, [error])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
@@ -73,6 +66,8 @@ export const ResetPasswordPage = () => {
       setTimeout(() => {
         navigate('/login')
       }, 3000)
+    } else if (resetPassword.rejected.match(result)) {
+      showToast.error('Reset Failed', result.payload as string)
     }
   }
 
