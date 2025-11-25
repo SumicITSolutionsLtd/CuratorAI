@@ -120,11 +120,13 @@ export const ProfilePage = () => {
     ? {
         name: user.fullName || mockProfile.name,
         username: `@${user.username}` || mockProfile.username,
-        bio: mockProfile.bio, // Bio not in User entity yet
-        avatar: mockProfile.avatar, // photoUrl not in User entity yet
-        coverImage: mockProfile.coverImage,
-        location: mockProfile.location,
-        website: mockProfile.website,
+        bio: user.profile?.bio || mockProfile.bio,
+        avatar:
+          user.profile?.photoUrl ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
+        coverImage: mockProfile.coverImage, // Would come from backend in real app
+        location: user.profile?.location || mockProfile.location,
+        website: user.profile?.website || mockProfile.website,
         joinedDate: formatJoinDate(user.createdAt),
         stats: mockProfile.stats, // Would come from backend in real app
         isFollowing: false,
@@ -142,7 +144,11 @@ export const ProfilePage = () => {
         {/* Cover Image */}
         <Card className="overflow-hidden">
           <div className="relative h-48 bg-gradient-to-br from-brand-crimson/20 to-brand-blue/20 sm:h-64">
-            <img src={displayProfile.coverImage} alt="Cover" className="h-full w-full object-cover" />
+            <img
+              src={displayProfile.coverImage}
+              alt="Cover"
+              className="h-full w-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
 
@@ -215,7 +221,9 @@ export const ProfilePage = () => {
 
             {/* Bio */}
             <div className="mt-6 space-y-3">
-              <p className="whitespace-pre-line text-sm text-brand-charcoal">{displayProfile.bio}</p>
+              <p className="whitespace-pre-line text-sm text-brand-charcoal">
+                {displayProfile.bio}
+              </p>
 
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                 {displayProfile.location && (
