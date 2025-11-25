@@ -13,6 +13,7 @@ import {
   Sparkles,
   Shirt,
 } from 'lucide-react'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Label } from '@/presentation/components/ui/label'
@@ -30,6 +31,8 @@ import {
 } from '@/presentation/components/ui/select'
 
 export const SettingsPage = () => {
+  const { user } = useAppSelector((state) => state.auth)
+
   const [notifications, setNotifications] = useState({
     newOutfits: true,
     socialActivity: true,
@@ -117,8 +120,19 @@ export const SettingsPage = () => {
               <div className="mb-6 flex items-center gap-6">
                 <div className="relative">
                   <Avatar className="h-24 w-24 ring-4 ring-brand-crimson/20">
-                    <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" />
-                    <AvatarFallback>SC</AvatarFallback>
+                    <AvatarImage
+                      src={
+                        user?.profile?.photoUrl ||
+                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
+                      }
+                    />
+                    <AvatarFallback>
+                      {user?.fullName
+                        ?.split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .toUpperCase() || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                   <Button
                     size="icon"
@@ -145,22 +159,25 @@ export const SettingsPage = () => {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" defaultValue="Sarah" />
+                    <Input id="firstName" defaultValue={user?.fullName?.split(' ')[0] || ''} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" defaultValue="Chen" />
+                    <Input
+                      id="lastName"
+                      defaultValue={user?.fullName?.split(' ').slice(1).join(' ') || ''}
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="username">Username</Label>
-                  <Input id="username" defaultValue="@sarahchen" />
+                  <Input id="username" defaultValue={`@${user?.username || ''}`} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="sarah@example.com" />
+                  <Input id="email" type="email" defaultValue={user?.email || ''} />
                 </div>
 
                 <div className="space-y-2">
@@ -169,7 +186,7 @@ export const SettingsPage = () => {
                     id="bio"
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     rows={3}
-                    defaultValue="Fashion enthusiast | Style curator | Coffee lover ☕"
+                    defaultValue={user?.profile?.bio || ''}
                   />
                 </div>
               </div>

@@ -28,6 +28,7 @@ import {
 } from '@/presentation/components/ui/select'
 import { Separator } from '@/presentation/components/ui/separator'
 import { useNavigate } from 'react-router-dom'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
 
 const suggestedTags = [
   '#OOTD',
@@ -42,6 +43,7 @@ const suggestedTags = [
 
 export const CreatePostPage = () => {
   const navigate = useNavigate()
+  const { user } = useAppSelector((state) => state.auth)
   const [images, setImages] = useState<string[]>([])
   const [caption, setCaption] = useState('')
   const [tags, setTags] = useState<string[]>([])
@@ -257,12 +259,23 @@ export const CreatePostPage = () => {
               <Card className="bg-gradient-to-br from-brand-ivory to-brand-beige p-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
-                    <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" />
-                    <AvatarFallback>SC</AvatarFallback>
+                    <AvatarImage
+                      src={
+                        user?.profile?.photoUrl ||
+                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
+                      }
+                    />
+                    <AvatarFallback>
+                      {user?.fullName
+                        ?.split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .toUpperCase() || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold text-brand-charcoal">Sarah Chen</p>
-                    <p className="text-xs text-muted-foreground">@sarahchen</p>
+                    <p className="font-semibold text-brand-charcoal">{user?.fullName || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">@{user?.username || 'user'}</p>
                   </div>
                 </div>
               </Card>
