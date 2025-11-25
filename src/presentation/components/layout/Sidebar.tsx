@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
 
 const navItems = [
   { icon: Home, label: 'Home', path: '/home', primary: true },
@@ -44,6 +45,7 @@ const navItems = [
 
 export const Sidebar = () => {
   const location = useLocation()
+  const { user } = useAppSelector((state) => state.auth)
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   // Load collapsed state from localStorage
@@ -89,12 +91,25 @@ export const Sidebar = () => {
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
-                  <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" />
-                  <AvatarFallback>SC</AvatarFallback>
+                  <AvatarImage
+                    src={
+                      user?.profile?.photoUrl ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
+                    }
+                  />
+                  <AvatarFallback>
+                    {user?.fullName
+                      ?.split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase() || 'U'}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">Sarah Chen</p>
-                  <p className="truncate text-xs text-muted-foreground">Fashion Enthusiast</p>
+                  <p className="truncate text-sm font-medium">{user?.fullName || 'User'}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {user?.profile?.bio || user?.role || 'Fashion Enthusiast'}
+                  </p>
                 </div>
                 <button className="text-muted-foreground hover:text-foreground">
                   <Bell className="h-5 w-5" />
@@ -115,13 +130,24 @@ export const Sidebar = () => {
                   <TooltipTrigger asChild>
                     <Link to="/profile/me">
                       <Avatar className="h-10 w-10 cursor-pointer ring-2 ring-brand-crimson/20">
-                        <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" />
-                        <AvatarFallback>SC</AvatarFallback>
+                        <AvatarImage
+                          src={
+                            user?.profile?.photoUrl ||
+                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
+                          }
+                        />
+                        <AvatarFallback>
+                          {user?.fullName
+                            ?.split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .toUpperCase() || 'U'}
+                        </AvatarFallback>
                       </Avatar>
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    <p>Sarah Chen</p>
+                    <p>{user?.fullName || 'User'}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
