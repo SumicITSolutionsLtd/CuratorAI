@@ -10,9 +10,7 @@ export class SocialRepository implements ISocialRepository {
     if (filter.limit) params.append('limit', filter.limit.toString())
     if (filter.offset) params.append('offset', filter.offset.toString())
 
-    return await apiClient.get<PaginatedResponse<SocialPost>>(
-      `/social/feed?${params.toString()}`
-    )
+    return await apiClient.get<PaginatedResponse<SocialPost>>(`/social/feed?${params.toString()}`)
   }
 
   async getPostById(postId: string): Promise<SocialPost> {
@@ -25,14 +23,16 @@ export class SocialRepository implements ISocialRepository {
     formData.append('caption', data.caption)
     formData.append('tags', JSON.stringify(data.tags))
     if (data.taggedItems) {
-      formData.append('taggedItems', JSON.stringify(data.taggedItems))
+      // Use snake_case for API
+      formData.append('tagged_items', JSON.stringify(data.taggedItems))
     }
     if (data.outfitId) {
-      formData.append('outfitId', data.outfitId)
+      // Use snake_case for API
+      formData.append('outfit_id', data.outfitId)
     }
     formData.append('privacy', data.privacy)
 
-    return await apiClient.upload<SocialPost>('/social/posts', formData)
+    return await apiClient.upload<SocialPost>('/social/posts/', formData)
   }
 
   async updatePost(postId: string, updates: Partial<SocialPost>): Promise<SocialPost> {
@@ -79,11 +79,15 @@ export class SocialRepository implements ISocialRepository {
     content: string,
     parentId?: string
   ): Promise<Comment> {
-    return await apiClient.post<Comment>(`/social/posts/${postId}/comments`, {
-      userId,
+    // Use snake_case for API
+    const payload: any = {
+      user_id: userId,
       content,
-      parentId,
-    })
+    }
+    if (parentId) {
+      payload.parent_id = parentId
+    }
+    return await apiClient.post<Comment>(`/social/posts/${postId}/comments/add/`, payload)
   }
 
   async updateComment(commentId: string, content: string): Promise<Comment> {

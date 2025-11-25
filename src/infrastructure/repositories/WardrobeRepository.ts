@@ -4,25 +4,23 @@ import { apiClient } from '../api/ApiClient'
 
 export class WardrobeRepository implements IWardrobeRepository {
   async getWardrobe(userId: string): Promise<Wardrobe> {
-    return await apiClient.get<Wardrobe>(`/users/${userId}/wardrobe`)
+    return await apiClient.get<Wardrobe>(`/wardrobe/users/${userId}/wardrobe/`)
   }
 
   async getWardrobeStats(userId: string): Promise<WardrobeStats> {
-    return await apiClient.get<WardrobeStats>(`/users/${userId}/wardrobe/stats`)
+    return await apiClient.get<WardrobeStats>(`/wardrobe/users/${userId}/wardrobe/stats/`)
   }
 
-  async addItem(
-    item: Omit<WardrobeItem, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<WardrobeItem> {
-    return await apiClient.post<WardrobeItem>('/wardrobe/items', item)
+  async addItem(item: Omit<WardrobeItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<WardrobeItem> {
+    return await apiClient.post<WardrobeItem>('/wardrobe/items/create/', item)
   }
 
   async updateItem(itemId: string, updates: Partial<WardrobeItem>): Promise<WardrobeItem> {
-    return await apiClient.patch<WardrobeItem>(`/wardrobe/items/${itemId}`, updates)
+    return await apiClient.put<WardrobeItem>(`/wardrobe/items/${itemId}/update/`, updates)
   }
 
   async deleteItem(itemId: string): Promise<void> {
-    await apiClient.delete(`/wardrobe/items/${itemId}`)
+    await apiClient.delete(`/wardrobe/items/${itemId}/delete/`)
   }
 
   async getItemById(itemId: string): Promise<WardrobeItem> {
@@ -31,7 +29,7 @@ export class WardrobeRepository implements IWardrobeRepository {
 
   async getItemsByCategory(userId: string, category: string): Promise<WardrobeItem[]> {
     return await apiClient.get<WardrobeItem[]>(
-      `/users/${userId}/wardrobe/items?category=${category}`
+      `/wardrobe/items/?user_id=${userId}&category=${category}`
     )
   }
 

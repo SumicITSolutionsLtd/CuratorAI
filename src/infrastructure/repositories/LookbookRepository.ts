@@ -26,24 +26,28 @@ export class LookbookRepository implements ILookbookRepository {
 
   async getFeaturedLookbooks(limit?: number): Promise<Lookbook[]> {
     const params = limit ? { limit } : {}
-    const response = await apiClient.get<{ results: Lookbook[] }>('/lookbooks/featured', { params })
+    const response = await apiClient.get<{ results: Lookbook[] }>('/lookbooks/featured/', {
+      params,
+    })
     return response.results
   }
 
   async getLookbookById(lookbookId: string): Promise<Lookbook> {
-    return apiClient.get<Lookbook>(`/lookbooks/${lookbookId}`)
+    return apiClient.get<Lookbook>(`/lookbooks/${lookbookId}/`)
   }
 
-  async createLookbook(lookbook: Omit<Lookbook, 'id' | 'createdAt' | 'updatedAt'>): Promise<Lookbook> {
-    return apiClient.post<Lookbook>('/lookbooks/create', lookbook)
+  async createLookbook(
+    lookbook: Omit<Lookbook, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<Lookbook> {
+    return apiClient.post<Lookbook>('/lookbooks/create/', lookbook)
   }
 
   async updateLookbook(lookbookId: string, updates: Partial<Lookbook>): Promise<Lookbook> {
-    return apiClient.put<Lookbook>(`/lookbooks/${lookbookId}/update`, updates)
+    return apiClient.put<Lookbook>(`/lookbooks/${lookbookId}/update/`, updates)
   }
 
   async deleteLookbook(lookbookId: string): Promise<void> {
-    await apiClient.delete<void>(`/lookbooks/${lookbookId}/delete`)
+    await apiClient.delete<void>(`/lookbooks/${lookbookId}/delete/`)
   }
 
   async likeLookbook(_userId: string, lookbookId: string): Promise<void> {

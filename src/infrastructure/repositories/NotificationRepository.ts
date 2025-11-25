@@ -1,5 +1,9 @@
 import { INotificationRepository } from '@domain/repositories/INotificationRepository'
-import { Notification, NotificationFilter, NotificationPreferences } from '@domain/entities/Notification'
+import {
+  Notification,
+  NotificationFilter,
+  NotificationPreferences,
+} from '@domain/entities/Notification'
 import { PaginatedResponse } from '@domain/repositories/IOutfitRepository'
 import { apiClient } from '../api/ApiClient'
 
@@ -23,25 +27,28 @@ export class NotificationRepository implements INotificationRepository {
   }
 
   async markAsRead(notificationId: string): Promise<void> {
-    await apiClient.put<void>(`/notifications/${notificationId}/read`)
+    await apiClient.patch<void>(`/notifications/${notificationId}/read/`)
   }
 
   async markAllAsRead(userId: string): Promise<void> {
-    await apiClient.put<void>(`/notifications/${userId}/read-all`)
+    await apiClient.patch<void>(`/notifications/${userId}/read-all/`)
   }
 
   async deleteNotification(notificationId: string): Promise<void> {
-    await apiClient.delete<void>(`/notifications/${notificationId}/delete`)
+    await apiClient.delete<void>(`/notifications/${notificationId}/delete/`)
   }
 
   async getPreferences(userId: string): Promise<NotificationPreferences> {
-    return apiClient.get<NotificationPreferences>(`/notifications/${userId}/preferences`)
+    return apiClient.get<NotificationPreferences>(`/notifications/${userId}/preferences/`)
   }
 
   async updatePreferences(
     userId: string,
     preferences: Partial<NotificationPreferences>
   ): Promise<NotificationPreferences> {
-    return apiClient.put<NotificationPreferences>(`/notifications/${userId}/preferences`, preferences)
+    return apiClient.patch<NotificationPreferences>(
+      `/notifications/${userId}/preferences/`,
+      preferences
+    )
   }
 }

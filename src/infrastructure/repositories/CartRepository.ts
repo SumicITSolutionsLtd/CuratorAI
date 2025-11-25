@@ -8,7 +8,18 @@ export class CartRepository implements ICartRepository {
   }
 
   async addItem(userId: string, item: Omit<CartItem, 'id'>): Promise<Cart> {
-    return apiClient.post<Cart>(`/cart/${userId}/items`, item)
+    // Transform camelCase to snake_case for API
+    const payload = {
+      outfit_item_id: parseInt(item.outfitItemId),
+      name: item.name,
+      brand: item.brand,
+      price: item.price.toString(),
+      size: item.size,
+      color: item.color,
+      quantity: item.quantity,
+      image_url: item.imageUrl,
+    }
+    return apiClient.post<Cart>(`/cart/${userId}/items/`, payload)
   }
 
   async updateItemQuantity(userId: string, itemId: string, quantity: number): Promise<Cart> {
