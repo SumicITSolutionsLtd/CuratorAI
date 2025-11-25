@@ -111,6 +111,7 @@ export const RegisterPage = () => {
         email,
         username,
         password,
+        password2: confirmPassword,
         agreeToTerms: agreedToTerms,
       })
     )

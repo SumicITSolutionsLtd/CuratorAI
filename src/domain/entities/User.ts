@@ -47,6 +47,7 @@ export interface AuthCredentials {
 export interface RegisterData extends AuthCredentials {
   fullName: string
   username: string
+  password2: string
   agreeToTerms: boolean
 }
 

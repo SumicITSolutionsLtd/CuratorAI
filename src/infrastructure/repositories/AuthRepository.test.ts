@@ -48,6 +48,7 @@ describe('AuthRepository', () => {
       const registerData: RegisterData = {
         email: 'test@example.com',
         password: 'password123',
+        password2: 'password123',
         fullName: 'Test User',
         username: 'testuser',
         agreeToTerms: true,
@@ -70,7 +71,15 @@ describe('AuthRepository', () => {
 
       const result = await authRepository.register(registerData)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/register', registerData)
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/register/', {
+        email: 'test@example.com',
+        username: 'testuser',
+        password: 'password123',
+        password2: 'password123',
+        first_name: 'Test',
+        last_name: 'User',
+        terms_and_conditions_accepted: true,
+      })
       expect(result).toEqual(mockResponse)
     })
 
@@ -78,6 +87,7 @@ describe('AuthRepository', () => {
       const registerData: RegisterData = {
         email: 'test@example.com',
         password: 'password123',
+        password2: 'password123',
         fullName: 'Test User',
         username: 'testuser',
         agreeToTerms: true,

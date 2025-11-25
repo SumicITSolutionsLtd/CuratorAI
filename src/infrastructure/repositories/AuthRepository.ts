@@ -9,7 +9,21 @@ import { apiClient } from '../api/ApiClient'
 
 export class AuthRepository implements IAuthRepository {
   async register(data: RegisterData): Promise<AuthResponse> {
-    return await apiClient.post<AuthResponse>('/auth/register/', data)
+    // Transform frontend data to match backend API expectations
+    const [firstName, ...lastNameParts] = data.fullName.trim().split(' ')
+    const lastName = lastNameParts.join(' ') || ''
+
+    const payload = {
+      email: data.email,
+      username: data.username,
+      password: data.password,
+      password2: data.password2,
+      first_name: firstName,
+      last_name: lastName,
+      terms_and_conditions_accepted: data.agreeToTerms,
+    }
+
+    return await apiClient.post<AuthResponse>('/auth/register/', payload)
   }
 
   async login(credentials: AuthCredentials): Promise<AuthResponse> {
@@ -29,7 +43,7 @@ export class AuthRepository implements IAuthRepository {
   }
 
   async refreshToken(refreshToken: string): Promise<AuthTokens> {
-    return await apiClient.post<AuthTokens>('/auth/refresh/', { refreshToken })
+    return await apiClient.post<AuthTokens>('/auth/refresh/', { refresh: refreshToken })
   }
 
   async verifyEmail(code: string): Promise<void> {
