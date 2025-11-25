@@ -8,10 +8,36 @@ import { User, RegisterData, AuthCredentials, OAuthProvider } from '@domain/enti
 import { apiClient } from '../api/ApiClient'
 
 export class AuthRepository implements IAuthRepository {
+  // Transform backend user to frontend format
+  private transformUser(backendUser: any): User {
+    return {
+      id: backendUser.id?.toString() || '',
+      email: backendUser.email || '',
+      username: backendUser.username || '',
+      fullName: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim() || 'User',
+      profile: {
+        photoUrl: backendUser.avatar || undefined,
+        bio: backendUser.bio || undefined,
+        location: backendUser.profile?.location || undefined,
+        website: backendUser.profile?.website || undefined,
+        socialLinks: backendUser.profile?.social_links || undefined,
+      },
+      preferences: backendUser.style_preference || {
+        styles: [],
+        sizes: {},
+        budget: { min: 0, max: 1000, currency: 'USD' },
+      },
+      role: backendUser.role || 'user',
+      isEmailVerified: backendUser.is_verified || false,
+      createdAt: backendUser.created_at ? new Date(backendUser.created_at) : new Date(),
+      updatedAt: backendUser.updated_at ? new Date(backendUser.updated_at) : new Date(),
+    }
+  }
+
   // Transform backend response to frontend format
   private transformAuthResponse(backendResponse: any): AuthResponse {
     return {
-      user: backendResponse.data.user,
+      user: this.transformUser(backendResponse.data.user),
       tokens: {
         accessToken: backendResponse.data.tokens.access,
         refreshToken: backendResponse.data.tokens.refresh,
@@ -79,13 +105,17 @@ export class AuthRepository implements IAuthRepository {
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      return await apiClient.get<User>('/auth/me/')
+      const response = await apiClient.get<any>('/auth/me/')
+      // Backend returns {success, message, data: User}
+      return this.transformUser(response.data)
     } catch {
       return null
     }
   }
 
   async completeRegistration(preferences: StylePreferenceCompletion): Promise<User> {
-    return await apiClient.post<User>('/auth/register/complete/', preferences)
+    const response = await apiClient.post<any>('/auth/register/complete/', preferences)
+    // Backend returns {success, message, data: User}
+    return this.transformUser(response.data)
   }
 }
