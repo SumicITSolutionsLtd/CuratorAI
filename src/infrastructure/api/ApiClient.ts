@@ -31,26 +31,46 @@ export class ApiClient {
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        if (error.response?.status === 401) {
+        const originalRequest = error.config as any
+
+        // Don't attempt token refresh for auth endpoints or if already retried
+        const isAuthEndpoint =
+          originalRequest?.url?.includes('/auth/login') ||
+          originalRequest?.url?.includes('/auth/register') ||
+          originalRequest?.url?.includes('/auth/oauth') ||
+          originalRequest?.url?.includes('/auth/refresh')
+
+        if (error.response?.status === 401 && !isAuthEndpoint && !originalRequest?._retry) {
           // Token expired, try to refresh
           const refreshToken = localStorage.getItem('curatorai_refresh_token')
           if (refreshToken) {
+            originalRequest._retry = true
             try {
-              const response = await axios.post(`${this.client.defaults.baseURL}/auth/refresh`, {
-                refreshToken,
+              const response = await axios.post(`${this.client.defaults.baseURL}/auth/refresh/`, {
+                refresh: refreshToken,
               })
-              const { accessToken } = response.data
-              localStorage.setItem('curatorai_access_token', accessToken)
+              const { access } = response.data
+              localStorage.setItem('curatorai_access_token', access)
 
               // Retry the original request
-              if (error.config) {
-                error.config.headers.Authorization = `Bearer ${accessToken}`
-                return this.client.request(error.config)
+              if (originalRequest) {
+                originalRequest.headers.Authorization = `Bearer ${access}`
+                return this.client.request(originalRequest)
               }
             } catch (refreshError) {
               // Refresh failed, logout user
               localStorage.removeItem('curatorai_access_token')
               localStorage.removeItem('curatorai_refresh_token')
+
+              // Only redirect if not already on login page
+              if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login'
+              }
+            }
+          } else {
+            // No refresh token, clear everything and redirect if needed
+            localStorage.removeItem('curatorai_access_token')
+            if (!window.location.pathname.includes('/login')) {
               window.location.href = '/login'
             }
           }
@@ -85,7 +105,11 @@ export class ApiClient {
     return response.data
   }
 
-  async upload<T>(url: string, formData: FormData, onProgress?: (progress: number) => void): Promise<T> {
+  async upload<T>(
+    url: string,
+    formData: FormData,
+    onProgress?: (progress: number) => void
+  ): Promise<T> {
     const response = await this.client.post<T>(url, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -102,5 +126,9 @@ export class ApiClient {
 }
 
 // Create singleton instances
-export const apiClient = new ApiClient(import.meta.env.VITE_API_URL || 'https://curator-ai-backend.vercel.app/api/v1')
-export const mlApiClient = new ApiClient(import.meta.env.VITE_ML_API_URL || 'https://curator-ai-backend.vercel.app/ml')
+export const apiClient = new ApiClient(
+  import.meta.env.VITE_API_URL || 'https://curator-ai-backend.vercel.app/api/v1'
+)
+export const mlApiClient = new ApiClient(
+  import.meta.env.VITE_ML_API_URL || 'https://curator-ai-backend.vercel.app/ml'
+)

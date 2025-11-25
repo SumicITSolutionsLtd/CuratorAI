@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
@@ -18,21 +18,16 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
 
-  // Show toast when error occurs
-  useEffect(() => {
-    if (error) {
-      showToast.error('Login Failed', error)
-    }
-  }, [error])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       await login({ email, password })
       showToast.success('Welcome back!', 'Login successful')
       navigate('/home')
-    } catch (err) {
-      // Error will be handled by the error state from useAuth hook
+    } catch (err: any) {
+      // Show error toast here instead of in useEffect to prevent duplicate toasts
+      const errorMessage = err?.message || error || 'Invalid email or password'
+      showToast.error('Login Failed', errorMessage)
     }
   }
 
