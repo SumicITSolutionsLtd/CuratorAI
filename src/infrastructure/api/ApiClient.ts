@@ -18,9 +18,20 @@ export class ApiClient {
     // Request interceptor to add auth token
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('curatorai_access_token')
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`
+        // Don't add token to auth endpoints
+        const isAuthEndpoint =
+          config.url?.includes('/auth/login') ||
+          config.url?.includes('/auth/register') ||
+          config.url?.includes('/auth/oauth') ||
+          config.url?.includes('/auth/refresh') ||
+          config.url?.includes('/auth/password-reset') ||
+          config.url?.includes('/auth/verify-email')
+
+        if (!isAuthEndpoint) {
+          const token = localStorage.getItem('curatorai_access_token')
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`
+          }
         }
         return config
       },
