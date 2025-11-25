@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Cart, CartItem, ShippingAddress, ShippingMethod } from '@domain/entities/Cart'
 import { CartRepository } from '@infrastructure/repositories/CartRepository'
-import { extractErrorMessage } from '@/shared/utils/errorHandling'
+import { extractAPIErrorMessage } from '@/shared/utils/apiErrorHandler'
 
 const cartRepository = new CartRepository()
 
@@ -42,7 +42,7 @@ export const fetchCart = createAsyncThunk(
     try {
       return await cartRepository.getCart(userId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch cart'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch cart'))
     }
   }
 )
@@ -53,7 +53,7 @@ export const addToCart = createAsyncThunk(
     try {
       return await cartRepository.addItem(userId, item)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to add item'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to add item'))
     }
   }
 )
@@ -67,7 +67,7 @@ export const updateQuantity = createAsyncThunk(
     try {
       return await cartRepository.updateItemQuantity(userId, itemId, quantity)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to update quantity'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to update quantity'))
     }
   }
 )
@@ -78,7 +78,7 @@ export const removeFromCart = createAsyncThunk(
     try {
       return await cartRepository.removeItem(userId, itemId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to remove item'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to remove item'))
     }
   }
 )
@@ -89,7 +89,7 @@ export const applyPromoCode = createAsyncThunk(
     try {
       return await cartRepository.applyPromoCode(userId, code)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to apply promo code'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to apply promo code'))
     }
   }
 )
@@ -100,7 +100,7 @@ export const removePromoCode = createAsyncThunk(
     try {
       return await cartRepository.removePromoCode(userId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to remove promo code'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to remove promo code'))
     }
   }
 )
@@ -111,7 +111,7 @@ export const clearCart = createAsyncThunk(
     try {
       await cartRepository.clearCart(userId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to clear cart'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to clear cart'))
     }
   }
 )
@@ -122,7 +122,7 @@ export const fetchShippingMethods = createAsyncThunk(
     try {
       return await cartRepository.getShippingMethods()
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch shipping methods'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch shipping methods'))
     }
   }
 )
@@ -136,7 +136,7 @@ export const calculateShipping = createAsyncThunk(
     try {
       return await cartRepository.calculateShipping(address, items)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to calculate shipping'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to calculate shipping'))
     }
   }
 )

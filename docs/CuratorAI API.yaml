@@ -6,19 +6,35 @@ info:
 paths:
   /api/v1/auth/delete/:
     delete:
-      operationId: v1_auth_delete_destroy
+      operationId: auth_delete_destroy
       description: Soft delete user account
       summary: Delete account
       tags:
       - Users
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '204':
-          description: No response body
+          content:
+            application/json:
+              schema: null
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
   /api/v1/auth/login/:
     post:
-      operationId: v1_auth_login_create
+      operationId: auth_login_create
       description: Authenticate user and return JWT tokens
       summary: Login user
       tags:
@@ -27,48 +43,103 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/LoginRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
   /api/v1/auth/logout/:
     post:
-      operationId: v1_auth_logout_create
+      operationId: auth_logout_create
       description: Blacklist refresh token
       summary: Logout user
       tags:
       - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogoutRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogoutRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
   /api/v1/auth/me/:
     get:
-      operationId: v1_auth_me_retrieve
+      operationId: auth_me_retrieve
       description: Retrieve authenticated user's profile
       summary: Get current user
       tags:
       - Users
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/CurrentUserResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
           description: ''
     put:
-      operationId: v1_auth_me_update
+      operationId: auth_me_update
       description: Update authenticated user's profile
       summary: Update current user
       tags:
@@ -87,18 +158,31 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserUpdate'
+                $ref: '#/components/schemas/UpdateUserResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
           description: ''
     patch:
-      operationId: v1_auth_me_partial_update
+      operationId: auth_me_partial_update
       description: Get or update current user profile.
       tags:
-      - v1
+      - auth
       requestBody:
         content:
           application/json:
@@ -112,6 +196,7 @@ paths:
               $ref: '#/components/schemas/PatchedUserUpdateRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -121,7 +206,7 @@ paths:
           description: ''
   /api/v1/auth/oauth/facebook/:
     post:
-      operationId: v1_auth_oauth_facebook_create
+      operationId: auth_oauth_facebook_create
       description: Authenticate with Facebook OAuth token. Returns JWT tokens.
       summary: Facebook OAuth login
       tags:
@@ -130,22 +215,40 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                access_token:
-                  type: string
-                  description: Facebook OAuth access token
-              required:
-              - access_token
+              $ref: '#/components/schemas/FacebookOAuthRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FacebookOAuthRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FacebookOAuthRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacebookOAuthResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
   /api/v1/auth/oauth/google/:
     post:
-      operationId: v1_auth_oauth_google_create
+      operationId: auth_oauth_google_create
       description: Authenticate with Google OAuth token. Returns JWT tokens.
       summary: Google OAuth login
       tags:
@@ -154,53 +257,117 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                access_token:
-                  type: string
-                  description: Google OAuth access token
-              required:
-              - access_token
+              $ref: '#/components/schemas/GoogleOAuthRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GoogleOAuthRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GoogleOAuthRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoogleOAuthResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
   /api/v1/auth/password-reset/confirm/:
     post:
-      operationId: v1_auth_password_reset_confirm_create
+      operationId: auth_password_reset_confirm_create
       description: Reset password using verification code
       summary: Confirm password reset
       tags:
       - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmPasswordResetRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ConfirmPasswordResetRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConfirmPasswordResetRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmPasswordResetResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
   /api/v1/auth/password-reset/request/:
     post:
-      operationId: v1_auth_password_reset_request_create
+      operationId: auth_password_reset_request_create
       description: Send password reset code to user's email
       summary: Request password reset
       tags:
       - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetRequestResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
   /api/v1/auth/refresh/:
     post:
-      operationId: v1_auth_refresh_create
+      operationId: auth_refresh_create
       description: |-
         Takes a refresh type JSON web token and returns an access type JSON web
         token if the refresh token is valid.
       tags:
-      - v1
+      - auth
       requestBody:
         content:
           application/json:
@@ -213,6 +380,8 @@ paths:
             schema:
               $ref: '#/components/schemas/TokenRefreshRequest'
         required: true
+      security:
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -222,7 +391,7 @@ paths:
           description: ''
   /api/v1/auth/register/:
     post:
-      operationId: v1_auth_register_create
+      operationId: auth_register_create
       description: Create a new user account with email and password
       summary: Register new user
       tags:
@@ -241,17 +410,24 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserRegister'
+                $ref: '#/components/schemas/RegisterResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
           description: ''
   /api/v1/auth/register/complete/:
     post:
-      operationId: v1_auth_register_complete_create
+      operationId: auth_register_complete_create
       description: Complete user registration by setting up style preferences (shop
         for, styles, dress for, budget)
       summary: Complete registration
@@ -271,16 +447,29 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/CompleteRegistrationResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
           description: ''
   /api/v1/auth/users/{id}/:
     get:
-      operationId: v1_auth_users_retrieve
+      operationId: auth_users_retrieve
       description: Retrieve user profile by user ID
       summary: Get user by ID
       parameters:
@@ -293,16 +482,29 @@ paths:
       - Users
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserDetailResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
           description: ''
   /api/v1/auth/users/{user_id}/follow/:
     post:
-      operationId: v1_auth_users_follow_create
+      operationId: auth_users_follow_create
       description: Follow another user
       summary: Follow user
       parameters:
@@ -315,11 +517,40 @@ paths:
       - Users
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowUserResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictErrorResponse'
+          description: ''
     delete:
-      operationId: v1_auth_users_follow_destroy
+      operationId: auth_users_follow_destroy
       description: Unfollow a user
       summary: Unfollow user
       parameters:
@@ -332,12 +563,35 @@ paths:
       - Users
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnfollowUserResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/auth/users/{user_id}/followers/:
     get:
-      operationId: v1_auth_users_followers_list
+      operationId: auth_users_followers_list
       description: List all users following this user
       summary: Get user followers
       parameters:
@@ -368,16 +622,29 @@ paths:
       - Users
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedUserList'
+                $ref: '#/components/schemas/PaginatedUserFollowersResponseList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
           description: ''
   /api/v1/auth/users/{user_id}/following/:
     get:
-      operationId: v1_auth_users_following_list
+      operationId: auth_users_following_list
       description: List all users that this user follows
       summary: Get user following
       parameters:
@@ -408,16 +675,29 @@ paths:
       - Users
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedUserList'
+                $ref: '#/components/schemas/PaginatedUserFollowingResponseList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
           description: ''
   /api/v1/auth/users/search/:
     get:
-      operationId: v1_auth_users_search_list
+      operationId: auth_users_search_list
       description: Search users by username or name.
       parameters:
       - name: ordering
@@ -439,9 +719,10 @@ paths:
         schema:
           type: string
       tags:
-      - v1
+      - auth
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -451,31 +732,77 @@ paths:
           description: ''
   /api/v1/auth/verify-email/confirm/:
     post:
-      operationId: v1_auth_verify_email_confirm_create
+      operationId: auth_verify_email_confirm_create
       description: Verify email using verification code
       summary: Confirm email verification
       tags:
       - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmEmailVerificationRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ConfirmEmailVerificationRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConfirmEmailVerificationRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmEmailVerificationResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
   /api/v1/auth/verify-email/request/:
     post:
-      operationId: v1_auth_verify_email_request_create
+      operationId: auth_verify_email_request_create
       description: Send verification code to user's email
       summary: Request email verification
       tags:
       - Authentication
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailVerificationRequestResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
   /api/v1/cart/{user_id}/:
     get:
-      operationId: v1_cart_retrieve
+      operationId: cart_retrieve
       description: Get user's shopping cart.
       parameters:
       - in: path
@@ -484,9 +811,10 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - cart
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -496,7 +824,7 @@ paths:
           description: ''
   /api/v1/cart/{user_id}/clear/:
     delete:
-      operationId: v1_cart_clear_destroy
+      operationId: cart_clear_destroy
       description: Remove all items from the shopping cart
       summary: Clear cart
       parameters:
@@ -509,12 +837,28 @@ paths:
       - Shopping Cart
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '204':
-          description: No response body
+          content:
+            application/json:
+              schema: null
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
   /api/v1/cart/{user_id}/items/:
     post:
-      operationId: v1_cart_items_create
+      operationId: cart_items_create
       description: Add an item to the shopping cart
       summary: Add to cart
       parameters:
@@ -539,12 +883,35 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddToCartResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
   /api/v1/cart/{user_id}/items/{item_id}/:
     patch:
-      operationId: v1_cart_items_partial_update
+      operationId: cart_items_partial_update
       description: Update quantity of a cart item
       summary: Update cart item
       parameters:
@@ -560,14 +927,54 @@ paths:
         required: true
       tags:
       - Shopping Cart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCartItemRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCartItemRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCartItemRequestRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateCartItemResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/cart/{user_id}/items/{item_id}/remove/:
     delete:
-      operationId: v1_cart_items_remove_destroy
+      operationId: cart_items_remove_destroy
       description: Remove an item from the shopping cart
       summary: Remove from cart
       parameters:
@@ -585,12 +992,35 @@ paths:
       - Shopping Cart
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveFromCartResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/cart/{user_id}/promo/:
     post:
-      operationId: v1_cart_promo_create
+      operationId: cart_promo_create
       description: Apply a promotional code to the cart
       summary: Apply promo code
       parameters:
@@ -601,14 +1031,49 @@ paths:
         required: true
       tags:
       - Shopping Cart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyPromoCodeRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApplyPromoCodeRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApplyPromoCodeRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplyPromoCodeResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
   /api/v1/cart/{user_id}/promo/remove/:
     delete:
-      operationId: v1_cart_promo_remove_destroy
+      operationId: cart_promo_remove_destroy
       description: Remove promotional code from cart
       summary: Remove promo code
       parameters:
@@ -621,24 +1086,52 @@ paths:
       - Shopping Cart
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemovePromoCodeResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
   /api/v1/cart/shipping/calculate/:
     post:
-      operationId: v1_cart_shipping_calculate_create
+      operationId: cart_shipping_calculate_create
       description: Calculate shipping costs for cart items
       summary: Calculate shipping
       tags:
       - Shopping Cart
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculateShippingResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
   /api/v1/lookbooks/:
     get:
-      operationId: v1_lookbooks_list
+      operationId: lookbooks_list
       description: List lookbooks with filtering.
       parameters:
       - name: ordering
@@ -660,9 +1153,10 @@ paths:
         schema:
           type: string
       tags:
-      - v1
+      - lookbooks
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -672,7 +1166,7 @@ paths:
           description: ''
   /api/v1/lookbooks/{lookbook_id}/comments/:
     get:
-      operationId: v1_lookbooks_comments_retrieve
+      operationId: lookbooks_comments_retrieve
       description: Get comments on a lookbook
       summary: Get lookbook comments
       parameters:
@@ -685,12 +1179,29 @@ paths:
       - Lookbooks
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookbookCommentsResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/lookbooks/{lookbook_id}/like/:
     post:
-      operationId: v1_lookbooks_like_create
+      operationId: lookbooks_like_create
       description: Toggle like on a lookbook
       summary: Like/unlike lookbook
       parameters:
@@ -703,12 +1214,29 @@ paths:
       - Lookbooks
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeLookbookResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/lookbooks/{id}/:
     get:
-      operationId: v1_lookbooks_retrieve
+      operationId: lookbooks_retrieve
       description: Get single lookbook details.
       parameters:
       - in: path
@@ -717,9 +1245,10 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - lookbooks
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -729,7 +1258,7 @@ paths:
           description: ''
   /api/v1/lookbooks/{id}/delete/:
     delete:
-      operationId: v1_lookbooks_delete_destroy
+      operationId: lookbooks_delete_destroy
       description: Delete a lookbook.
       parameters:
       - in: path
@@ -738,15 +1267,16 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - lookbooks
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '204':
           description: No response body
   /api/v1/lookbooks/{id}/update/:
     put:
-      operationId: v1_lookbooks_update_update
+      operationId: lookbooks_update_update
       description: Update a lookbook.
       parameters:
       - in: path
@@ -755,7 +1285,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - lookbooks
       requestBody:
         content:
           application/json:
@@ -770,6 +1300,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -778,7 +1309,7 @@ paths:
                 $ref: '#/components/schemas/Lookbook'
           description: ''
     patch:
-      operationId: v1_lookbooks_update_partial_update
+      operationId: lookbooks_update_partial_update
       description: Update a lookbook.
       parameters:
       - in: path
@@ -787,7 +1318,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - lookbooks
       requestBody:
         content:
           application/json:
@@ -801,6 +1332,7 @@ paths:
               $ref: '#/components/schemas/PatchedLookbookRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -810,10 +1342,10 @@ paths:
           description: ''
   /api/v1/lookbooks/create/:
     post:
-      operationId: v1_lookbooks_create_create
+      operationId: lookbooks_create_create
       description: Create a new lookbook.
       tags:
-      - v1
+      - lookbooks
       requestBody:
         content:
           application/json:
@@ -828,6 +1360,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '201':
           content:
@@ -837,7 +1370,7 @@ paths:
           description: ''
   /api/v1/lookbooks/featured/:
     get:
-      operationId: v1_lookbooks_featured_list
+      operationId: lookbooks_featured_list
       description: Get featured lookbooks.
       parameters:
       - name: ordering
@@ -859,9 +1392,10 @@ paths:
         schema:
           type: string
       tags:
-      - v1
+      - lookbooks
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -871,7 +1405,7 @@ paths:
           description: ''
   /api/v1/notifications/{notification_id}/read/:
     patch:
-      operationId: v1_notifications_read_partial_update
+      operationId: notifications_read_partial_update
       description: Mark a single notification as read
       summary: Mark notification as read
       parameters:
@@ -884,12 +1418,29 @@ paths:
       - Notifications
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarkReadResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/notifications/{id}/delete/:
     delete:
-      operationId: v1_notifications_delete_destroy
+      operationId: notifications_delete_destroy
       description: Delete a notification.
       parameters:
       - in: path
@@ -898,15 +1449,16 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - notifications
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '204':
           description: No response body
   /api/v1/notifications/{user_id}/:
     get:
-      operationId: v1_notifications_list
+      operationId: notifications_list
       description: List user notifications with filtering.
       parameters:
       - name: ordering
@@ -933,9 +1485,10 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - notifications
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -945,7 +1498,7 @@ paths:
           description: ''
   /api/v1/notifications/{user_id}/preferences/:
     get:
-      operationId: v1_notifications_preferences_retrieve
+      operationId: notifications_preferences_retrieve
       description: Get user's notification preferences
       summary: Get notification preferences
       parameters:
@@ -958,15 +1511,34 @@ paths:
       - Notifications
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NotificationPreference'
+                $ref: '#/components/schemas/NotificationPreferencesResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
           description: ''
     put:
-      operationId: v1_notifications_preferences_update
+      operationId: notifications_preferences_update
       description: Update user's notification preferences
       summary: Update notification preferences
       parameters:
@@ -990,15 +1562,40 @@ paths:
               $ref: '#/components/schemas/NotificationPreferenceRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NotificationPreference'
+                $ref: '#/components/schemas/UpdateNotificationPreferencesResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
           description: ''
     patch:
-      operationId: v1_notifications_preferences_partial_update
+      operationId: notifications_preferences_partial_update
       description: Get or update notification preferences.
       parameters:
       - in: path
@@ -1007,7 +1604,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - notifications
       requestBody:
         content:
           application/json:
@@ -1021,6 +1618,7 @@ paths:
               $ref: '#/components/schemas/PatchedNotificationPreferenceRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1030,7 +1628,7 @@ paths:
           description: ''
   /api/v1/notifications/{user_id}/read-all/:
     patch:
-      operationId: v1_notifications_read_all_partial_update
+      operationId: notifications_read_all_partial_update
       description: Mark all user notifications as read
       summary: Mark all as read
       parameters:
@@ -1043,12 +1641,29 @@ paths:
       - Notifications
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarkAllReadResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
   /api/v1/notifications/{user_id}/unread-count/:
     get:
-      operationId: v1_notifications_unread_count_retrieve
+      operationId: notifications_unread_count_retrieve
       description: Get count of unread notifications by type
       summary: Get unread count
       parameters:
@@ -1061,47 +1676,79 @@ paths:
       - Notifications
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCountResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
   /api/v1/outfits/:
     get:
-      operationId: v1_outfits_list
+      operationId: outfits_list
       description: Get paginated list of public outfits with optional filters
       summary: List outfits
       parameters:
+      - in: query
+        name: occasion
+        schema:
+          type: string
+        description: Filter by occasion
       - name: ordering
         required: false
         in: query
         description: Which field to use when ordering the results.
         schema:
           type: string
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
+      - in: query
+        name: page
         schema:
           type: integer
-      - name: search
-        required: false
-        in: query
-        description: A search term.
+        description: Page number
+      - in: query
+        name: search
         schema:
           type: string
+        description: Search in title and description
+      - in: query
+        name: season
+        schema:
+          type: string
+        description: Filter by season
       tags:
       - Outfits
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedOutfitList'
+                $ref: '#/components/schemas/PaginatedOutfitListResponseList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
           description: ''
     post:
-      operationId: v1_outfits_create
+      operationId: outfits_create
       description: Create a new outfit with items
       summary: Create outfit
       tags:
@@ -1120,16 +1767,29 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OutfitCreate'
+                $ref: '#/components/schemas/OutfitCreateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
           description: ''
   /api/v1/outfits/{id}/:
     get:
-      operationId: v1_outfits_retrieve
+      operationId: outfits_retrieve
       description: Retrieve detailed information about a specific outfit
       summary: Get outfit details
       parameters:
@@ -1142,16 +1802,29 @@ paths:
       - Outfits
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Outfit'
+                $ref: '#/components/schemas/OutfitDetailResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
           description: ''
     put:
-      operationId: v1_outfits_update
+      operationId: outfits_update
       description: Update outfit details (owner only)
       summary: Update outfit
       parameters:
@@ -1166,25 +1839,50 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OutfitRequest'
+              $ref: '#/components/schemas/OutfitCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/OutfitRequest'
+              $ref: '#/components/schemas/OutfitCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OutfitRequest'
+              $ref: '#/components/schemas/OutfitCreateRequest'
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Outfit'
+                $ref: '#/components/schemas/OutfitUpdateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
           description: ''
     patch:
-      operationId: v1_outfits_partial_update
+      operationId: outfits_partial_update
       description: Retrieve, update, or delete an outfit.
       parameters:
       - in: path
@@ -1193,7 +1891,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - outfits
       requestBody:
         content:
           application/json:
@@ -1207,6 +1905,7 @@ paths:
               $ref: '#/components/schemas/PatchedOutfitRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1215,7 +1914,7 @@ paths:
                 $ref: '#/components/schemas/Outfit'
           description: ''
     delete:
-      operationId: v1_outfits_destroy
+      operationId: outfits_destroy
       description: Delete an outfit (owner only)
       summary: Delete outfit
       parameters:
@@ -1228,12 +1927,34 @@ paths:
       - Outfits
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '204':
-          description: No response body
+          content:
+            application/json:
+              schema: null
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/outfits/{id}/like/:
     post:
-      operationId: v1_outfits_like_create
+      operationId: outfits_like_create
       description: Like or unlike an outfit
       summary: Like outfit
       parameters:
@@ -1246,12 +1967,29 @@ paths:
       - Outfits
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitLikeResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/outfits/{id}/save/:
     post:
-      operationId: v1_outfits_save_create
+      operationId: outfits_save_create
       description: Save or unsave an outfit to user's collection
       summary: Save outfit
       parameters:
@@ -1262,14 +2000,42 @@ paths:
         required: true
       tags:
       - Outfits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveOutfitRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaveOutfitRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaveOutfitRequestRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitSaveResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/outfits/user/{user_id}/:
     get:
-      operationId: v1_outfits_user_list
+      operationId: outfits_user_list
       description: List all public outfits by a specific user
       summary: Get user outfits
       parameters:
@@ -1279,12 +2045,11 @@ paths:
         description: Which field to use when ordering the results.
         schema:
           type: string
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
+      - in: query
+        name: page
         schema:
           type: integer
+        description: Page number
       - name: search
         required: false
         in: query
@@ -1300,17 +2065,30 @@ paths:
       - Outfits
       security:
       - jwtAuth: []
+      - BearerAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedOutfitList'
+                $ref: '#/components/schemas/PaginatedUserOutfitsResponseList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
           description: ''
   /api/v1/social/comments/{comment_id}/like/:
     post:
-      operationId: v1_social_comments_like_create
+      operationId: social_comments_like_create
       description: Toggle like on a comment
       summary: Like/unlike comment
       parameters:
@@ -1323,12 +2101,29 @@ paths:
       - Social Feed
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeCommentResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/social/comments/{id}/delete/:
     delete:
-      operationId: v1_social_comments_delete_destroy
+      operationId: social_comments_delete_destroy
       description: Delete a comment.
       parameters:
       - in: path
@@ -1337,15 +2132,16 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - social
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '204':
           description: No response body
   /api/v1/social/comments/{id}/update/:
     put:
-      operationId: v1_social_comments_update_update
+      operationId: social_comments_update_update
       description: Update a comment.
       parameters:
       - in: path
@@ -1354,7 +2150,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - social
       requestBody:
         content:
           application/json:
@@ -1369,6 +2165,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1377,7 +2174,7 @@ paths:
                 $ref: '#/components/schemas/Comment'
           description: ''
     patch:
-      operationId: v1_social_comments_update_partial_update
+      operationId: social_comments_update_partial_update
       description: Update a comment.
       parameters:
       - in: path
@@ -1386,7 +2183,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - social
       requestBody:
         content:
           application/json:
@@ -1400,6 +2197,7 @@ paths:
               $ref: '#/components/schemas/PatchedCommentRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1409,7 +2207,7 @@ paths:
           description: ''
   /api/v1/social/feed/:
     get:
-      operationId: v1_social_feed_list
+      operationId: social_feed_list
       description: Get social feed (posts from following users or discover feed).
       parameters:
       - name: ordering
@@ -1431,9 +2229,10 @@ paths:
         schema:
           type: string
       tags:
-      - v1
+      - social
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1443,10 +2242,10 @@ paths:
           description: ''
   /api/v1/social/posts/:
     post:
-      operationId: v1_social_posts_create
+      operationId: social_posts_create
       description: Create a new post.
       tags:
-      - v1
+      - social
       requestBody:
         content:
           application/json:
@@ -1461,6 +2260,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '201':
           content:
@@ -1470,7 +2270,7 @@ paths:
           description: ''
   /api/v1/social/posts/{id}/:
     get:
-      operationId: v1_social_posts_retrieve
+      operationId: social_posts_retrieve
       description: Get single post details.
       parameters:
       - in: path
@@ -1479,9 +2279,10 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - social
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1491,7 +2292,7 @@ paths:
           description: ''
   /api/v1/social/posts/{id}/delete/:
     delete:
-      operationId: v1_social_posts_delete_destroy
+      operationId: social_posts_delete_destroy
       description: Delete a post (soft delete).
       parameters:
       - in: path
@@ -1500,15 +2301,16 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - social
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '204':
           description: No response body
   /api/v1/social/posts/{id}/update/:
     put:
-      operationId: v1_social_posts_update_update
+      operationId: social_posts_update_update
       description: Update a post.
       parameters:
       - in: path
@@ -1517,7 +2319,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - social
       requestBody:
         content:
           application/json:
@@ -1532,6 +2334,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1540,7 +2343,7 @@ paths:
                 $ref: '#/components/schemas/PostCreate'
           description: ''
     patch:
-      operationId: v1_social_posts_update_partial_update
+      operationId: social_posts_update_partial_update
       description: Update a post.
       parameters:
       - in: path
@@ -1549,7 +2352,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - social
       requestBody:
         content:
           application/json:
@@ -1563,6 +2366,7 @@ paths:
               $ref: '#/components/schemas/PatchedPostCreateRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1572,7 +2376,7 @@ paths:
           description: ''
   /api/v1/social/posts/{post_id}/comments/:
     get:
-      operationId: v1_social_posts_comments_list
+      operationId: social_posts_comments_list
       description: Get post comments.
       parameters:
       - name: ordering
@@ -1599,9 +2403,10 @@ paths:
         schema:
           type: string
       tags:
-      - v1
+      - social
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1611,7 +2416,7 @@ paths:
           description: ''
   /api/v1/social/posts/{post_id}/comments/add/:
     post:
-      operationId: v1_social_posts_comments_add_create
+      operationId: social_posts_comments_add_create
       description: Add a comment to a post
       summary: Add comment
       parameters:
@@ -1622,14 +2427,49 @@ paths:
         required: true
       tags:
       - Social Feed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCommentRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddCommentRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddCommentRequestRequest'
+        required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddCommentResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/social/posts/{post_id}/like/:
     post:
-      operationId: v1_social_posts_like_create
+      operationId: social_posts_like_create
       description: Toggle like on a post
       summary: Like/unlike post
       parameters:
@@ -1642,12 +2482,29 @@ paths:
       - Social Feed
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikePostResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/social/posts/{post_id}/save/:
     post:
-      operationId: v1_social_posts_save_create
+      operationId: social_posts_save_create
       description: Toggle save on a post
       summary: Save/unsave post
       parameters:
@@ -1660,12 +2517,29 @@ paths:
       - Social Feed
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavePostResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/social/posts/{post_id}/share/:
     post:
-      operationId: v1_social_posts_share_create
+      operationId: social_posts_share_create
       description: Share a post (increment share count)
       summary: Share post
       parameters:
@@ -1678,12 +2552,29 @@ paths:
       - Social Feed
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharePostResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/wardrobe/items/:
     get:
-      operationId: v1_wardrobe_items_list
+      operationId: wardrobe_items_list
       description: List wardrobe items with filtering.
       parameters:
       - name: ordering
@@ -1705,9 +2596,10 @@ paths:
         schema:
           type: string
       tags:
-      - v1
+      - wardrobe
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1717,7 +2609,7 @@ paths:
           description: ''
   /api/v1/wardrobe/items/{item_id}/images/:
     post:
-      operationId: v1_wardrobe_items_images_create
+      operationId: wardrobe_items_images_create
       description: Upload an image for a wardrobe item
       summary: Upload item image
       parameters:
@@ -1728,14 +2620,51 @@ paths:
         required: true
       tags:
       - Wardrobe
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                is_primary:
+                  type: boolean
+                  default: false
+              required:
+              - image
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WardrobeItemImageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/wardrobe/items/{item_id}/worn/:
     post:
-      operationId: v1_wardrobe_items_worn_create
+      operationId: wardrobe_items_worn_create
       description: Log that an item was worn on a specific date
       summary: Mark item as worn
       parameters:
@@ -1746,14 +2675,48 @@ paths:
         required: true
       tags:
       - Wardrobe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkWornRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MarkWornRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MarkWornRequestRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarkWornResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
   /api/v1/wardrobe/items/{id}/:
     get:
-      operationId: v1_wardrobe_items_retrieve
+      operationId: wardrobe_items_retrieve
       description: Get single wardrobe item details.
       parameters:
       - in: path
@@ -1762,9 +2725,10 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - wardrobe
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1774,7 +2738,7 @@ paths:
           description: ''
   /api/v1/wardrobe/items/{id}/delete/:
     delete:
-      operationId: v1_wardrobe_items_delete_destroy
+      operationId: wardrobe_items_delete_destroy
       description: Delete wardrobe item (soft delete).
       parameters:
       - in: path
@@ -1783,15 +2747,16 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - wardrobe
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '204':
           description: No response body
   /api/v1/wardrobe/items/{id}/update/:
     put:
-      operationId: v1_wardrobe_items_update_update
+      operationId: wardrobe_items_update_update
       description: Update wardrobe item.
       parameters:
       - in: path
@@ -1800,7 +2765,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - wardrobe
       requestBody:
         content:
           application/json:
@@ -1815,6 +2780,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1823,7 +2789,7 @@ paths:
                 $ref: '#/components/schemas/WardrobeItem'
           description: ''
     patch:
-      operationId: v1_wardrobe_items_update_partial_update
+      operationId: wardrobe_items_update_partial_update
       description: Update wardrobe item.
       parameters:
       - in: path
@@ -1832,7 +2798,7 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - wardrobe
       requestBody:
         content:
           application/json:
@@ -1846,6 +2812,7 @@ paths:
               $ref: '#/components/schemas/PatchedWardrobeItemRequest'
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1855,10 +2822,10 @@ paths:
           description: ''
   /api/v1/wardrobe/items/create/:
     post:
-      operationId: v1_wardrobe_items_create_create
+      operationId: wardrobe_items_create_create
       description: Add item to wardrobe.
       tags:
-      - v1
+      - wardrobe
       requestBody:
         content:
           application/json:
@@ -1873,6 +2840,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '201':
           content:
@@ -1882,7 +2850,7 @@ paths:
           description: ''
   /api/v1/wardrobe/users/{user_id}/wardrobe/:
     get:
-      operationId: v1_wardrobe_users_wardrobe_retrieve
+      operationId: wardrobe_users_wardrobe_retrieve
       description: Get user's wardrobe.
       parameters:
       - in: path
@@ -1891,9 +2859,10 @@ paths:
           type: integer
         required: true
       tags:
-      - v1
+      - wardrobe
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
           content:
@@ -1903,7 +2872,7 @@ paths:
           description: ''
   /api/v1/wardrobe/users/{user_id}/wardrobe/stats/:
     get:
-      operationId: v1_wardrobe_users_wardrobe_stats_retrieve
+      operationId: wardrobe_users_wardrobe_stats_retrieve
       description: Get detailed statistics about user's wardrobe
       summary: Get wardrobe statistics
       parameters:
@@ -1916,9 +2885,32 @@ paths:
       - Wardrobe
       security:
       - jwtAuth: []
+      - BearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WardrobeStatisticsResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+          description: ''
 components:
   schemas:
     Actor:
@@ -1942,6 +2934,28 @@ components:
       - avatar
       - id
       - username
+    AddCommentRequestRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+        parent_comment_id:
+          type: integer
+          nullable: true
+      required:
+      - content
+    AddCommentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Comment'
+      required:
+      - data
+      - success
     AddToCartRequest:
       type: object
       description: Serializer for adding items to cart.
@@ -1985,6 +2999,48 @@ components:
       - name
       - outfit_item_id
       - price
+    AddToCartResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/ShoppingCart'
+      required:
+      - data
+      - success
+    ApplyPromoCodeRequestRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+      required:
+      - code
+    ApplyPromoCodeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        promo_code:
+          type: string
+        discount:
+          type: number
+          format: double
+        discount_percentage:
+          type: number
+          format: double
+        data:
+          $ref: '#/components/schemas/ShoppingCart'
+      required:
+      - data
+      - discount
+      - discount_percentage
+      - message
+      - promo_code
+      - success
     BlankEnum:
       enum:
       - ''
@@ -2014,6 +3070,18 @@ components:
         * `Mid-range ($$)` - Mid-range ($$)
         * `Premium ($$$)` - Premium ($$$)
         * `Luxury ($$$$)` - Luxury ($$$$)
+    CalculateShippingResponse:
+      type: object
+      properties:
+        shipping_methods:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShippingMethod'
+        recommended:
+          type: string
+      required:
+      - recommended
+      - shipping_methods
     CartItem:
       type: object
       description: Serializer for cart items.
@@ -2152,6 +3220,114 @@ components:
           minimum: -2147483648
       required:
       - content
+    CompleteRegistrationData:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - user
+    CompleteRegistrationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CompleteRegistrationData'
+      required:
+      - data
+      - message
+      - success
+    ConfirmEmailVerificationRequestRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 6
+      required:
+      - code
+    ConfirmEmailVerificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserVerificationStatus'
+      required:
+      - message
+      - success
+      - user
+    ConfirmPasswordResetRequestRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+          maxLength: 6
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - code
+      - email
+      - new_password
+    ConfirmPasswordResetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+      - message
+      - success
+    ConflictErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          default: RESOURCE_CONFLICT
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+      - message
+      - timestamp
+    ConflictErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          $ref: '#/components/schemas/ConflictErrorDetail'
+      required:
+      - error
+    CurrentUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/User'
+      required:
+      - data
+      - message
+      - success
     DressForEnum:
       enum:
       - Work
@@ -2182,6 +3358,88 @@ components:
         * `daily` - Daily
         * `weekly` - Weekly
         * `never` - Never
+    EmailVerificationRequestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        code_expires_in:
+          type: integer
+      required:
+      - code_expires_in
+      - message
+      - success
+    FacebookOAuthData:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/Tokens'
+        is_new_user:
+          type: boolean
+      required:
+      - is_new_user
+      - tokens
+      - user
+    FacebookOAuthRequestRequest:
+      type: object
+      properties:
+        access_token:
+          type: string
+          minLength: 1
+          description: Facebook OAuth access token
+      required:
+      - access_token
+    FacebookOAuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FacebookOAuthData'
+      required:
+      - data
+      - message
+      - success
+    FollowUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+      - message
+      - success
+    ForbiddenErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          default: PERMISSION_DENIED
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+      - message
+      - timestamp
+    ForbiddenErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          $ref: '#/components/schemas/ForbiddenErrorDetail'
+      required:
+      - error
     GenderEnum:
       enum:
       - M
@@ -2194,6 +3452,41 @@ components:
         * `F` - Female
         * `O` - Other
         * `N` - Prefer not to say
+    GoogleOAuthData:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/Tokens'
+        is_new_user:
+          type: boolean
+      required:
+      - is_new_user
+      - tokens
+      - user
+    GoogleOAuthRequestRequest:
+      type: object
+      properties:
+        access_token:
+          type: string
+          minLength: 1
+          description: Google OAuth access token
+      required:
+      - access_token
+    GoogleOAuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GoogleOAuthData'
+      required:
+      - data
+      - message
+      - success
     ItemTypeEnum:
       enum:
       - top
@@ -2214,6 +3507,109 @@ components:
         * `accessory` - Accessory
         * `bag` - Bag
         * `jewelry` - Jewelry
+    LikeCommentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        is_liked:
+          type: boolean
+        likes_count:
+          type: integer
+      required:
+      - is_liked
+      - likes_count
+      - message
+      - success
+    LikeLookbookResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        is_liked:
+          type: boolean
+        likes_count:
+          type: integer
+      required:
+      - is_liked
+      - likes_count
+      - message
+      - success
+    LikePostResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        is_liked:
+          type: boolean
+        likes_count:
+          type: integer
+      required:
+      - is_liked
+      - likes_count
+      - message
+      - success
+    LoginData:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/Tokens'
+      required:
+      - tokens
+      - user
+    LoginRequestRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LoginData'
+      required:
+      - data
+      - message
+      - success
+    LogoutRequestRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+      required:
+      - refresh_token
+    LogoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+      - message
+      - success
     Lookbook:
       type: object
       description: Serializer for lookbooks.
@@ -2296,6 +3692,17 @@ components:
       - total_value
       - updated_at
       - views_count
+    LookbookCommentsResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        results:
+          type: array
+          items: {}
+      required:
+      - count
+      - results
     LookbookCreate:
       type: object
       description: Serializer for creating lookbooks.
@@ -2424,6 +3831,80 @@ components:
       - occasion
       - season
       - title
+    MarkAllReadResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - message
+    MarkReadResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        is_read:
+          type: boolean
+        read_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - is_read
+      - read_at
+    MarkWornRequestRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        outfit_id:
+          type: integer
+          nullable: true
+    MarkWornResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        times_worn:
+          type: integer
+        last_worn:
+          type: string
+          format: date
+      required:
+      - last_worn
+      - message
+      - success
+      - times_worn
+    NotFoundErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          default: RESOURCE_NOT_FOUND
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+      - message
+      - timestamp
+    NotFoundErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          $ref: '#/components/schemas/NotFoundErrorDetail'
+      required:
+      - error
     Notification:
       type: object
       description: Serializer for notifications.
@@ -2562,6 +4043,19 @@ components:
           type: string
           format: time
           nullable: true
+    NotificationPreferencesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/NotificationPreference'
+      required:
+      - data
+      - message
+      - success
     Occasion40aEnum:
       enum:
       - casual
@@ -2686,37 +4180,6 @@ components:
       - user
       - user_username
       - views_count
-    OutfitCreate:
-      type: object
-      description: Serializer for creating outfits with items.
-      properties:
-        title:
-          type: string
-          maxLength: 255
-        description:
-          type: string
-        main_image:
-          type: string
-          format: uri
-          nullable: true
-        occasion:
-          $ref: '#/components/schemas/Occasion7fbEnum'
-        season:
-          $ref: '#/components/schemas/SeasonEnum'
-        style_tags:
-          description: List of style tags (e.g., minimalist, boho, streetwear)
-        color_palette:
-          description: Primary colors in the outfit
-        is_public:
-          type: boolean
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/OutfitItem'
-      required:
-      - occasion
-      - season
-      - title
     OutfitCreateRequest:
       type: object
       description: Serializer for creating outfits with items.
@@ -2749,6 +4212,32 @@ components:
       - occasion
       - season
       - title
+    OutfitCreateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Outfit'
+      required:
+      - data
+      - message
+      - success
+    OutfitDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Outfit'
+      required:
+      - data
+      - message
+      - success
     OutfitItem:
       type: object
       description: Serializer for OutfitItem model.
@@ -2861,6 +4350,41 @@ components:
       required:
       - item_type
       - name
+    OutfitLikeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        likes_count:
+          type: integer
+      required:
+      - likes_count
+      - message
+      - success
+    OutfitListResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Outfit'
+      required:
+      - count
+      - next
+      - previous
+      - results
     OutfitRequest:
       type: object
       description: Serializer for Outfit model.
@@ -2893,6 +4417,32 @@ components:
       - occasion
       - season
       - title
+    OutfitSaveResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        saves_count:
+          type: integer
+      required:
+      - message
+      - saves_count
+      - success
+    OutfitUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Outfit'
+      required:
+      - data
+      - message
+      - success
     PaginatedCommentList:
       type: object
       required:
@@ -2962,7 +4512,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Notification'
-    PaginatedOutfitList:
+    PaginatedOutfitListResponseList:
       type: object
       required:
       - count
@@ -2984,7 +4534,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Outfit'
+            $ref: '#/components/schemas/OutfitListResponse'
     PaginatedPostList:
       type: object
       required:
@@ -3008,6 +4558,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Post'
+    PaginatedUserFollowersResponseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserFollowersResponse'
+    PaginatedUserFollowingResponseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserFollowingResponse'
     PaginatedUserList:
       type: object
       required:
@@ -3031,6 +4627,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
+    PaginatedUserOutfitsResponseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserOutfitsResponse'
     PaginatedWardrobeItemList:
       type: object
       required:
@@ -3054,6 +4673,28 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WardrobeItem'
+    PasswordResetRequestRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+      required:
+      - email
+    PasswordResetRequestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        code_expires_in:
+          type: integer
+      required:
+      - code_expires_in
+      - message
+      - success
     PatchedCommentRequest:
       type: object
       description: Serializer for comments.
@@ -3191,6 +4832,12 @@ components:
           nullable: true
         privacy:
           $ref: '#/components/schemas/PrivacyEnum'
+    PatchedUpdateCartItemRequestRequest:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
     PatchedUserUpdateRequest:
       type: object
       description: Serializer for updating user information.
@@ -3432,6 +5079,76 @@ components:
         * `public` - Public
         * `friends` - Friends Only
         * `private` - Private
+    RegisterData:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/Tokens'
+      required:
+      - tokens
+      - user
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/RegisterData'
+      required:
+      - data
+      - message
+      - success
+    RemoveFromCartResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ShoppingCart'
+      required:
+      - data
+      - message
+      - success
+    RemovePromoCodeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ShoppingCart'
+      required:
+      - data
+      - message
+      - success
+    SaveOutfitRequestRequest:
+      type: object
+      properties:
+        collection_name:
+          type: string
+    SavePostResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        is_saved:
+          type: boolean
+        saves_count:
+          type: integer
+      required:
+      - is_saved
+      - message
+      - saves_count
+      - success
     SeasonEnum:
       enum:
       - spring
@@ -3446,6 +5163,43 @@ components:
         * `fall` - Fall
         * `winter` - Winter
         * `all` - All Season
+    SharePostResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        shares_count:
+          type: integer
+        share_url:
+          type: string
+          format: uri
+      required:
+      - message
+      - share_url
+      - shares_count
+      - success
+    ShippingMethod:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        currency:
+          type: string
+        estimated_days:
+          type: string
+      required:
+      - currency
+      - estimated_days
+      - id
+      - name
+      - price
     ShopForEnum:
       enum:
       - Men
@@ -3662,6 +5416,16 @@ components:
           minLength: 1
       required:
       - refresh
+    Tokens:
+      type: object
+      properties:
+        refresh:
+          type: string
+        access:
+          type: string
+      required:
+      - access
+      - refresh
     TypeEnum:
       enum:
       - like
@@ -3680,6 +5444,87 @@ components:
         * `sale` - Sale
         * `system` - System
         * `promo` - Promo
+    UnauthorizedErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          default: AUTH_INVALID_TOKEN
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+      - message
+      - timestamp
+    UnauthorizedErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          $ref: '#/components/schemas/UnauthorizedErrorDetail'
+      required:
+      - error
+    UnfollowUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+      - message
+      - success
+    UnreadCountResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        by_type:
+          type: object
+          additionalProperties: {}
+      required:
+      - by_type
+      - count
+    UpdateCartItemResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/ShoppingCart'
+      required:
+      - data
+      - success
+    UpdateNotificationPreferencesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/NotificationPreference'
+      required:
+      - data
+      - message
+      - success
+    UpdateUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/User'
+      required:
+      - data
+      - message
+      - success
     User:
       type: object
       description: Serializer for User model.
@@ -3808,6 +5653,71 @@ components:
           type: boolean
       required:
       - username
+    UserDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/User'
+      required:
+      - data
+      - message
+      - success
+    UserFollowersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+      required:
+      - data
+      - message
+      - success
+    UserFollowingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+      required:
+      - data
+      - message
+      - success
+    UserOutfitsResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Outfit'
+      required:
+      - count
+      - next
+      - previous
+      - results
     UserProfile:
       type: object
       description: Serializer for UserProfile model.
@@ -3913,29 +5823,6 @@ components:
         dress_size:
           type: string
           maxLength: 10
-    UserRegister:
-      type: object
-      description: Serializer for user registration.
-      properties:
-        email:
-          type: string
-          format: email
-          maxLength: 254
-        username:
-          type: string
-          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-            only.
-          pattern: ^[\w.@+-]+$
-          maxLength: 150
-        first_name:
-          type: string
-          maxLength: 150
-        last_name:
-          type: string
-          maxLength: 150
-      required:
-      - email
-      - username
     UserRegisterRequest:
       type: object
       description: Serializer for user registration.
@@ -4034,6 +5921,44 @@ components:
           $ref: '#/components/schemas/StylePreferenceRequest'
       required:
       - username
+    UserVerificationStatus:
+      type: object
+      properties:
+        is_verified:
+          type: boolean
+      required:
+      - is_verified
+    ValidationErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          default: VALIDATION_ERROR
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+      - details
+      - message
+      - timestamp
+    ValidationErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          $ref: '#/components/schemas/ValidationErrorDetail'
+      required:
+      - error
     Wardrobe:
       type: object
       description: Serializer for wardrobe.
@@ -4313,6 +6238,16 @@ components:
           type: boolean
       required:
       - image
+    WardrobeItemImageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/WardrobeItemImage'
+      required:
+      - data
+      - success
     WardrobeItemRequest:
       type: object
       description: Serializer for wardrobe items.
@@ -4364,7 +6299,52 @@ components:
       - category
       - color
       - name
+    WardrobeStatisticsResponse:
+      type: object
+      properties:
+        total_items:
+          type: integer
+        total_value:
+          type: number
+          format: double
+        currency:
+          type: string
+        categories:
+          type: object
+          additionalProperties: {}
+        colors:
+          type: object
+          additionalProperties: {}
+        brands:
+          type: object
+          additionalProperties: {}
+        most_worn_items:
+          type: array
+          items: {}
+        least_worn_items:
+          type: array
+          items: {}
+        average_wear_per_item:
+          type: number
+          format: double
+        items_never_worn:
+          type: integer
+      required:
+      - average_wear_per_item
+      - brands
+      - categories
+      - colors
+      - currency
+      - items_never_worn
+      - least_worn_items
+      - most_worn_items
+      - total_items
+      - total_value
   securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
     jwtAuth:
       type: http
       scheme: bearer

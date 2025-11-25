@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { SocialPost, Comment, FeedFilter } from '@domain/entities/Social'
 import { SocialRepository } from '@infrastructure/repositories/SocialRepository'
 import { CreatePostData } from '@domain/repositories/ISocialRepository'
-import { extractErrorMessage } from '@/shared/utils/errorHandling'
+import { extractAPIErrorMessage } from '@/shared/utils/apiErrorHandler'
 
 const socialRepository = new SocialRepository()
 
@@ -36,7 +36,7 @@ export const fetchFeed = createAsyncThunk(
     try {
       return await socialRepository.getFeed(filter)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch feed'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch feed'))
     }
   }
 )
@@ -49,7 +49,7 @@ export const fetchPostById = createAsyncThunk(
     try {
       return await socialRepository.getPostById(postId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch post'))
     }
   }
 )
@@ -60,7 +60,7 @@ export const createPost = createAsyncThunk(
     try {
       return await socialRepository.createPost(data)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to create post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to create post'))
     }
   }
 )
@@ -74,7 +74,7 @@ export const updatePost = createAsyncThunk(
     try {
       return await socialRepository.updatePost(postId, updates)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to update post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to update post'))
     }
   }
 )
@@ -86,7 +86,7 @@ export const deletePost = createAsyncThunk(
       await socialRepository.deletePost(postId)
       return postId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to delete post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to delete post'))
     }
   }
 )
@@ -100,7 +100,7 @@ export const likePost = createAsyncThunk(
       await socialRepository.likePost(userId, postId)
       return postId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to like post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to like post'))
     }
   }
 )
@@ -112,7 +112,7 @@ export const unlikePost = createAsyncThunk(
       await socialRepository.unlikePost(userId, postId)
       return postId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to unlike post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to unlike post'))
     }
   }
 )
@@ -124,7 +124,7 @@ export const savePost = createAsyncThunk(
       await socialRepository.savePost(userId, postId)
       return postId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to save post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to save post'))
     }
   }
 )
@@ -136,7 +136,7 @@ export const unsavePost = createAsyncThunk(
       await socialRepository.unsavePost(userId, postId)
       return postId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to unsave post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to unsave post'))
     }
   }
 )
@@ -148,7 +148,7 @@ export const sharePost = createAsyncThunk(
       await socialRepository.sharePost(userId, postId)
       return postId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to share post'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to share post'))
     }
   }
 )
@@ -164,7 +164,7 @@ export const fetchComments = createAsyncThunk(
     try {
       return await socialRepository.getComments(postId, page, limit)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch comments'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch comments'))
     }
   }
 )
@@ -183,7 +183,7 @@ export const addComment = createAsyncThunk(
     try {
       return await socialRepository.addComment(userId, postId, content, parentId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to add comment'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to add comment'))
     }
   }
 )
@@ -194,7 +194,7 @@ export const updateComment = createAsyncThunk(
     try {
       return await socialRepository.updateComment(commentId, content)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to update comment'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to update comment'))
     }
   }
 )
@@ -206,7 +206,7 @@ export const deleteComment = createAsyncThunk(
       await socialRepository.deleteComment(commentId)
       return commentId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to delete comment'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to delete comment'))
     }
   }
 )
@@ -218,7 +218,7 @@ export const likeComment = createAsyncThunk(
       await socialRepository.likeComment(userId, commentId)
       return commentId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to like comment'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to like comment'))
     }
   }
 )
@@ -230,7 +230,7 @@ export const unlikeComment = createAsyncThunk(
       await socialRepository.unlikeComment(userId, commentId)
       return commentId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to unlike comment'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to unlike comment'))
     }
   }
 )

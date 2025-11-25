@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { User, UserPreferences, UserProfile } from '@domain/entities/User'
 import { UserRepository } from '@infrastructure/repositories/UserRepository'
-import { extractErrorMessage } from '@/shared/utils/errorHandling'
+import { extractAPIErrorMessage } from '@/shared/utils/apiErrorHandler'
 
 const userRepository = new UserRepository()
 
@@ -32,7 +32,7 @@ export const getUserById = createAsyncThunk(
     try {
       return await userRepository.getUserById(userId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to get user'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to get user'))
     }
   }
 )
@@ -46,7 +46,7 @@ export const updateProfile = createAsyncThunk(
     try {
       return await userRepository.updateProfile(userId, profile)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to update profile'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to update profile'))
     }
   }
 )
@@ -60,7 +60,7 @@ export const updatePreferences = createAsyncThunk(
     try {
       return await userRepository.updatePreferences(userId, preferences)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to update preferences'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to update preferences'))
     }
   }
 )
@@ -71,7 +71,7 @@ export const searchUsers = createAsyncThunk(
     try {
       return await userRepository.searchUsers(query, limit)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to search users'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to search users'))
     }
   }
 )
@@ -86,7 +86,7 @@ export const followUser = createAsyncThunk(
       await userRepository.followUser(userId, targetUserId)
       return targetUserId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to follow user'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to follow user'))
     }
   }
 )
@@ -101,7 +101,7 @@ export const unfollowUser = createAsyncThunk(
       await userRepository.unfollowUser(userId, targetUserId)
       return targetUserId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to unfollow user'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to unfollow user'))
     }
   }
 )
@@ -112,7 +112,7 @@ export const getFollowers = createAsyncThunk(
     try {
       return await userRepository.getFollowers(userId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to get followers'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to get followers'))
     }
   }
 )
@@ -123,7 +123,7 @@ export const getFollowing = createAsyncThunk(
     try {
       return await userRepository.getFollowing(userId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to get following'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to get following'))
     }
   }
 )
@@ -134,7 +134,7 @@ export const deleteUser = createAsyncThunk(
     try {
       await userRepository.deleteUser(userId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to delete user'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to delete user'))
     }
   }
 )

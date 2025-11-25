@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { User, AuthCredentials, RegisterData, OAuthProvider } from '@domain/entities/User'
 import { AuthRepository } from '@infrastructure/repositories/AuthRepository'
 import { StylePreferenceCompletion } from '@domain/repositories/IAuthRepository'
-import { extractErrorMessage } from '@/shared/utils/errorHandling'
+import { extractAPIErrorMessage } from '@/shared/utils/apiErrorHandler'
 
 const authRepository = new AuthRepository()
 
@@ -33,7 +33,7 @@ export const login = createAsyncThunk(
       localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
       return response.user
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Login failed'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Login failed'))
     }
   }
 )
@@ -47,7 +47,7 @@ export const loginWithOAuth = createAsyncThunk(
       localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
       return response.user
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'OAuth login failed'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'OAuth login failed'))
     }
   }
 )
@@ -61,7 +61,7 @@ export const register = createAsyncThunk(
       localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
       return response.user
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Registration failed'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Registration failed'))
     }
   }
 )
@@ -84,7 +84,7 @@ export const requestPasswordReset = createAsyncThunk(
       await authRepository.requestPasswordReset(email)
       return true
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to send reset email'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to send reset email'))
     }
   }
 )
@@ -96,7 +96,7 @@ export const resetPassword = createAsyncThunk(
       await authRepository.resetPassword(token, newPassword)
       return true
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to reset password'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to reset password'))
     }
   }
 )
@@ -108,7 +108,7 @@ export const verifyEmail = createAsyncThunk(
       await authRepository.verifyEmail(code)
       return true
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Email verification failed'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Email verification failed'))
     }
   }
 )
@@ -120,7 +120,7 @@ export const requestEmailVerification = createAsyncThunk(
       await authRepository.requestEmailVerification()
       return true
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to send verification email'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to send verification email'))
     }
   }
 )
@@ -131,7 +131,7 @@ export const completeRegistration = createAsyncThunk(
     try {
       return await authRepository.completeRegistration(preferences)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to complete registration'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to complete registration'))
     }
   }
 )

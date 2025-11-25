@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Lookbook, LookbookFilter } from '@domain/entities/Lookbook'
 import { LookbookRepository } from '@infrastructure/repositories/LookbookRepository'
-import { extractErrorMessage } from '@/shared/utils/errorHandling'
+import { extractAPIErrorMessage } from '@/shared/utils/apiErrorHandler'
 
 const lookbookRepository = new LookbookRepository()
 
@@ -37,7 +37,7 @@ export const fetchLookbooks = createAsyncThunk(
     try {
       return await lookbookRepository.getLookbooks(filter, page, limit)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch lookbooks'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch lookbooks'))
     }
   }
 )
@@ -48,7 +48,7 @@ export const fetchFeaturedLookbooks = createAsyncThunk(
     try {
       return await lookbookRepository.getFeaturedLookbooks(limit)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch featured lookbooks'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch featured lookbooks'))
     }
   }
 )
@@ -59,7 +59,7 @@ export const fetchLookbookById = createAsyncThunk(
     try {
       return await lookbookRepository.getLookbookById(lookbookId)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch lookbook'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch lookbook'))
     }
   }
 )
@@ -70,7 +70,7 @@ export const createLookbook = createAsyncThunk(
     try {
       return await lookbookRepository.createLookbook(lookbook)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to create lookbook'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to create lookbook'))
     }
   }
 )
@@ -84,7 +84,7 @@ export const updateLookbook = createAsyncThunk(
     try {
       return await lookbookRepository.updateLookbook(lookbookId, updates)
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to update lookbook'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to update lookbook'))
     }
   }
 )
@@ -96,7 +96,7 @@ export const deleteLookbook = createAsyncThunk(
       await lookbookRepository.deleteLookbook(lookbookId)
       return lookbookId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to delete lookbook'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to delete lookbook'))
     }
   }
 )
@@ -108,7 +108,7 @@ export const likeLookbook = createAsyncThunk(
       await lookbookRepository.likeLookbook(userId, lookbookId)
       return lookbookId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to like lookbook'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to like lookbook'))
     }
   }
 )
@@ -120,7 +120,7 @@ export const unlikeLookbook = createAsyncThunk(
       await lookbookRepository.unlikeLookbook(userId, lookbookId)
       return lookbookId
     } catch (error: any) {
-      return rejectWithValue(extractErrorMessage(error, 'Failed to unlike lookbook'))
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to unlike lookbook'))
     }
   }
 )
