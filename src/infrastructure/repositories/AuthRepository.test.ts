@@ -1,11 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AuthRepository } from './AuthRepository'
 import { apiClient } from '../api/ApiClient'
-import type {
-  AuthResponse,
-  AuthTokens,
-  StylePreferenceCompletion,
-} from '@domain/repositories/IAuthRepository'
+import type { StylePreferenceCompletion } from '@domain/repositories/IAuthRepository'
 import type { RegisterData, AuthCredentials, OAuthProvider, User } from '@domain/entities/User'
 
 // Mock the ApiClient
@@ -54,20 +50,23 @@ describe('AuthRepository', () => {
         agreeToTerms: true,
       }
 
-      const mockResponse: AuthResponse = {
-        user: {
-          id: 1,
-          email: 'test@example.com',
-          username: 'testuser',
-        } as unknown as User,
-        tokens: {
-          accessToken: 'access_token',
-          refreshToken: 'refresh_token',
-          expiresIn: 3600,
+      const mockBackendResponse = {
+        success: true,
+        message: 'Success',
+        data: {
+          user: {
+            id: 1,
+            email: 'test@example.com',
+            username: 'testuser',
+          } as unknown as User,
+          tokens: {
+            access: 'access_token',
+            refresh: 'refresh_token',
+          },
         },
       }
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse)
+      vi.mocked(apiClient.post).mockResolvedValue(mockBackendResponse)
 
       const result = await authRepository.register(registerData)
 
@@ -80,7 +79,7 @@ describe('AuthRepository', () => {
         last_name: 'User',
         terms_and_conditions_accepted: true,
       })
-      expect(result).toEqual(mockResponse)
+      expect(result.user).toEqual(mockBackendResponse.data.user)
     })
 
     it('should throw error when registration fails', async () => {
@@ -107,25 +106,28 @@ describe('AuthRepository', () => {
         password: 'password123',
       }
 
-      const mockResponse: AuthResponse = {
-        user: {
-          id: 1,
-          email: 'test@example.com',
-          username: 'testuser',
-        } as unknown as User,
-        tokens: {
-          accessToken: 'access_token',
-          refreshToken: 'refresh_token',
-          expiresIn: 3600,
+      const mockBackendResponse = {
+        success: true,
+        message: 'Success',
+        data: {
+          user: {
+            id: 1,
+            email: 'test@example.com',
+            username: 'testuser',
+          } as unknown as User,
+          tokens: {
+            access: 'access_token',
+            refresh: 'refresh_token',
+          },
         },
       }
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse)
+      vi.mocked(apiClient.post).mockResolvedValue(mockBackendResponse)
 
       const result = await authRepository.login(credentials)
 
       expect(apiClient.post).toHaveBeenCalledWith('/auth/login/', credentials)
-      expect(result).toEqual(mockResponse)
+      expect(result.user).toEqual(mockBackendResponse.data.user)
     })
 
     it('should throw error when login fails', async () => {
@@ -148,27 +150,30 @@ describe('AuthRepository', () => {
         token: 'google_oauth_token',
       }
 
-      const mockResponse: AuthResponse = {
-        user: {
-          id: 1,
-          email: 'test@example.com',
-          username: 'testuser',
-        } as unknown as User,
-        tokens: {
-          accessToken: 'access_token',
-          refreshToken: 'refresh_token',
-          expiresIn: 3600,
+      const mockBackendResponse = {
+        success: true,
+        message: 'Success',
+        data: {
+          user: {
+            id: 1,
+            email: 'test@example.com',
+            username: 'testuser',
+          } as unknown as User,
+          tokens: {
+            access: 'access_token',
+            refresh: 'refresh_token',
+          },
         },
       }
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse)
+      vi.mocked(apiClient.post).mockResolvedValue(mockBackendResponse)
 
       const result = await authRepository.loginWithOAuth(oauthProvider)
 
       expect(apiClient.post).toHaveBeenCalledWith('/auth/oauth/google/', {
         access_token: 'google_oauth_token',
       })
-      expect(result).toEqual(mockResponse)
+      expect(result.user).toEqual(mockBackendResponse.data.user)
     })
 
     it('should successfully login with Facebook OAuth', async () => {
@@ -177,27 +182,30 @@ describe('AuthRepository', () => {
         token: 'facebook_oauth_token',
       }
 
-      const mockResponse: AuthResponse = {
-        user: {
-          id: 1,
-          email: 'test@example.com',
-          username: 'testuser',
-        } as unknown as User,
-        tokens: {
-          accessToken: 'access_token',
-          refreshToken: 'refresh_token',
-          expiresIn: 3600,
+      const mockBackendResponse = {
+        success: true,
+        message: 'Success',
+        data: {
+          user: {
+            id: 1,
+            email: 'test@example.com',
+            username: 'testuser',
+          } as unknown as User,
+          tokens: {
+            access: 'access_token',
+            refresh: 'refresh_token',
+          },
         },
       }
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse)
+      vi.mocked(apiClient.post).mockResolvedValue(mockBackendResponse)
 
       const result = await authRepository.loginWithOAuth(oauthProvider)
 
       expect(apiClient.post).toHaveBeenCalledWith('/auth/oauth/facebook/', {
         access_token: 'facebook_oauth_token',
       })
-      expect(result).toEqual(mockResponse)
+      expect(result.user).toEqual(mockBackendResponse.data.user)
     })
   })
 
@@ -219,18 +227,17 @@ describe('AuthRepository', () => {
   describe('refreshToken', () => {
     it('should successfully refresh access token', async () => {
       const refreshToken = 'refresh_token'
-      const mockTokens: AuthTokens = {
-        accessToken: 'new_access_token',
-        refreshToken: 'new_refresh_token',
-        expiresIn: 3600,
+      const mockBackendTokens = {
+        access: 'new_access_token',
+        refresh: 'new_refresh_token',
       }
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockTokens)
+      vi.mocked(apiClient.post).mockResolvedValue(mockBackendTokens)
 
       const result = await authRepository.refreshToken(refreshToken)
 
       expect(apiClient.post).toHaveBeenCalledWith('/auth/refresh/', { refresh: refreshToken })
-      expect(result).toEqual(mockTokens)
+      expect(result).toEqual(mockBackendTokens)
     })
 
     it('should throw error when token refresh fails', async () => {

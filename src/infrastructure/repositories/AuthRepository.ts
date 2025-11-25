@@ -8,6 +8,18 @@ import { User, RegisterData, AuthCredentials, OAuthProvider } from '@domain/enti
 import { apiClient } from '../api/ApiClient'
 
 export class AuthRepository implements IAuthRepository {
+  // Transform backend response to frontend format
+  private transformAuthResponse(backendResponse: any): AuthResponse {
+    return {
+      user: backendResponse.data.user,
+      tokens: {
+        accessToken: backendResponse.data.tokens.access,
+        refreshToken: backendResponse.data.tokens.refresh,
+        expiresIn: 3600, // Default value, backend doesn't return this
+      },
+    }
+  }
+
   async register(data: RegisterData): Promise<AuthResponse> {
     // Transform frontend data to match backend API expectations
     const [firstName, ...lastNameParts] = data.fullName.trim().split(' ')
@@ -23,17 +35,20 @@ export class AuthRepository implements IAuthRepository {
       terms_and_conditions_accepted: data.agreeToTerms,
     }
 
-    return await apiClient.post<AuthResponse>('/auth/register/', payload)
+    const response = await apiClient.post<any>('/auth/register/', payload)
+    return this.transformAuthResponse(response)
   }
 
   async login(credentials: AuthCredentials): Promise<AuthResponse> {
-    return await apiClient.post<AuthResponse>('/auth/login/', credentials)
+    const response = await apiClient.post<any>('/auth/login/', credentials)
+    return this.transformAuthResponse(response)
   }
 
   async loginWithOAuth(provider: OAuthProvider): Promise<AuthResponse> {
-    return await apiClient.post<AuthResponse>(`/auth/oauth/${provider.provider}/`, {
+    const response = await apiClient.post<any>(`/auth/oauth/${provider.provider}/`, {
       access_token: provider.token,
     })
+    return this.transformAuthResponse(response)
   }
 
   async logout(): Promise<void> {
