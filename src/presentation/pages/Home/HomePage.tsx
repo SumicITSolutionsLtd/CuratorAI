@@ -44,18 +44,20 @@ export const HomePage = () => {
   }, [dispatch, user?.id])
 
   // Transform recommendations to match OutfitGrid expected format
-  const outfits = recommendations.map((rec) => ({
-    id: rec.id,
-    name: rec.outfit.name,
-    imageUrl: rec.outfit.items[0]?.imageUrl || '',
-    items: rec.outfit.items.map((item) => ({
-      name: item.name,
-      price: item.price,
-    })),
-    totalPrice: rec.outfit.totalPrice,
-    matchScore: rec.matchPercentage,
-    tags: rec.outfit.tags,
-    likes: rec.likes || 0,
+  // Note: Backend returns Outfit[] directly, not OutfitRecommendation[]
+  const outfits = recommendations.map((outfit: any) => ({
+    id: outfit.id,
+    name: outfit.title || outfit.name || 'Untitled Outfit',
+    imageUrl: outfit.main_image || outfit.thumbnail || '',
+    items:
+      outfit.items?.map((item: any) => ({
+        name: item.name || item.title,
+        price: item.price || 0,
+      })) || [],
+    totalPrice: outfit.items?.reduce((sum: number, item: any) => sum + (item.price || 0), 0) || 0,
+    matchScore: outfit.match_score || 85, // Default score since backend doesn't provide
+    tags: outfit.tags || [],
+    likes: outfit.likes_count || 0,
   }))
 
   return (
@@ -138,9 +140,7 @@ export const HomePage = () => {
                 <p className="text-sm text-muted-foreground">High Match Rate</p>
                 <p className="text-2xl font-bold">
                   {outfits.length > 0
-                    ? Math.round(
-                        outfits.reduce((sum, o) => sum + o.matchScore, 0) / outfits.length
-                      )
+                    ? Math.round(outfits.reduce((sum, o) => sum + o.matchScore, 0) / outfits.length)
                     : 95}
                   %
                 </p>
