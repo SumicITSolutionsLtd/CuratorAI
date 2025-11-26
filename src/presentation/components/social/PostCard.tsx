@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   Heart,
@@ -28,9 +28,25 @@ import { ReportDialog } from './ReportDialog'
 import { UserPreviewCard } from './UserPreviewCard'
 import { cn } from '@/shared/utils/cn'
 import { showToast } from '@/shared/utils/toast'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import {
+  likePost,
+  unlikePost,
+  savePost,
+  unsavePost,
+  optimisticLikePost,
+  optimisticUnlikePost,
+  optimisticSavePost,
+  optimisticUnsavePost,
+  rollbackLikePost,
+  rollbackUnlikePost,
+  rollbackSavePost,
+  rollbackUnsavePost,
+} from '@/shared/store/slices/socialSlice'
 
 interface PostCardProps {
   id: string
+  authorId: string
   author: {
     name: string
     username: string
@@ -48,42 +64,99 @@ interface PostCardProps {
 
 export const PostCard = ({
   id,
+  authorId,
   author,
   images,
   caption,
   tags,
-  likes: initialLikes,
+  likes,
   comments,
   timeAgo,
-  isLiked: initialLiked = false,
-  isSaved: initialSaved = false,
+  isLiked = false,
+  isSaved = false,
 }: PostCardProps) => {
   const navigate = useNavigate()
-  const [isLiked, setIsLiked] = useState(initialLiked)
-  const [isSaved, setIsSaved] = useState(initialSaved)
-  const [likes, setLikes] = useState(initialLikes)
+  const dispatch = useAppDispatch()
   const [shareSheetOpen, setShareSheetOpen] = useState(false)
   const [commentDrawerOpen, setCommentDrawerOpen] = useState(false)
   const [reportDialogOpen, setReportDialogOpen] = useState(false)
+  const [isLikeLoading, setIsLikeLoading] = useState(false)
+  const [isSaveLoading, setIsSaveLoading] = useState(false)
 
-  const handleLike = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsLiked(!isLiked)
-    setLikes(isLiked ? likes - 1 : likes + 1)
-    if (!isLiked) {
-      showToast.like('Liked!')
-    }
-  }
+  const handleLike = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (isLikeLoading) return
 
-  const handleSave = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsSaved(!isSaved)
-    if (!isSaved) {
-      showToast.success('Saved to collection!')
-    } else {
-      showToast.success('Removed from collection')
-    }
-  }
+      setIsLikeLoading(true)
+
+      if (!isLiked) {
+        // Optimistically update
+        dispatch(optimisticLikePost(id))
+        showToast.like('Liked!')
+
+        try {
+          await dispatch(likePost({ postId: id })).unwrap()
+        } catch {
+          // Rollback on error
+          dispatch(rollbackLikePost(id))
+          showToast.error('Failed to like post')
+        }
+      } else {
+        // Optimistically update
+        dispatch(optimisticUnlikePost(id))
+
+        try {
+          await dispatch(unlikePost({ postId: id })).unwrap()
+        } catch {
+          // Rollback on error
+          dispatch(rollbackUnlikePost(id))
+          showToast.error('Failed to unlike post')
+        }
+      }
+
+      setIsLikeLoading(false)
+    },
+    [dispatch, id, isLiked, isLikeLoading]
+  )
+
+  const handleSave = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (isSaveLoading) return
+
+      setIsSaveLoading(true)
+
+      if (!isSaved) {
+        // Optimistically update
+        dispatch(optimisticSavePost(id))
+        showToast.success('Saved to collection!')
+
+        try {
+          await dispatch(savePost({ postId: id })).unwrap()
+        } catch {
+          // Rollback on error
+          dispatch(rollbackSavePost(id))
+          showToast.error('Failed to save post')
+        }
+      } else {
+        // Optimistically update
+        dispatch(optimisticUnsavePost(id))
+        showToast.success('Removed from collection')
+
+        try {
+          await dispatch(unsavePost({ postId: id })).unwrap()
+        } catch {
+          // Rollback on error
+          dispatch(rollbackUnsavePost(id))
+          showToast.error('Failed to unsave post')
+        }
+      }
+
+      setIsSaveLoading(false)
+    },
+    [dispatch, id, isSaved, isSaveLoading]
+  )
 
   const handleCopyLink = (e?: React.MouseEvent) => {
     e?.stopPropagation()
@@ -121,13 +194,10 @@ export const PostCard = ({
           {/* Header */}
           <div className="flex items-center justify-between p-4">
             <UserPreviewCard
-              userId={id}
+              userId={authorId}
               username={author.username}
               fullName={author.name}
               photoUrl={author.avatar}
-              followers={Math.floor(Math.random() * 10000) + 100}
-              following={Math.floor(Math.random() * 1000) + 50}
-              posts={Math.floor(Math.random() * 100) + 10}
             >
               <div className="flex cursor-pointer items-center gap-3">
                 <Avatar className="h-10 w-10 ring-2 ring-brand-crimson/20">
@@ -219,6 +289,7 @@ export const PostCard = ({
                     variant="ghost"
                     size="sm"
                     onClick={handleLike}
+                    disabled={isLikeLoading}
                     className={cn(isLiked && 'text-brand-crimson')}
                   >
                     <Heart className={cn('h-5 w-5', isLiked && 'fill-current')} />
@@ -243,6 +314,7 @@ export const PostCard = ({
                   variant="ghost"
                   size="sm"
                   onClick={handleSave}
+                  disabled={isSaveLoading}
                   className={cn(isSaved && 'text-brand-blue')}
                 >
                   <Bookmark className={cn('h-5 w-5', isSaved && 'fill-current')} />

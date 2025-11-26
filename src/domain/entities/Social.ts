@@ -10,7 +10,7 @@ export interface SocialPost {
   images: string[]
   caption: string
   tags: string[]
-  taggedItems?: string[] // wardrobe item IDs
+  taggedItems?: string[]
   outfitId?: string
   likes: number
   comments: number
@@ -51,6 +51,6 @@ export interface Follow {
 
 export interface FeedFilter {
   type: 'following' | 'forYou' | 'trending'
+  page?: number
   limit?: number
-  offset?: number
 }

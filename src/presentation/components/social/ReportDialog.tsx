@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 import { showToast } from '../../../shared/utils/toast'
+import { SocialRepository } from '@/infrastructure/repositories/SocialRepository'
 
 interface ReportDialogProps {
   open: boolean
@@ -48,7 +49,9 @@ const reportReasons = [
   },
 ]
 
-export const ReportDialog = ({ open, onOpenChange, postAuthor }: ReportDialogProps) => {
+const socialRepository = new SocialRepository()
+
+export const ReportDialog = ({ open, onOpenChange, postId, postAuthor }: ReportDialogProps) => {
   const [selectedReason, setSelectedReason] = useState<string>('')
   const [additionalInfo, setAdditionalInfo] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -61,15 +64,17 @@ export const ReportDialog = ({ open, onOpenChange, postAuthor }: ReportDialogPro
 
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    showToast.success('Report submitted. Thank you for keeping our community safe!')
-
-    setIsSubmitting(false)
-    setSelectedReason('')
-    setAdditionalInfo('')
-    onOpenChange(false)
+    try {
+      await socialRepository.reportPost(postId, selectedReason, additionalInfo.trim() || undefined)
+      showToast.success('Report submitted. Thank you for keeping our community safe!')
+      setSelectedReason('')
+      setAdditionalInfo('')
+      onOpenChange(false)
+    } catch {
+      showToast.error('Failed to submit report. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleClose = () => {

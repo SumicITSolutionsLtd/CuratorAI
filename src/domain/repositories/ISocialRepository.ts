@@ -28,4 +28,5 @@ export interface ISocialRepository {
   deleteComment(commentId: string): Promise<void>
   likeComment(userId: string, commentId: string): Promise<void>
   unlikeComment(userId: string, commentId: string): Promise<void>
+  reportPost(postId: string, reason: string, additionalInfo?: string): Promise<void>
 }

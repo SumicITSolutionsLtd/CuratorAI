@@ -111,7 +111,7 @@ export const ProfilePage = () => {
   // Fetch user's posts on mount
   useEffect(() => {
     if (user?.id) {
-      dispatch(fetchFeed({ type: 'forYou', limit: 20, offset: 0 }))
+      dispatch(fetchFeed({ type: 'forYou', limit: 20, page: 1 }))
     }
   }, [dispatch, user?.id])
 

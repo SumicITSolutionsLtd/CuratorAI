@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
-import { getCurrentUser } from '@/shared/store/slices/authSlice'
+import { getCurrentUser, syncSessionState } from '@/shared/store/slices/authSlice'
+import { sessionManager } from '@/infrastructure/services/SessionManager'
 
 interface SessionRecoveryProps {
   children: React.ReactNode
@@ -9,36 +10,51 @@ interface SessionRecoveryProps {
 
 export const SessionRecovery: React.FC<SessionRecoveryProps> = ({ children }) => {
   const dispatch = useAppDispatch()
-  const { isAuthenticated } = useAppSelector((state) => state.auth)
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth)
   const [isChecking, setIsChecking] = useState(true)
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const token = localStorage.getItem('curatorai_access_token')
+  const checkSession = useCallback(async () => {
+    // Check if session manager has valid tokens
+    const hasValidSession = sessionManager.isAuthenticated()
 
-      // Only check session if we have a token but are not authenticated
-      if (token && !isAuthenticated) {
-        try {
-          await dispatch(getCurrentUser()).unwrap()
-        } catch (error) {
-          // Session invalid, clear tokens
-          localStorage.removeItem('curatorai_access_token')
-          localStorage.removeItem('curatorai_refresh_token')
-        }
+    if (hasValidSession && !user) {
+      try {
+        await dispatch(getCurrentUser()).unwrap()
+      } catch {
+        // Session invalid - tokens already cleared by authSlice
       }
-
-      setIsChecking(false)
+    } else if (!hasValidSession && isAuthenticated) {
+      // Sync Redux state with SessionManager
+      dispatch(syncSessionState())
     }
 
+    setIsChecking(false)
+  }, [dispatch, isAuthenticated, user])
+
+  useEffect(() => {
     checkSession()
-  }, [dispatch, isAuthenticated])
+
+    // Listen for session changes from SessionManager
+    const unsubscribeExpired = sessionManager.on('session-expired', () => {
+      dispatch(syncSessionState())
+    })
+
+    const unsubscribeChanged = sessionManager.on('session-changed', () => {
+      dispatch(syncSessionState())
+    })
+
+    return () => {
+      unsubscribeExpired()
+      unsubscribeChanged()
+    }
+  }, [checkSession, dispatch])
 
   // Show loading screen while checking session
   if (isChecking) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent mb-4"></div>
+          <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>

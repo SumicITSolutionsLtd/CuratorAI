@@ -1,7 +1,23 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios'
+import { sessionManager } from '../services/SessionManager'
+
+// Auth endpoints that don't require token
+const AUTH_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/oauth',
+  '/auth/refresh',
+  '/auth/password-reset',
+  '/auth/verify-email',
+]
 
 export class ApiClient {
   private client: AxiosInstance
+  private isRefreshing = false
+  private failedQueue: Array<{
+    resolve: (token: string) => void
+    reject: (error: Error) => void
+  }> = []
 
   constructor(baseURL: string) {
     this.client = axios.create({
@@ -14,21 +30,28 @@ export class ApiClient {
     this.setupInterceptors()
   }
 
+  private isAuthEndpoint(url?: string): boolean {
+    if (!url) return false
+    return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint))
+  }
+
+  private processQueue(error: Error | null, token: string | null = null): void {
+    this.failedQueue.forEach((promise) => {
+      if (error) {
+        promise.reject(error)
+      } else if (token) {
+        promise.resolve(token)
+      }
+    })
+    this.failedQueue = []
+  }
+
   private setupInterceptors(): void {
-    // Request interceptor to add auth token
+    // Request interceptor - add auth token
     this.client.interceptors.request.use(
       (config) => {
-        // Don't add token to auth endpoints
-        const isAuthEndpoint =
-          config.url?.includes('/auth/login') ||
-          config.url?.includes('/auth/register') ||
-          config.url?.includes('/auth/oauth') ||
-          config.url?.includes('/auth/refresh') ||
-          config.url?.includes('/auth/password-reset') ||
-          config.url?.includes('/auth/verify-email')
-
-        if (!isAuthEndpoint) {
-          const token = localStorage.getItem('curatorai_access_token')
+        if (!this.isAuthEndpoint(config.url)) {
+          const token = sessionManager.getAccessToken()
           if (token) {
             config.headers.Authorization = `Bearer ${token}`
           }
@@ -38,54 +61,65 @@ export class ApiClient {
       (error) => Promise.reject(error)
     )
 
-    // Response interceptor to handle errors
+    // Response interceptor - handle 401 errors
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        const originalRequest = error.config as any
+        const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean }
 
-        // Don't attempt token refresh for auth endpoints or if already retried
-        const isAuthEndpoint =
-          originalRequest?.url?.includes('/auth/login') ||
-          originalRequest?.url?.includes('/auth/register') ||
-          originalRequest?.url?.includes('/auth/oauth') ||
-          originalRequest?.url?.includes('/auth/refresh')
+        // Don't retry auth endpoints or already retried requests
+        if (
+          !originalRequest ||
+          this.isAuthEndpoint(originalRequest.url) ||
+          originalRequest._retry
+        ) {
+          return Promise.reject(error)
+        }
 
-        if (error.response?.status === 401 && !isAuthEndpoint && !originalRequest?._retry) {
-          // Token expired, try to refresh
-          const refreshToken = localStorage.getItem('curatorai_refresh_token')
-          if (refreshToken) {
-            originalRequest._retry = true
-            try {
-              const response = await axios.post(`${this.client.defaults.baseURL}/auth/refresh/`, {
-                refresh: refreshToken,
-              })
-              const { access } = response.data
-              localStorage.setItem('curatorai_access_token', access)
-
-              // Retry the original request
-              if (originalRequest) {
-                originalRequest.headers.Authorization = `Bearer ${access}`
+        // Handle 401 Unauthorized
+        if (error.response?.status === 401) {
+          if (this.isRefreshing) {
+            // Queue the request while refresh is in progress
+            return new Promise<string>((resolve, reject) => {
+              this.failedQueue.push({ resolve, reject })
+            })
+              .then((token) => {
+                if (originalRequest.headers) {
+                  originalRequest.headers.Authorization = `Bearer ${token}`
+                }
                 return this.client.request(originalRequest)
-              }
-            } catch (refreshError) {
-              // Refresh failed, logout user
-              localStorage.removeItem('curatorai_access_token')
-              localStorage.removeItem('curatorai_refresh_token')
+              })
+              .catch((err) => Promise.reject(err))
+          }
 
-              // Only redirect if not already on login page
-              if (!window.location.pathname.includes('/login')) {
-                window.location.href = '/login'
-              }
+          originalRequest._retry = true
+          this.isRefreshing = true
+
+          try {
+            // Use SessionManager to refresh token (includes circuit breaker)
+            const newToken = await sessionManager.refreshAccessToken()
+
+            this.processQueue(null, newToken)
+
+            // Retry original request with new token
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`
             }
-          } else {
-            // No refresh token, clear everything and redirect if needed
-            localStorage.removeItem('curatorai_access_token')
+            return this.client.request(originalRequest)
+          } catch (refreshError) {
+            this.processQueue(refreshError as Error, null)
+
+            // Session expired - redirect to login
             if (!window.location.pathname.includes('/login')) {
               window.location.href = '/login'
             }
+
+            return Promise.reject(refreshError)
+          } finally {
+            this.isRefreshing = false
           }
         }
+
         return Promise.reject(error)
       }
     )

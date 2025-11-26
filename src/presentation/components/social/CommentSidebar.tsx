@@ -1,24 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Heart, Send, X, Reply, CornerDownRight } from 'lucide-react'
+import { Heart, Send, X, Reply, CornerDownRight, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Button } from '../ui/button'
+import { Skeleton } from '../ui/skeleton'
 import { showToast } from '../../../shared/utils/toast'
 import { cn } from '../../../shared/utils/cn'
-
-interface Comment {
-  id: string
-  author: {
-    name: string
-    username: string
-    avatar: string
-  }
-  text: string
-  likes: number
-  isLiked: boolean
-  timestamp: string
-  replies?: Comment[]
-}
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import {
+  fetchComments,
+  addComment,
+  likeComment,
+  unlikeComment,
+} from '@/shared/store/slices/socialSlice'
+import { Comment } from '@domain/entities/Social'
 
 interface CommentSidebarProps {
   open: boolean
@@ -27,130 +23,60 @@ interface CommentSidebarProps {
   commentCount: number
 }
 
-// Mock comments data with nested replies
-const mockComments: Comment[] = [
-  {
-    id: '1',
-    author: {
-      name: 'Sarah Johnson',
-      username: 'sarah_j',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    },
-    text: 'Love this look! Where did you get those shoes? 😍',
-    likes: 24,
-    isLiked: false,
-    timestamp: '2h ago',
-    replies: [
-      {
-        id: '1-1',
-        author: {
-          name: 'Emily Rodriguez',
-          username: 'emily_style',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
-        },
-        text: 'Thanks! Got them from Zara last week!',
-        likes: 8,
-        isLiked: false,
-        timestamp: '1h ago',
-      },
-    ],
-  },
-  {
-    id: '2',
-    author: {
-      name: 'Mike Chen',
-      username: 'mike_style',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike',
-    },
-    text: 'This is giving me major inspo for my wardrobe refresh!',
-    likes: 12,
-    isLiked: false,
-    timestamp: '3h ago',
-  },
-  {
-    id: '3',
-    author: {
-      name: 'Emma Wilson',
-      username: 'emma_w',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
-    },
-    text: 'Absolutely stunning! The color combination is perfect 🔥',
-    likes: 45,
-    isLiked: true,
-    timestamp: '5h ago',
-    replies: [
-      {
-        id: '3-1',
-        author: {
-          name: 'Alex Chen',
-          username: 'alex_fashion',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
-        },
-        text: 'I agree! The colors are so well coordinated',
-        likes: 5,
-        isLiked: false,
-        timestamp: '4h ago',
-      },
-      {
-        id: '3-2',
-        author: {
-          name: 'Sophia Martinez',
-          username: 'sophia_chic',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia',
-        },
-        text: 'Color theory at its finest!',
-        likes: 3,
-        isLiked: false,
-        timestamp: '4h ago',
-      },
-    ],
-  },
-  {
-    id: '4',
-    author: {
-      name: 'James Lee',
-      username: 'james_fashion',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
-    },
-    text: 'Need this outfit in my life ASAP! 💯',
-    likes: 8,
-    isLiked: false,
-    timestamp: '6h ago',
-  },
-]
+// Format timestamp helper
+const formatTimestamp = (date: Date): string => {
+  const now = new Date()
+  const diffMs = now.getTime() - new Date(date).getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return `${Math.floor(diffDays / 7)}w ago`
+}
 
 const CommentItem = ({
   comment,
   onLike,
   onReply,
   isReply = false,
+  isLiking = false,
 }: {
   comment: Comment
-  onLike: (id: string) => void
+  onLike: (commentId: string, isLiked: boolean) => void
   onReply: (comment: Comment) => void
   isReply?: boolean
+  isLiking?: boolean
 }) => {
   return (
     <div className={cn('flex gap-3', isReply && 'ml-12 mt-3')}>
       {isReply && <CornerDownRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />}
       <Avatar className="h-8 w-8 shrink-0">
-        <AvatarImage src={comment.author.avatar} />
-        <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
+        <AvatarImage src={comment.author.photoUrl} />
+        <AvatarFallback>{comment.author.fullName?.[0] || 'U'}</AvatarFallback>
       </Avatar>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <span className="text-sm font-medium text-foreground">{comment.author.name}</span>
-          <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
+          <span className="text-sm font-medium text-foreground">{comment.author.fullName}</span>
+          <span className="text-xs text-muted-foreground">
+            {formatTimestamp(comment.createdAt)}
+          </span>
         </div>
 
-        <p className="mt-1 break-words text-sm leading-relaxed text-foreground">{comment.text}</p>
+        <p className="mt-1 break-words text-sm leading-relaxed text-foreground">
+          {comment.content}
+        </p>
 
         <div className="mt-2 flex items-center gap-4">
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => onLike(comment.id)}
-            className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-brand-crimson"
+            onClick={() => onLike(comment.id, comment.isLiked)}
+            disabled={isLiking}
+            className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-brand-crimson disabled:opacity-50"
           >
             <Heart
               className={cn('h-4 w-4', comment.isLiked && 'fill-brand-crimson text-brand-crimson')}
@@ -175,111 +101,86 @@ const CommentItem = ({
   )
 }
 
+const CommentSkeleton = () => (
+  <div className="flex gap-3">
+    <Skeleton className="h-8 w-8 rounded-full" />
+    <div className="flex-1 space-y-2">
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-3/4" />
+    </div>
+  </div>
+)
+
 export const CommentSidebar = ({
   open,
   onOpenChange,
+  postId,
   commentCount: initialCommentCount,
 }: CommentSidebarProps) => {
-  const [comments, setComments] = useState<Comment[]>(mockComments)
+  const dispatch = useAppDispatch()
+  const { comments, isLoading, isPostActionLoading } = useAppSelector((state) => state.social)
+  const { user } = useAppSelector((state) => state.auth)
+
   const [newComment, setNewComment] = useState('')
   const [commentCount, setCommentCount] = useState(initialCommentCount)
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null)
+  const [likingCommentId, setLikingCommentId] = useState<string | null>(null)
 
-  // Reset when opened
+  // Fetch comments when opened
   useEffect(() => {
-    if (open) {
-      setComments(mockComments)
+    if (open && postId) {
+      dispatch(fetchComments({ postId, page: 1, limit: 50 }))
       setCommentCount(initialCommentCount)
       setReplyingTo(null)
+      setNewComment('')
     }
-  }, [open, initialCommentCount])
+  }, [open, postId, dispatch, initialCommentCount])
 
-  const handleLikeComment = (commentId: string) => {
-    const updateComments = (comments: Comment[]): Comment[] => {
-      return comments.map((comment) => {
-        if (comment.id === commentId) {
-          return {
-            ...comment,
-            isLiked: !comment.isLiked,
-            likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-          }
+  const handleLikeComment = useCallback(
+    async (commentId: string, isLiked: boolean) => {
+      if (likingCommentId) return
+
+      setLikingCommentId(commentId)
+      try {
+        if (isLiked) {
+          await dispatch(unlikeComment({ commentId })).unwrap()
+        } else {
+          await dispatch(likeComment({ commentId })).unwrap()
         }
-        if (comment.replies) {
-          return {
-            ...comment,
-            replies: updateComments(comment.replies),
-          }
-        }
-        return comment
-      })
-    }
-    setComments(updateComments(comments))
-  }
+      } catch {
+        showToast.error('Failed to update like')
+      } finally {
+        setLikingCommentId(null)
+      }
+    },
+    [dispatch, likingCommentId]
+  )
 
   const handleReply = (comment: Comment) => {
     setReplyingTo(comment)
     setNewComment(`@${comment.author.username} `)
   }
 
-  const handleSubmitComment = () => {
-    if (!newComment.trim()) return
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || !postId) return
 
-    if (replyingTo) {
-      // Add reply
-      const reply: Comment = {
-        id: `${replyingTo.id}-${Date.now()}`,
-        author: {
-          name: 'You',
-          username: 'your_username',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=You',
-        },
-        text: newComment,
-        likes: 0,
-        isLiked: false,
-        timestamp: 'Just now',
-      }
-
-      const addReply = (comments: Comment[]): Comment[] => {
-        return comments.map((comment) => {
-          if (comment.id === replyingTo.id) {
-            return {
-              ...comment,
-              replies: [...(comment.replies || []), reply],
-            }
-          }
-          if (comment.replies) {
-            return {
-              ...comment,
-              replies: addReply(comment.replies),
-            }
-          }
-          return comment
+    try {
+      await dispatch(
+        addComment({
+          postId,
+          content: newComment,
+          parentId: replyingTo?.id,
         })
-      }
+      ).unwrap()
 
-      setComments(addReply(comments))
+      setNewComment('')
       setReplyingTo(null)
-    } else {
-      // Add new comment
-      const comment: Comment = {
-        id: Date.now().toString(),
-        author: {
-          name: 'You',
-          username: 'your_username',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=You',
-        },
-        text: newComment,
-        likes: 0,
-        isLiked: false,
-        timestamp: 'Just now',
-      }
-
-      setComments([comment, ...comments])
       setCommentCount((prev) => prev + 1)
+      showToast.success(replyingTo ? 'Reply posted!' : 'Comment posted!')
+    } catch {
+      showToast.error('Failed to post comment')
     }
-
-    setNewComment('')
-    showToast.success(replyingTo ? 'Reply posted!' : 'Comment posted!')
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -289,10 +190,34 @@ export const CommentSidebar = ({
     }
   }
 
-  const renderComments = (comments: Comment[]) => {
+  const renderComments = () => {
+    if (isLoading && comments.length === 0) {
+      return (
+        <div className="space-y-6">
+          {[...Array(3)].map((_, i) => (
+            <CommentSkeleton key={i} />
+          ))}
+        </div>
+      )
+    }
+
+    if (comments.length === 0) {
+      return (
+        <div className="flex h-full flex-col items-center justify-center text-center">
+          <p className="text-muted-foreground">No comments yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Be the first to comment!</p>
+        </div>
+      )
+    }
+
     return comments.map((comment) => (
       <div key={comment.id} className="mb-6">
-        <CommentItem comment={comment} onLike={handleLikeComment} onReply={handleReply} />
+        <CommentItem
+          comment={comment}
+          onLike={handleLikeComment}
+          onReply={handleReply}
+          isLiking={likingCommentId === comment.id}
+        />
         {comment.replies && comment.replies.length > 0 && (
           <div className="space-y-3">
             {comment.replies.map((reply) => (
@@ -302,6 +227,7 @@ export const CommentSidebar = ({
                 onLike={handleLikeComment}
                 onReply={handleReply}
                 isReply
+                isLiking={likingCommentId === reply.id}
               />
             ))}
           </div>
@@ -309,6 +235,12 @@ export const CommentSidebar = ({
       </div>
     ))
   }
+
+  // User avatar and info from auth state
+  const userAvatar =
+    user?.profile?.photoUrl ||
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
+  const userInitial = user?.fullName?.[0] || user?.username?.[0] || 'U'
 
   if (!open) return null
 
@@ -356,16 +288,7 @@ export const CommentSidebar = ({
                 </div>
 
                 {/* Comments List */}
-                <div className="flex-1 overflow-y-auto px-6 py-4">
-                  {comments.length > 0 ? (
-                    renderComments(comments)
-                  ) : (
-                    <div className="flex h-full flex-col items-center justify-center text-center">
-                      <p className="text-muted-foreground">No comments yet</p>
-                      <p className="mt-1 text-sm text-muted-foreground">Be the first to comment!</p>
-                    </div>
-                  )}
-                </div>
+                <div className="flex-1 overflow-y-auto px-6 py-4">{renderComments()}</div>
 
                 {/* Comment Input */}
                 <div className="shrink-0 border-t border-border bg-background p-4">
@@ -373,7 +296,7 @@ export const CommentSidebar = ({
                     <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <Reply className="h-3 w-3" />
                       <span>
-                        Replying to <strong>{replyingTo.author.name}</strong>
+                        Replying to <strong>{replyingTo.author.fullName}</strong>
                       </span>
                       <button
                         onClick={() => {
@@ -388,8 +311,8 @@ export const CommentSidebar = ({
                   )}
                   <div className="flex items-end gap-3">
                     <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=You" />
-                      <AvatarFallback>Y</AvatarFallback>
+                      <AvatarImage src={userAvatar} />
+                      <AvatarFallback>{userInitial}</AvatarFallback>
                     </Avatar>
 
                     <div className="relative flex-1">
@@ -404,11 +327,15 @@ export const CommentSidebar = ({
 
                       <Button
                         size="icon"
-                        disabled={!newComment.trim()}
+                        disabled={!newComment.trim() || isPostActionLoading}
                         onClick={handleSubmitComment}
                         className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full bg-brand-crimson hover:bg-brand-crimson/90 disabled:opacity-50"
                       >
-                        <Send className="h-4 w-4" />
+                        {isPostActionLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -460,16 +387,7 @@ export const CommentSidebar = ({
               </div>
 
               {/* Comments List */}
-              <div className="flex-1 overflow-y-auto px-6 py-6">
-                {comments.length > 0 ? (
-                  renderComments(comments)
-                ) : (
-                  <div className="flex h-full flex-col items-center justify-center text-center">
-                    <p className="text-muted-foreground">No comments yet</p>
-                    <p className="mt-1 text-sm text-muted-foreground">Be the first to comment!</p>
-                  </div>
-                )}
-              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-6">{renderComments()}</div>
 
               {/* Comment Input */}
               <div className="shrink-0 border-t border-border bg-background p-6">
@@ -477,7 +395,7 @@ export const CommentSidebar = ({
                   <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                     <Reply className="h-4 w-4" />
                     <span>
-                      Replying to <strong>{replyingTo.author.name}</strong>
+                      Replying to <strong>{replyingTo.author.fullName}</strong>
                     </span>
                     <button
                       onClick={() => {
@@ -492,8 +410,8 @@ export const CommentSidebar = ({
                 )}
                 <div className="flex items-end gap-3">
                   <Avatar className="h-10 w-10 shrink-0">
-                    <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=You" />
-                    <AvatarFallback>Y</AvatarFallback>
+                    <AvatarImage src={userAvatar} />
+                    <AvatarFallback>{userInitial}</AvatarFallback>
                   </Avatar>
 
                   <div className="relative flex-1">
@@ -508,11 +426,15 @@ export const CommentSidebar = ({
 
                     <Button
                       size="icon"
-                      disabled={!newComment.trim()}
+                      disabled={!newComment.trim() || isPostActionLoading}
                       onClick={handleSubmitComment}
                       className="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-brand-crimson hover:bg-brand-crimson/90 disabled:opacity-50"
                     >
-                      <Send className="h-4 w-4" />
+                      {isPostActionLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>

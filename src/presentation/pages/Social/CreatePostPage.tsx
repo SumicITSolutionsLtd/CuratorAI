@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
@@ -29,6 +29,9 @@ import {
 import { Separator } from '@/presentation/components/ui/separator'
 import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { createPost } from '@/shared/store/slices/socialSlice'
+import { showToast } from '@/shared/utils/toast'
 
 const suggestedTags = [
   '#OOTD',
@@ -41,29 +44,46 @@ const suggestedTags = [
   '#WeekendLook',
 ]
 
+type Privacy = 'public' | 'friends' | 'private'
+
 export const CreatePostPage = () => {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
-  const [images, setImages] = useState<string[]>([])
+  const { isPostActionLoading } = useAppSelector((state) => state.social)
+
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [imageFiles, setImageFiles] = useState<File[]>([])
   const [caption, setCaption] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [location, setLocation] = useState('')
-  const [visibility, setVisibility] = useState('public')
-  const [isPosting, setIsPosting] = useState(false)
+  const [visibility, setVisibility] = useState<Privacy>('public')
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const moreFilesInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
+
     files.forEach((file) => {
+      // Store the actual file
+      setImageFiles((prev) => [...prev, file])
+
+      // Create preview
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImages((prev) => [...prev, reader.result as string])
+        setImagePreviews((prev) => [...prev, reader.result as string])
       }
       reader.readAsDataURL(file)
     })
+
+    // Reset input value to allow selecting the same file again
+    e.target.value = ''
   }
 
   const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index))
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index))
+    setImageFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
   const addTag = (tag: string) => {
@@ -76,12 +96,47 @@ export const CreatePostPage = () => {
     setTags(tags.filter((t) => t !== tag))
   }
 
+  const mapVisibilityToPrivacy = (vis: string): Privacy => {
+    switch (vis) {
+      case 'followers':
+        return 'friends'
+      case 'private':
+        return 'private'
+      default:
+        return 'public'
+    }
+  }
+
   const handlePost = async () => {
-    setIsPosting(true)
-    // Simulate posting
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsPosting(false)
-    navigate('/feed')
+    if (imageFiles.length === 0) {
+      showToast.error('Please add at least one image')
+      return
+    }
+
+    if (!user?.id) {
+      showToast.error('You must be logged in to create a post')
+      return
+    }
+
+    try {
+      // Clean tags (remove # prefix for storage, keep for display)
+      const cleanTags = tags.map((tag) => tag.replace(/^#/, ''))
+
+      await dispatch(
+        createPost({
+          userId: user.id,
+          images: imageFiles,
+          caption,
+          tags: cleanTags,
+          privacy: mapVisibilityToPrivacy(visibility),
+        })
+      ).unwrap()
+
+      showToast.success('Post created successfully!')
+      navigate('/feed')
+    } catch (error) {
+      showToast.error(typeof error === 'string' ? error : 'Failed to create post')
+    }
   }
 
   return (
@@ -113,13 +168,14 @@ export const CreatePostPage = () => {
             <Card className="p-6">
               <Label className="mb-4 block">Photos</Label>
 
-              {images.length === 0 ? (
+              {imagePreviews.length === 0 ? (
                 <motion.label
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-brand-crimson/30 bg-gradient-to-br from-brand-ivory to-brand-beige transition-all hover:border-brand-crimson/60"
                 >
                   <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     multiple
@@ -136,17 +192,21 @@ export const CreatePostPage = () => {
                         Click to browse or drag and drop
                       </p>
                     </div>
-                    <Button className="bg-brand-crimson hover:bg-brand-crimson/90">
+                    <Button
+                      type="button"
+                      className="bg-brand-crimson hover:bg-brand-crimson/90"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <Camera className="mr-2 h-4 w-4" />
-                      <span className="hidden sm:inline">Take Photo</span>
-                      <span className="sm:hidden">Photo</span>
+                      <span className="hidden sm:inline">Select Photos</span>
+                      <span className="sm:hidden">Select</span>
                     </Button>
                   </div>
                 </motion.label>
               ) : (
                 <div className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {images.map((image, index) => (
+                    {imagePreviews.map((image, index) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -178,6 +238,7 @@ export const CreatePostPage = () => {
                     className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-brand-crimson/30 p-4 transition-all hover:border-brand-crimson/60"
                   >
                     <input
+                      ref={moreFilesInputRef}
                       type="file"
                       accept="image/*"
                       multiple
@@ -201,6 +262,7 @@ export const CreatePostPage = () => {
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 placeholder="Write a caption... Share your style story!"
+                maxLength={500}
                 className="min-h-[120px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
               <div className="mt-2 flex items-center justify-between">
@@ -300,7 +362,7 @@ export const CreatePostPage = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="visibility">Visibility</Label>
-                  <Select value={visibility} onValueChange={setVisibility}>
+                  <Select value={visibility} onValueChange={(v) => setVisibility(v as Privacy)}>
                     <SelectTrigger id="visibility">
                       <SelectValue />
                     </SelectTrigger>
@@ -311,7 +373,7 @@ export const CreatePostPage = () => {
                           <span>Public</span>
                         </div>
                       </SelectItem>
-                      <SelectItem value="followers">
+                      <SelectItem value="friends">
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4" />
                           <span>Followers Only</span>
@@ -345,10 +407,10 @@ export const CreatePostPage = () => {
               {/* Post Button */}
               <Button
                 onClick={handlePost}
-                disabled={images.length === 0 || isPosting}
+                disabled={imageFiles.length === 0 || isPostActionLoading}
                 className="h-12 w-full bg-brand-crimson hover:bg-brand-crimson/90"
               >
-                {isPosting ? (
+                {isPostActionLoading ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     Posting...

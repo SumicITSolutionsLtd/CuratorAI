@@ -1,9 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Twitter, Facebook, MessageCircle, Mail, Link2, Check, X, Send } from 'lucide-react'
+import {
+  Twitter,
+  Facebook,
+  MessageCircle,
+  Mail,
+  Link2,
+  Check,
+  X,
+  Send,
+  Loader2,
+} from 'lucide-react'
 import { Button } from '../ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import { Skeleton } from '../ui/skeleton'
 import { showToast } from '../../../shared/utils/toast'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { sharePost } from '@/shared/store/slices/socialSlice'
+import { UserRepository } from '@/infrastructure/repositories/UserRepository'
+import { User } from '@domain/entities/User'
 
 interface ShareSidebarProps {
   open: boolean
@@ -12,43 +28,47 @@ interface ShareSidebarProps {
   postUrl?: string
 }
 
+const userRepository = new UserRepository()
+
 export const ShareSidebar = ({
   open,
   onOpenChange,
   postId,
   postUrl = `${window.location.origin}/posts/${postId}`,
 }: ShareSidebarProps) => {
+  const dispatch = useAppDispatch()
+  const { user } = useAppSelector((state) => state.auth)
+
   const [copied, setCopied] = useState(false)
   const [messageText, setMessageText] = useState('')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [followingUsers, setFollowingUsers] = useState<User[]>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
+  const [isSending, setIsSending] = useState(false)
 
-  // Mock users for direct sharing
-  const suggestedUsers = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      username: 'sarah_j',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    },
-    {
-      id: '2',
-      name: 'Mike Chen',
-      username: 'mike_style',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike',
-    },
-    {
-      id: '3',
-      name: 'Emma Wilson',
-      username: 'emma_w',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
-    },
-    {
-      id: '4',
-      name: 'Alex Chen',
-      username: 'alex_fashion',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
-    },
-  ]
+  // Fetch following users when sidebar opens
+  const fetchFollowing = useCallback(async () => {
+    if (!user?.id || followingUsers.length > 0) return
+
+    setIsLoadingUsers(true)
+    try {
+      const following = await userRepository.getFollowing(user.id)
+      setFollowingUsers(following)
+    } catch {
+      // Failed to fetch following - users can still use social share
+    } finally {
+      setIsLoadingUsers(false)
+    }
+  }, [user?.id, followingUsers.length])
+
+  useEffect(() => {
+    if (open) {
+      fetchFollowing()
+      setSelectedUsers([])
+      setMessageText('')
+      setCopied(false)
+    }
+  }, [open, fetchFollowing])
 
   const handleCopyLink = async () => {
     try {
@@ -56,7 +76,10 @@ export const ShareSidebar = ({
       setCopied(true)
       showToast.success('Link copied to clipboard!')
       setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
+
+      // Track share action
+      dispatch(sharePost({ postId }))
+    } catch {
       showToast.error('Failed to copy link')
     }
   }
@@ -73,6 +96,7 @@ export const ShareSidebar = ({
           '_blank',
           'width=550,height=420'
         )
+        dispatch(sharePost({ postId }))
       },
     },
     {
@@ -86,6 +110,7 @@ export const ShareSidebar = ({
           '_blank',
           'width=550,height=420'
         )
+        dispatch(sharePost({ postId }))
       },
     },
     {
@@ -95,6 +120,7 @@ export const ShareSidebar = ({
       bgColor: 'bg-[#25D366]/10',
       action: () => {
         window.open(`https://wa.me/?text=${encodeURIComponent(postUrl)}`, '_blank')
+        dispatch(sharePost({ postId }))
       },
     },
     {
@@ -104,6 +130,7 @@ export const ShareSidebar = ({
       bgColor: 'bg-brand-gray/10',
       action: () => {
         window.location.href = `mailto:?subject=Check out this outfit&body=${encodeURIComponent(postUrl)}`
+        dispatch(sharePost({ postId }))
       },
     },
   ]
@@ -114,17 +141,83 @@ export const ShareSidebar = ({
     )
   }
 
-  const handleSendDirectMessage = () => {
+  const handleSendDirectMessage = async () => {
     if (selectedUsers.length === 0) {
       showToast.error('Please select at least one person')
       return
     }
-    showToast.success(
-      `Sent to ${selectedUsers.length} ${selectedUsers.length === 1 ? 'person' : 'people'}!`
+
+    setIsSending(true)
+    try {
+      // Track share action for analytics
+      await dispatch(sharePost({ postId })).unwrap()
+
+      showToast.success(
+        `Shared with ${selectedUsers.length} ${selectedUsers.length === 1 ? 'person' : 'people'}!`
+      )
+      setSelectedUsers([])
+      setMessageText('')
+      onOpenChange(false)
+    } catch {
+      showToast.error('Failed to share')
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  const renderUserList = () => {
+    if (isLoadingUsers) {
+      return (
+        <div className="space-y-2">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="flex-1 space-y-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    if (followingUsers.length === 0) {
+      return (
+        <p className="py-4 text-center text-sm text-muted-foreground">
+          Follow more people to share posts with them directly
+        </p>
+      )
+    }
+
+    return (
+      <div className="space-y-2">
+        {followingUsers.map((followedUser) => (
+          <motion.button
+            key={followedUser.id}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => toggleUserSelection(followedUser.id)}
+            className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
+              selectedUsers.includes(followedUser.id)
+                ? 'border-brand-crimson bg-brand-crimson/10'
+                : 'border-border bg-background hover:bg-accent'
+            } border`}
+          >
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={followedUser.profile?.photoUrl} />
+              <AvatarFallback>{followedUser.fullName?.[0] || 'U'}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium">{followedUser.fullName}</p>
+              <p className="text-xs text-muted-foreground">@{followedUser.username}</p>
+            </div>
+            {selectedUsers.includes(followedUser.id) && (
+              <Check className="h-5 w-5 text-brand-crimson" />
+            )}
+          </motion.button>
+        ))}
+      </div>
     )
-    setSelectedUsers([])
-    setMessageText('')
-    onOpenChange(false)
   }
 
   if (!open) return null
@@ -227,32 +320,7 @@ export const ShareSidebar = ({
                   {/* Direct Share */}
                   <div>
                     <p className="mb-3 text-sm font-medium text-foreground">Send to friends</p>
-                    <div className="space-y-2">
-                      {suggestedUsers.map((user) => (
-                        <motion.button
-                          key={user.id}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => toggleUserSelection(user.id)}
-                          className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                            selectedUsers.includes(user.id)
-                              ? 'border-brand-crimson bg-brand-crimson/10'
-                              : 'border-border bg-background hover:bg-accent'
-                          } border`}
-                        >
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.avatar} />
-                            <AvatarFallback>{user.name[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 text-left">
-                            <p className="text-sm font-medium">{user.name}</p>
-                            <p className="text-xs text-muted-foreground">@{user.username}</p>
-                          </div>
-                          {selectedUsers.includes(user.id) && (
-                            <Check className="h-5 w-5 text-brand-crimson" />
-                          )}
-                        </motion.button>
-                      ))}
-                    </div>
+                    {renderUserList()}
 
                     {selectedUsers.length > 0 && (
                       <motion.div
@@ -269,9 +337,14 @@ export const ShareSidebar = ({
                         />
                         <Button
                           onClick={handleSendDirectMessage}
+                          disabled={isSending}
                           className="w-full bg-brand-crimson hover:bg-brand-crimson/90"
                         >
-                          <Send className="mr-2 h-4 w-4" />
+                          {isSending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Send className="mr-2 h-4 w-4" />
+                          )}
                           Send to {selectedUsers.length}{' '}
                           {selectedUsers.length === 1 ? 'person' : 'people'}
                         </Button>
@@ -379,32 +452,7 @@ export const ShareSidebar = ({
                 {/* Direct Share */}
                 <div>
                   <p className="mb-4 text-sm font-semibold text-foreground">Send to friends</p>
-                  <div className="space-y-2">
-                    {suggestedUsers.map((user) => (
-                      <motion.button
-                        key={user.id}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => toggleUserSelection(user.id)}
-                        className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                          selectedUsers.includes(user.id)
-                            ? 'border-brand-crimson bg-brand-crimson/10'
-                            : 'border-border bg-background hover:bg-accent'
-                        } border`}
-                      >
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={user.avatar} />
-                          <AvatarFallback>{user.name[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 text-left">
-                          <p className="text-sm font-medium">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">@{user.username}</p>
-                        </div>
-                        {selectedUsers.includes(user.id) && (
-                          <Check className="h-5 w-5 text-brand-crimson" />
-                        )}
-                      </motion.button>
-                    ))}
-                  </div>
+                  {renderUserList()}
 
                   {selectedUsers.length > 0 && (
                     <motion.div
@@ -421,9 +469,14 @@ export const ShareSidebar = ({
                       />
                       <Button
                         onClick={handleSendDirectMessage}
+                        disabled={isSending}
                         className="w-full bg-brand-crimson hover:bg-brand-crimson/90"
                       >
-                        <Send className="mr-2 h-4 w-4" />
+                        {isSending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="mr-2 h-4 w-4" />
+                        )}
                         Send to {selectedUsers.length}{' '}
                         {selectedUsers.length === 1 ? 'person' : 'people'}
                       </Button>

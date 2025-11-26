@@ -37,6 +37,11 @@ export interface User {
   isEmailVerified: boolean
   createdAt: Date
   updatedAt: Date
+  // Social stats (populated when fetching user profiles)
+  isFollowing?: boolean
+  followersCount?: number
+  followingCount?: number
+  postsCount?: number
 }
 
 export interface AuthCredentials {

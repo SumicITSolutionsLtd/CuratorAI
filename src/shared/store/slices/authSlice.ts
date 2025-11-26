@@ -3,6 +3,7 @@ import { User, AuthCredentials, RegisterData, OAuthProvider } from '@domain/enti
 import { AuthRepository } from '@infrastructure/repositories/AuthRepository'
 import { StylePreferenceCompletion } from '@domain/repositories/IAuthRepository'
 import { extractAPIErrorMessage } from '@/shared/utils/apiErrorHandler'
+import { sessionManager } from '@/infrastructure/services/SessionManager'
 
 const authRepository = new AuthRepository()
 
@@ -17,7 +18,7 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
-  isAuthenticated: false,
+  isAuthenticated: sessionManager.isAuthenticated(),
   isLoading: false,
   error: null,
   passwordResetEmailSent: false,
@@ -29,10 +30,12 @@ export const login = createAsyncThunk(
   async (credentials: AuthCredentials, { rejectWithValue }) => {
     try {
       const response = await authRepository.login(credentials)
-      localStorage.setItem('curatorai_access_token', response.tokens.accessToken)
-      localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
+      sessionManager.setTokens({
+        accessToken: response.tokens.accessToken,
+        refreshToken: response.tokens.refreshToken,
+      })
       return response.user
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Login failed'))
     }
   }
@@ -43,10 +46,12 @@ export const loginWithOAuth = createAsyncThunk(
   async (provider: OAuthProvider, { rejectWithValue }) => {
     try {
       const response = await authRepository.loginWithOAuth(provider)
-      localStorage.setItem('curatorai_access_token', response.tokens.accessToken)
-      localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
+      sessionManager.setTokens({
+        accessToken: response.tokens.accessToken,
+        refreshToken: response.tokens.refreshToken,
+      })
       return response.user
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(extractAPIErrorMessage(error, 'OAuth login failed'))
     }
   }
@@ -57,25 +62,36 @@ export const register = createAsyncThunk(
   async (data: RegisterData, { rejectWithValue }) => {
     try {
       const response = await authRepository.register(data)
-      localStorage.setItem('curatorai_access_token', response.tokens.accessToken)
-      localStorage.setItem('curatorai_refresh_token', response.tokens.refreshToken)
+      sessionManager.setTokens({
+        accessToken: response.tokens.accessToken,
+        refreshToken: response.tokens.refreshToken,
+      })
       return response.user
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Registration failed'))
     }
   }
 )
 
 export const logout = createAsyncThunk('auth/logout', async () => {
-  await authRepository.logout()
-  // Clear tokens from localStorage
-  localStorage.removeItem('curatorai_access_token')
-  localStorage.removeItem('curatorai_refresh_token')
+  try {
+    await authRepository.logout()
+  } finally {
+    sessionManager.clearTokens()
+  }
 })
 
-export const getCurrentUser = createAsyncThunk('auth/getCurrentUser', async () => {
-  return await authRepository.getCurrentUser()
-})
+export const getCurrentUser = createAsyncThunk(
+  'auth/getCurrentUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await authRepository.getCurrentUser()
+    } catch (error: unknown) {
+      sessionManager.clearTokens()
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to get current user'))
+    }
+  }
+)
 
 export const requestPasswordReset = createAsyncThunk(
   'auth/requestPasswordReset',
@@ -83,7 +99,7 @@ export const requestPasswordReset = createAsyncThunk(
     try {
       await authRepository.requestPasswordReset(email)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to send reset email'))
     }
   }
@@ -95,7 +111,7 @@ export const resetPassword = createAsyncThunk(
     try {
       await authRepository.resetPassword(token, newPassword)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to reset password'))
     }
   }
@@ -107,7 +123,7 @@ export const verifyEmail = createAsyncThunk(
     try {
       await authRepository.verifyEmail(code)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Email verification failed'))
     }
   }
@@ -119,7 +135,7 @@ export const requestEmailVerification = createAsyncThunk(
     try {
       await authRepository.requestEmailVerification()
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to send verification email'))
     }
   }
@@ -130,7 +146,7 @@ export const completeRegistration = createAsyncThunk(
   async (preferences: StylePreferenceCompletion, { rejectWithValue }) => {
     try {
       return await authRepository.completeRegistration(preferences)
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to complete registration'))
     }
   }
@@ -148,6 +164,12 @@ const authSlice = createSlice({
     },
     resetEmailVerificationState: (state) => {
       state.emailVerificationSent = false
+    },
+    setAuthenticated: (state, action) => {
+      state.isAuthenticated = action.payload
+    },
+    syncSessionState: (state) => {
+      state.isAuthenticated = sessionManager.isAuthenticated()
     },
   },
   extraReducers: (builder) => {
@@ -200,11 +222,20 @@ const authSlice = createSlice({
         state.isAuthenticated = false
       })
       // Get current user
+      .addCase(getCurrentUser.pending, (state) => {
+        state.isLoading = true
+      })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
+        state.isLoading = false
         if (action.payload) {
           state.user = action.payload
           state.isAuthenticated = true
         }
+      })
+      .addCase(getCurrentUser.rejected, (state) => {
+        state.isLoading = false
+        state.isAuthenticated = false
+        state.user = null
       })
       // Request Password Reset
       .addCase(requestPasswordReset.pending, (state) => {
@@ -276,6 +307,11 @@ const authSlice = createSlice({
   },
 })
 
-export const { clearError, resetPasswordResetState, resetEmailVerificationState } =
-  authSlice.actions
+export const {
+  clearError,
+  resetPasswordResetState,
+  resetEmailVerificationState,
+  setAuthenticated,
+  syncSessionState,
+} = authSlice.actions
 export default authSlice.reducer
