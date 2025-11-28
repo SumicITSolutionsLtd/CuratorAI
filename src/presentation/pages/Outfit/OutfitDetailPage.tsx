@@ -27,6 +27,7 @@ import {
   unsaveOutfit,
   clearSelectedOutfit,
 } from '@/shared/store/slices/outfitSlice'
+import { addToCart } from '@/shared/store/slices/cartSlice'
 import { DetailPageSkeleton } from '@/presentation/components/ui/shimmer'
 
 export const OutfitDetailPage = () => {
@@ -136,18 +137,95 @@ export const OutfitDetailPage = () => {
     }
   }
 
-  const handleAddToCart = (itemName: string) => {
-    toast({
-      title: 'Added to Cart',
-      description: `${itemName} has been added to your cart`,
-    })
+  const handleAddToCart = async (item: NonNullable<typeof outfit>['items'][0]) => {
+    if (!user?.id) {
+      toast({
+        title: 'Please log in',
+        description: 'You need to be logged in to add items to cart',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    try {
+      await dispatch(
+        addToCart({
+          userId: user.id,
+          item: {
+            outfitItemId: item.id,
+            name: item.name,
+            brand: item.brand || '',
+            price: item.price || 0,
+            currency: item.currency || 'USD',
+            size: item.size,
+            color: item.color || '',
+            quantity: 1,
+            imageUrl: item.imageUrl || '',
+            productUrl: item.productUrl,
+            inStock: item.inStock ?? true,
+          },
+        })
+      ).unwrap()
+
+      toast({
+        title: 'Added to Cart',
+        description: `${item.name} has been added to your cart`,
+      })
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to add item to cart',
+        variant: 'destructive',
+      })
+    }
   }
 
-  const handleBuyOutfit = () => {
-    toast({
-      title: 'Added to Cart',
-      description: `All items from ${outfit?.name} added to your cart`,
-    })
+  const handleBuyOutfit = async () => {
+    if (!user?.id || !outfit?.items?.length) {
+      toast({
+        title: 'Error',
+        description: 'Unable to add items to cart',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    try {
+      // Add each item to cart
+      for (const item of outfit.items) {
+        if (item.inStock !== false) {
+          await dispatch(
+            addToCart({
+              userId: user.id,
+              item: {
+                outfitItemId: item.id,
+                name: item.name,
+                brand: item.brand || '',
+                price: item.price || 0,
+                currency: item.currency || 'USD',
+                size: item.size,
+                color: item.color || '',
+                quantity: 1,
+                imageUrl: item.imageUrl || '',
+                productUrl: item.productUrl,
+                inStock: item.inStock ?? true,
+              },
+            })
+          ).unwrap()
+        }
+      }
+
+      toast({
+        title: 'Added to Cart',
+        description: `All items from ${outfit.name} added to your cart`,
+      })
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to add items to cart',
+        variant: 'destructive',
+      })
+    }
   }
 
   const handleDownloadLook = () => {
@@ -398,7 +476,7 @@ export const OutfitDetailPage = () => {
                                 <Button
                                   size="lg"
                                   className="flex-1 bg-brand-charcoal text-white transition-all hover:scale-[1.02] hover:bg-brand-charcoal/90"
-                                  onClick={() => handleAddToCart(item.name)}
+                                  onClick={() => handleAddToCart(item)}
                                 >
                                   <ShoppingBag className="mr-2 h-4 w-4" />
                                   Add to Bag

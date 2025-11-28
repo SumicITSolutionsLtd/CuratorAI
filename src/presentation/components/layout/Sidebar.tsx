@@ -31,13 +31,15 @@ import {
 } from '../ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import { fetchCart } from '@/shared/store/slices/cartSlice'
 
-const navItems = [
+const baseNavItems = [
   { icon: Home, label: 'Home', path: '/home', primary: true },
   { icon: Search, label: 'Visual Search', path: '/search/visual', primary: true },
   { icon: Shirt, label: 'Wardrobe', path: '/wardrobe', primary: true },
   { icon: Users, label: 'Feed', path: '/feed', primary: true },
-  { icon: ShoppingCart, label: 'Cart', path: '/cart', badge: 3, primary: true },
+  { icon: ShoppingCart, label: 'Cart', path: '/cart', primary: true },
   { icon: BookOpen, label: 'Lookbooks', path: '/lookbooks', primary: false },
   { icon: Camera, label: 'Try-On', path: '/try-on', primary: false },
   { icon: Heart, label: 'Wishlist', path: '/wishlist', primary: false },
@@ -45,8 +47,17 @@ const navItems = [
 
 export const Sidebar = () => {
   const location = useLocation()
+  const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
+  const { itemCount: cartItemCount } = useAppSelector((state) => state.cart)
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  // Fetch cart on mount
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchCart(user.id))
+    }
+  }, [dispatch, user?.id])
 
   // Load collapsed state from localStorage
   useEffect(() => {
@@ -55,6 +66,12 @@ export const Sidebar = () => {
       setIsCollapsed(JSON.parse(saved))
     }
   }, [])
+
+  // Build nav items with dynamic cart badge
+  const navItems = baseNavItems.map((item) => ({
+    ...item,
+    badge: item.path === '/cart' && cartItemCount > 0 ? cartItemCount : undefined,
+  }))
 
   // Save collapsed state to localStorage
   const toggleCollapsed = () => {
