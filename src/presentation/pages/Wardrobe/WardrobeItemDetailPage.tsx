@@ -34,6 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/presentation/components/ui/alert-dialog'
+import { DetailPageSkeleton } from '@/presentation/components/ui/shimmer'
 
 export const WardrobeItemDetailPage = () => {
   const { itemId } = useParams<{ itemId: string }>()
@@ -131,8 +132,8 @@ export const WardrobeItemDetailPage = () => {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="flex h-96 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-crimson" />
+        <div className="mx-auto max-w-6xl">
+          <DetailPageSkeleton />
         </div>
       </MainLayout>
     )

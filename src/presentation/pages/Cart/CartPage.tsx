@@ -31,6 +31,7 @@ import {
   removePromoCode,
 } from '@/shared/store/slices/cartSlice'
 import { useToast } from '@/presentation/components/ui/use-toast'
+import { CartItemSkeleton, Shimmer } from '@/presentation/components/ui/shimmer'
 
 export const CartPage = () => {
   const dispatch = useAppDispatch()
@@ -157,8 +158,24 @@ export const CartPage = () => {
   if (isLoading && items.length === 0) {
     return (
       <MainLayout>
-        <div className="flex h-96 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-crimson" />
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Shimmer className="mb-2 h-8 w-48" />
+              <Shimmer className="h-4 w-32" />
+            </div>
+            <Shimmer className="h-10 w-36 rounded-md" />
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="space-y-4 lg:col-span-2">
+              <CartItemSkeleton />
+              <CartItemSkeleton />
+              <CartItemSkeleton />
+            </div>
+            <div className="lg:col-span-1">
+              <Shimmer className="h-80 rounded-lg" />
+            </div>
+          </div>
         </div>
       </MainLayout>
     )

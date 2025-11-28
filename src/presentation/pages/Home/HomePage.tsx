@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Sparkles,
@@ -9,6 +10,7 @@ import {
   Zap,
   SlidersHorizontal,
   Settings2,
+  X,
 } from 'lucide-react'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import { OutfitGrid } from '@/presentation/components/outfit/OutfitGrid'
@@ -16,6 +18,7 @@ import { FilterPanel } from '@/presentation/components/outfit/FilterPanel'
 import { ControlPanel } from '@/presentation/components/outfit/ControlPanel'
 import { Card } from '@/presentation/components/ui/card'
 import { Button } from '@/presentation/components/ui/button'
+import { Badge } from '@/presentation/components/ui/badge'
 import {
   Sheet,
   SheetContent,
@@ -23,6 +26,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/presentation/components/ui/sheet'
+import { OutfitGridSkeleton, StatsCardSkeleton } from '@/presentation/components/ui/shimmer'
 import { showToast } from '@/shared/utils/toast'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
@@ -30,11 +34,15 @@ import { fetchRecommendations } from '@/shared/store/slices/outfitSlice'
 
 export const HomePage = () => {
   const dispatch = useAppDispatch()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAppSelector((state) => state.auth)
   const { recommendations, isLoading } = useAppSelector((state) => state.outfit)
 
   const [filterOpen, setFilterOpen] = useState(false)
   const [controlOpen, setControlOpen] = useState(false)
+
+  // Get search query from URL
+  const searchQuery = searchParams.get('search') || ''
 
   // Fetch recommendations on mount
   useEffect(() => {
@@ -43,9 +51,14 @@ export const HomePage = () => {
     }
   }, [dispatch, user?.id])
 
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchParams({})
+  }
+
   // Transform recommendations to match OutfitGrid expected format
   // Note: Backend returns Outfit[] directly, not OutfitRecommendation[]
-  const outfits = recommendations.map((outfit: any) => ({
+  const allOutfits = recommendations.map((outfit: any) => ({
     id: outfit.id,
     name: outfit.title || outfit.name || 'Untitled Outfit',
     imageUrl: outfit.main_image || outfit.thumbnail || '',
@@ -53,12 +66,30 @@ export const HomePage = () => {
       outfit.items?.map((item: any) => ({
         name: item.name || item.title,
         price: item.price || 0,
+        brand: item.brand || '',
       })) || [],
     totalPrice: outfit.items?.reduce((sum: number, item: any) => sum + (item.price || 0), 0) || 0,
     matchScore: outfit.match_score || 85, // Default score since backend doesn't provide
-    tags: outfit.tags || [],
+    tags: outfit.tags || outfit.style_tags || [],
     likes: outfit.likes_count || 0,
   }))
+
+  // Filter outfits based on search query
+  const outfits = useMemo(() => {
+    if (!searchQuery) return allOutfits
+
+    const lowerQuery = searchQuery.toLowerCase()
+    return allOutfits.filter(
+      (outfit) =>
+        outfit.name.toLowerCase().includes(lowerQuery) ||
+        outfit.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery)) ||
+        outfit.items.some(
+          (item: any) =>
+            item.name?.toLowerCase().includes(lowerQuery) ||
+            item.brand?.toLowerCase().includes(lowerQuery)
+        )
+    )
+  }, [allOutfits, searchQuery])
 
   return (
     <MainLayout>
@@ -95,59 +126,100 @@ export const HomePage = () => {
           </p>
         </motion.div>
 
+        {/* Search Results Banner */}
+        {searchQuery && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex items-center justify-between rounded-lg bg-brand-blue/10 px-4 py-3"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Showing results for:</span>
+              <Badge variant="secondary" className="bg-brand-blue/20 text-brand-blue">
+                "{searchQuery}"
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                ({outfits.length} {outfits.length === 1 ? 'result' : 'results'})
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearSearch}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="mr-1 h-4 w-4" />
+              Clear
+            </Button>
+          </motion.div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="rounded-lg border bg-gradient-to-br from-brand-crimson/10 to-brand-crimson/5 p-4"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">New Recommendations</p>
-                <p className="text-2xl font-bold">{outfits.length}</p>
-              </div>
-              <Sparkles className="h-8 w-8 text-brand-crimson" />
-            </div>
-          </motion.div>
+          {isLoading && outfits.length === 0 ? (
+            <>
+              <StatsCardSkeleton />
+              <StatsCardSkeleton />
+              <StatsCardSkeleton />
+            </>
+          ) : (
+            <>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-lg border bg-gradient-to-br from-brand-crimson/10 to-brand-crimson/5 p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">New Recommendations</p>
+                    <p className="text-2xl font-bold">{outfits.length}</p>
+                  </div>
+                  <Sparkles className="h-8 w-8 text-brand-crimson" />
+                </div>
+              </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="rounded-lg border bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 p-4"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Trending Now</p>
-                <p className="text-2xl font-bold">
-                  {outfits.filter((o) => o.tags.includes('Trending')).length || 8}
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-brand-blue" />
-            </div>
-          </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-lg border bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Trending Now</p>
+                    <p className="text-2xl font-bold">
+                      {outfits.filter((o) => o.tags.includes('Trending')).length || 8}
+                    </p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-brand-blue" />
+                </div>
+              </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="rounded-lg border bg-brand-beige/40 p-4"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">High Match Rate</p>
-                <p className="text-2xl font-bold">
-                  {outfits.length > 0
-                    ? Math.round(outfits.reduce((sum, o) => sum + o.matchScore, 0) / outfits.length)
-                    : 95}
-                  %
-                </p>
-              </div>
-              <div className="text-3xl">✨</div>
-            </div>
-          </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="rounded-lg border bg-brand-beige/40 p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">High Match Rate</p>
+                    <p className="text-2xl font-bold">
+                      {outfits.length > 0
+                        ? Math.round(
+                            outfits.reduce((sum, o) => sum + o.matchScore, 0) / outfits.length
+                          )
+                        : 95}
+                      %
+                    </p>
+                  </div>
+                  <div className="text-3xl">✨</div>
+                </div>
+              </motion.div>
+            </>
+          )}
         </div>
 
         {/* Welcome Back Quick Actions */}
@@ -250,13 +322,7 @@ export const HomePage = () => {
           {/* Center: Outfit Grid */}
           <div className="relative">
             {isLoading && outfits.length === 0 ? (
-              <div className="flex min-h-[400px] items-center justify-center">
-                <div className="text-center">
-                  <div className="mb-4 text-4xl">✨</div>
-                  <p className="text-lg font-semibold">Curating your perfect outfits...</p>
-                  <p className="text-sm text-muted-foreground">This won't take long</p>
-                </div>
-              </div>
+              <OutfitGridSkeleton count={6} />
             ) : (
               <OutfitGrid outfits={outfits} />
             )}

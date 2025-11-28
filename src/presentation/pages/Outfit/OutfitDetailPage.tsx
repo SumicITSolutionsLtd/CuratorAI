@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -7,121 +7,191 @@ import {
   Share2,
   Sparkles,
   ShoppingBag,
-  Check,
   ExternalLink,
-  RotateCw,
+  Heart,
+  Bookmark,
 } from 'lucide-react'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import { Button } from '@/presentation/components/ui/button'
 import { Badge } from '@/presentation/components/ui/badge'
 import { Card } from '@/presentation/components/ui/card'
 import { cn } from '@/shared/utils/cn'
-import { showToast } from '@/shared/utils/toast'
-import { mockOutfitDetail, swapAlternatives, trackSwapEvent } from '@/shared/mocks/outfitMockData'
-import { StyleSwapDrawer, SwapAlternative } from '@/presentation/components/outfit/StyleSwapDrawer'
-import type { OutfitItem, SellerType } from '@/shared/mocks/outfitMockData'
-
-const sellerConfig: Record<
-  SellerType,
-  { icon: string; label: string; ctaText: string; description: string }
-> = {
-  curator: {
-    icon: '✅',
-    label: 'Curator Fulfilled',
-    ctaText: 'Add to Bag',
-    description: 'Curated and fulfilled by CuratorAI',
-  },
-  partner: {
-    icon: '🤝',
-    label: 'Partner Store',
-    ctaText: 'Buy on Store',
-    description: 'Available through our partner network',
-  },
-  external: {
-    icon: '🌐',
-    label: 'External Seller',
-    ctaText: 'View on Store',
-    description: 'Available from external retailer',
-  },
-}
+import { useToast } from '@/presentation/components/ui/use-toast'
+import { useAppSelector } from '@/shared/hooks/useAppSelector'
+import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
+import {
+  fetchOutfitById,
+  likeOutfit,
+  unlikeOutfit,
+  saveOutfit,
+  unsaveOutfit,
+  clearSelectedOutfit,
+} from '@/shared/store/slices/outfitSlice'
+import { DetailPageSkeleton } from '@/presentation/components/ui/shimmer'
 
 export const OutfitDetailPage = () => {
+  const { outfitId } = useParams<{ outfitId: string }>()
   const navigate = useNavigate()
-  const [outfit, setOutfit] = useState(mockOutfitDetail)
-  const [selectedItemForSwap, setSelectedItemForSwap] = useState<OutfitItem | null>(null)
-  const [swapDrawerOpen, setSwapDrawerOpen] = useState(false)
+  const dispatch = useAppDispatch()
+  const { toast } = useToast()
 
-  const handleSwapItem = (itemId: string) => {
-    const item = outfit.items.find((i) => i.id === itemId)
-    if (item) {
-      setSelectedItemForSwap(item)
-      setSwapDrawerOpen(true)
-      trackSwapEvent('open_swap_drawer', { outfitId: outfit.id, itemId })
+  const { user } = useAppSelector((state) => state.auth)
+  const { selectedOutfit: outfit, isLoading, error } = useAppSelector((state) => state.outfit)
+
+  const [isLiked, setIsLiked] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [likesCount, setLikesCount] = useState(0)
+
+  // Fetch outfit on mount
+  useEffect(() => {
+    if (outfitId) {
+      dispatch(fetchOutfitById(outfitId))
     }
-  }
+    return () => {
+      dispatch(clearSelectedOutfit())
+    }
+  }, [dispatch, outfitId])
 
-  const handleSwapApplied = (alternative: SwapAlternative) => {
-    if (!selectedItemForSwap) return
+  // Sync local state with outfit data
+  useEffect(() => {
+    if (outfit) {
+      setIsLiked(outfit.isLiked || false)
+      setIsSaved(outfit.isSaved || false)
+      setLikesCount(outfit.likes || 0)
+    }
+  }, [outfit])
 
-    // Update the outfit with the swapped item
-    const updatedItems = outfit.items.map((item) => {
-      if (item.id === selectedItemForSwap.id) {
-        return {
-          ...item,
-          name: alternative.name,
-          brand: alternative.brand,
-          price: alternative.price,
-          image: alternative.image,
-          size: alternative.size || item.size,
-          seller: alternative.seller,
-          sellerName: alternative.sellerName,
-        }
+  // Show error toast
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error',
+        description: error,
+        variant: 'destructive',
+      })
+    }
+  }, [error, toast])
+
+  const handleLike = async () => {
+    if (!user?.id || !outfit) {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to like outfits',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    try {
+      if (isLiked) {
+        await dispatch(unlikeOutfit({ userId: user.id, outfitId: outfit.id })).unwrap()
+        setIsLiked(false)
+        setLikesCount((prev) => Math.max(0, prev - 1))
+      } else {
+        await dispatch(likeOutfit({ userId: user.id, outfitId: outfit.id })).unwrap()
+        setIsLiked(true)
+        setLikesCount((prev) => prev + 1)
       }
-      return item
-    })
-
-    const newTotalPrice = updatedItems.reduce((sum, item) => sum + item.price, 0)
-
-    setOutfit({
-      ...outfit,
-      items: updatedItems,
-      totalPrice: newTotalPrice,
-    })
-
-    trackSwapEvent('swap_applied', {
-      outfitId: outfit.id,
-      itemId: selectedItemForSwap.id,
-      swapId: alternative.id,
-    })
-
-    showToast.success('Item Swapped!', `Updated to ${alternative.name}`)
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to update like status',
+        variant: 'destructive',
+      })
+    }
   }
 
-  const handleItemAction = (item: OutfitItem) => {
-    const config = sellerConfig[item.seller]
-    if (item.seller === 'curator') {
-      showToast.addedToCart(item.name)
-    } else {
-      showToast.success(`Opening ${config.label}`, `Viewing ${item.name} on ${item.sellerName}`)
+  const handleSave = async () => {
+    if (!user?.id || !outfit) {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to save outfits',
+        variant: 'destructive',
+      })
+      return
     }
+
+    try {
+      if (isSaved) {
+        await dispatch(unsaveOutfit({ userId: user.id, outfitId: outfit.id })).unwrap()
+        setIsSaved(false)
+        toast({
+          title: 'Removed from saved',
+          description: 'Outfit removed from your collection',
+        })
+      } else {
+        await dispatch(saveOutfit({ userId: user.id, outfitId: outfit.id })).unwrap()
+        setIsSaved(true)
+        toast({
+          title: 'Saved!',
+          description: 'Outfit saved to your collection',
+        })
+      }
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to update save status',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleAddToCart = (itemName: string) => {
+    toast({
+      title: 'Added to Cart',
+      description: `${itemName} has been added to your cart`,
+    })
   }
 
   const handleBuyOutfit = () => {
-    showToast.addedToCart(`All items from ${outfit.name}`)
+    toast({
+      title: 'Added to Cart',
+      description: `All items from ${outfit?.name} added to your cart`,
+    })
   }
 
   const handleDownloadLook = () => {
-    showToast.success('Downloading Look', 'Your outfit is being prepared with watermark')
+    toast({
+      title: 'Downloading Look',
+      description: 'Your outfit is being prepared',
+    })
   }
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href)
-    showToast.success('Link Copied!', 'Share this look with your friends')
+    toast({
+      title: 'Link Copied!',
+      description: 'Share this look with your friends',
+    })
   }
 
-  const handleTrySimilar = () => {
-    trackSwapEvent('try_similar_clicked', { outfitId: outfit.id })
-    showToast.success('Finding Similar', 'Searching for similar looks...')
+  // Calculate total price from items
+  const totalPrice = outfit?.items?.reduce((sum, item) => sum + (item.price || 0), 0) || 0
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
+          <DetailPageSkeleton />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  if (!outfit) {
+    return (
+      <MainLayout>
+        <div className="flex h-96 flex-col items-center justify-center">
+          <h2 className="text-2xl font-bold text-muted-foreground">Outfit Not Found</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            The outfit you're looking for doesn't exist.
+          </p>
+          <Button onClick={() => navigate('/home')} className="mt-6">
+            Back to Home
+          </Button>
+        </div>
+      </MainLayout>
+    )
   }
 
   return (
@@ -142,6 +212,24 @@ export const OutfitDetailPage = () => {
             <ArrowLeft className="h-5 w-5" />
             <span className="hidden sm:inline">Back</span>
           </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLike}
+              className={cn(isLiked && 'text-red-500')}
+            >
+              <Heart className={cn('h-5 w-5', isLiked && 'fill-current')} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSave}
+              className={cn(isSaved && 'text-brand-blue')}
+            >
+              <Bookmark className={cn('h-5 w-5', isSaved && 'fill-current')} />
+            </Button>
+          </div>
         </motion.div>
 
         <div className="space-y-6 px-4 sm:space-y-8 sm:px-6 lg:px-8">
@@ -154,33 +242,43 @@ export const OutfitDetailPage = () => {
           >
             <Card className="overflow-hidden shadow-lg">
               <div className="relative aspect-[3/4] bg-gradient-to-br from-brand-beige/30 to-brand-gray/10 sm:aspect-[4/5] lg:aspect-[16/9]">
-                <img
-                  src={outfit.heroImage}
-                  alt={outfit.name}
-                  className="h-full w-full object-cover"
-                />
+                {outfit.items?.[0]?.imageUrl ? (
+                  <img
+                    src={outfit.items[0].imageUrl}
+                    alt={outfit.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <ShoppingBag className="h-20 w-20 text-muted-foreground/30" />
+                  </div>
+                )}
 
                 {/* Match Badge */}
-                <div className="absolute right-3 top-3 sm:right-4 sm:top-4">
-                  <Badge className="bg-green-500/95 px-2.5 py-1 text-white shadow-lg backdrop-blur-sm sm:px-3 sm:py-1.5">
-                    <Sparkles className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs font-semibold sm:text-sm">
-                      {outfit.matchScore}% Match
-                    </span>
-                  </Badge>
-                </div>
+                {outfit.confidenceScore > 0 && (
+                  <div className="absolute right-3 top-3 sm:right-4 sm:top-4">
+                    <Badge className="bg-green-500/95 px-2.5 py-1 text-white shadow-lg backdrop-blur-sm sm:px-3 sm:py-1.5">
+                      <Sparkles className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-xs font-semibold sm:text-sm">
+                        {Math.round(outfit.confidenceScore * 100)}% Match
+                      </span>
+                    </Badge>
+                  </div>
+                )}
 
                 {/* Style Tags */}
-                <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2 sm:bottom-4 sm:left-4 sm:right-4">
-                  {outfit.styleTags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      className="bg-white/95 px-2.5 py-1 text-brand-charcoal shadow-md backdrop-blur-sm transition-all hover:scale-105 sm:px-3"
-                    >
-                      <span className="text-xs font-medium sm:text-sm">{tag}</span>
-                    </Badge>
-                  ))}
-                </div>
+                {outfit.styleAttributes && outfit.styleAttributes.length > 0 && (
+                  <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2 sm:bottom-4 sm:left-4 sm:right-4">
+                    {outfit.styleAttributes.slice(0, 4).map((tag) => (
+                      <Badge
+                        key={tag}
+                        className="bg-white/95 px-2.5 py-1 text-brand-charcoal shadow-md backdrop-blur-sm transition-all hover:scale-105 sm:px-3"
+                      >
+                        <span className="text-xs font-medium sm:text-sm">{tag}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -189,23 +287,38 @@ export const OutfitDetailPage = () => {
               <h1 className="font-heading text-3xl font-bold leading-tight text-brand-charcoal sm:text-4xl lg:text-5xl">
                 {outfit.name}
               </h1>
-              <p className="text-base leading-relaxed text-muted-foreground sm:text-lg lg:text-xl">
-                {outfit.description}
-              </p>
+              {outfit.description && (
+                <p className="text-base leading-relaxed text-muted-foreground sm:text-lg lg:text-xl">
+                  {outfit.description}
+                </p>
+              )}
               <div className="flex flex-wrap gap-2 text-sm text-muted-foreground sm:gap-3 sm:text-base">
+                {outfit.occasion && (
+                  <span className="flex items-center gap-1">
+                    <strong className="font-semibold text-brand-charcoal">Occasion:</strong>{' '}
+                    {outfit.occasion}
+                  </span>
+                )}
+                {outfit.season && (
+                  <>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="flex items-center gap-1">
+                      <strong className="font-semibold text-brand-charcoal">Season:</strong>{' '}
+                      {outfit.season}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <strong className="font-semibold text-brand-charcoal">Occasion:</strong>{' '}
-                  {outfit.occasion.slice(0, 2).join(', ')}
-                  {outfit.occasion.length > 2 && ` +${outfit.occasion.length - 2}`}
+                  <Heart className="h-4 w-4" />
+                  {likesCount} likes
                 </span>
-                <span className="hidden sm:inline">•</span>
                 <span className="flex items-center gap-1">
-                  <strong className="font-semibold text-brand-charcoal">Season:</strong>{' '}
-                  {outfit.season}
-                </span>
-                <span className="hidden lg:inline">•</span>
-                <span className="flex items-center gap-1">
-                  <strong className="font-semibold text-brand-charcoal">Vibe:</strong> {outfit.vibe}
+                  <Bookmark className="h-4 w-4" />
+                  {outfit.saves || 0} saves
                 </span>
               </div>
             </div>
@@ -215,43 +328,6 @@ export const OutfitDetailPage = () => {
           <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
             {/* Main Content (Left 2/3 on desktop) */}
             <div className="space-y-6 sm:space-y-8 lg:col-span-2">
-              {/* AI Stylist Insight */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Card className="border-brand-blue/20 bg-gradient-to-br from-brand-blue/5 to-transparent p-5 shadow-sm transition-all hover:shadow-md sm:p-6">
-                  <div className="mb-4 flex items-center gap-2.5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-blue/10">
-                      <Sparkles className="h-5 w-5 text-brand-blue" />
-                    </div>
-                    <h2 className="text-lg font-semibold text-brand-charcoal sm:text-xl">
-                      AI Stylist Insight
-                    </h2>
-                  </div>
-                  <p className="mb-4 text-sm text-muted-foreground sm:text-base">
-                    Why this was recommended for you:
-                  </p>
-                  <ul className="space-y-2.5 sm:space-y-3">
-                    {outfit.aiInsights.map((insight, index) => (
-                      <motion.li
-                        key={index}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 + index * 0.05 }}
-                        className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground sm:gap-3 sm:text-base"
-                      >
-                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-blue/10">
-                          <Check className="h-3 w-3 text-brand-blue" />
-                        </div>
-                        <span>{insight}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </Card>
-              </motion.div>
-
               {/* The Breakdown */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -264,12 +340,12 @@ export const OutfitDetailPage = () => {
                     The Breakdown
                   </h2>
                   <p className="text-sm text-muted-foreground sm:text-base">
-                    Every piece, curated with intention. Tap to swap.
+                    Every piece, curated with intention.
                   </p>
                 </div>
 
                 <div className="space-y-3 sm:space-y-4">
-                  {outfit.items.map((item, index) => (
+                  {outfit.items?.map((item, index) => (
                     <motion.div
                       key={item.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -280,11 +356,17 @@ export const OutfitDetailPage = () => {
                         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:gap-5 sm:p-5">
                           {/* Item Image */}
                           <div className="h-32 w-full flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-brand-beige/30 to-brand-gray/10 sm:h-28 sm:w-28 lg:h-32 lg:w-32">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="h-full w-full object-cover transition-transform hover:scale-110"
-                            />
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                className="h-full w-full object-cover transition-transform hover:scale-110"
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center">
+                                <ShoppingBag className="h-8 w-8 text-muted-foreground/30" />
+                              </div>
+                            )}
                           </div>
 
                           {/* Item Details */}
@@ -296,70 +378,46 @@ export const OutfitDetailPage = () => {
                                     {item.name}
                                   </h3>
                                   <p className="text-sm text-muted-foreground sm:text-base">
-                                    {item.brand} • ${item.price.toFixed(2)} • Size {item.size}
+                                    {item.brand}
+                                    {item.price > 0 && ` • $${item.price.toFixed(2)}`}
+                                    {item.size && ` • Size ${item.size}`}
                                   </p>
                                 </div>
-                                {/* Seller Badge */}
                                 <Badge
                                   variant="secondary"
-                                  className="w-fit shrink-0 text-xs sm:text-sm"
-                                  title={sellerConfig[item.seller].description}
+                                  className="w-fit shrink-0 text-xs capitalize sm:text-sm"
                                 >
-                                  <span className="mr-1">{sellerConfig[item.seller].icon}</span>
-                                  <span className="hidden sm:inline">
-                                    {sellerConfig[item.seller].label}
-                                  </span>
-                                  <span className="sm:hidden">
-                                    {item.seller === 'curator'
-                                      ? 'Curator'
-                                      : item.seller === 'partner'
-                                        ? 'Partner'
-                                        : 'External'}
-                                  </span>
+                                  {item.category}
                                 </Badge>
                               </div>
-
-                              {/* Stylist Note */}
-                              <p className="text-xs italic leading-relaxed text-muted-foreground sm:text-sm">
-                                "{item.stylistNote}"
-                              </p>
                             </div>
 
                             {/* Item Actions */}
                             <div className="flex flex-col gap-2 sm:flex-row">
-                              <Button
-                                size="lg"
-                                variant={item.seller === 'curator' ? 'default' : 'outline'}
-                                className={cn(
-                                  'flex-1 transition-all',
-                                  item.seller === 'curator' &&
-                                    'bg-brand-charcoal text-white hover:scale-[1.02] hover:bg-brand-charcoal/90'
-                                )}
-                                onClick={() => handleItemAction(item)}
-                              >
-                                {item.seller === 'curator' ? (
-                                  <>
-                                    <ShoppingBag className="mr-2 h-4 w-4" />
-                                    {sellerConfig[item.seller].ctaText}
-                                  </>
-                                ) : (
-                                  <>
-                                    <ExternalLink className="mr-2 h-4 w-4" />
-                                    {sellerConfig[item.seller].ctaText}
-                                  </>
-                                )}
-                              </Button>
+                              {item.inStock ? (
+                                <Button
+                                  size="lg"
+                                  className="flex-1 bg-brand-charcoal text-white transition-all hover:scale-[1.02] hover:bg-brand-charcoal/90"
+                                  onClick={() => handleAddToCart(item.name)}
+                                >
+                                  <ShoppingBag className="mr-2 h-4 w-4" />
+                                  Add to Bag
+                                </Button>
+                              ) : (
+                                <Badge variant="outline" className="text-muted-foreground">
+                                  Out of Stock
+                                </Badge>
+                              )}
 
-                              {/* Style Swap Button */}
-                              {swapAlternatives[item.id] && (
+                              {item.productUrl && (
                                 <Button
                                   size="lg"
                                   variant="outline"
-                                  className="flex-1 border-brand-blue text-brand-blue transition-all hover:scale-[1.02] hover:bg-brand-blue hover:text-white sm:flex-[0.6]"
-                                  onClick={() => handleSwapItem(item.id)}
+                                  className="flex-1 sm:flex-[0.6]"
+                                  onClick={() => window.open(item.productUrl, '_blank')}
                                 >
-                                  <RotateCw className="mr-2 h-4 w-4" />
-                                  Swap This
+                                  <ExternalLink className="mr-2 h-4 w-4" />
+                                  View on Store
                                 </Button>
                               )}
                             </div>
@@ -389,12 +447,12 @@ export const OutfitDetailPage = () => {
                           Total Look Investment
                         </p>
                         <p className="text-3xl font-bold text-brand-crimson sm:text-4xl">
-                          ${outfit.totalPrice.toFixed(2)}
+                          ${totalPrice.toFixed(2)}
                         </p>
                       </div>
                       <Badge className="bg-green-500 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-                        {outfit.items.filter((i) => i.available).length}/{outfit.items.length}{' '}
-                        Available
+                        {outfit.items?.filter((i) => i.inStock).length || 0}/
+                        {outfit.items?.length || 0} Available
                       </Badge>
                     </div>
 
@@ -403,13 +461,14 @@ export const OutfitDetailPage = () => {
                       <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Items</p>
                         <p className="text-lg font-semibold text-brand-charcoal">
-                          {outfit.items.length}
+                          {outfit.items?.length || 0}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Avg Price</p>
                         <p className="text-lg font-semibold text-brand-charcoal">
-                          ${(outfit.totalPrice / outfit.items.length).toFixed(0)}
+                          $
+                          {outfit.items?.length ? (totalPrice / outfit.items.length).toFixed(0) : 0}
                         </p>
                       </div>
                     </div>
@@ -455,32 +514,18 @@ export const OutfitDetailPage = () => {
             <Button
               variant="outline"
               size="lg"
-              onClick={handleTrySimilar}
-              className="flex-1 border-brand-blue text-brand-blue transition-all hover:scale-[1.02] hover:bg-brand-blue hover:text-white sm:flex-none"
+              onClick={handleLike}
+              className={cn(
+                'flex-1 transition-all hover:scale-[1.02] sm:flex-none',
+                isLiked && 'border-red-500 text-red-500'
+              )}
             >
-              <Sparkles className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Try Similar</span>
-              <span className="sm:hidden">Similar</span>
+              <Heart className={cn('mr-2 h-4 w-4', isLiked && 'fill-current')} />
+              <span className="hidden sm:inline">{isLiked ? 'Liked' : 'Like'}</span>
             </Button>
           </div>
         </div>
       </div>
-
-      {/* Style Swap Drawer */}
-      {selectedItemForSwap && (
-        <StyleSwapDrawer
-          open={swapDrawerOpen}
-          onOpenChange={setSwapDrawerOpen}
-          originalItem={{
-            name: selectedItemForSwap.name,
-            brand: selectedItemForSwap.brand,
-            price: selectedItemForSwap.price,
-            image: selectedItemForSwap.image,
-          }}
-          alternatives={swapAlternatives[selectedItemForSwap.id] || []}
-          onSwap={handleSwapApplied}
-        />
-      )}
     </MainLayout>
   )
 }

@@ -71,19 +71,31 @@ interface BackendPaginatedResponse<T> {
 }
 
 function transformPost(post: BackendPost): SocialPost {
+  // Handle cases where author might be missing or null
+  const author = post.author || {
+    id: post.user_id || '',
+    username: 'Unknown',
+    full_name: 'Unknown User',
+    first_name: undefined,
+    last_name: undefined,
+    photo_url: undefined,
+    avatar: undefined,
+  }
+
   const authorName =
-    post.author.full_name ||
-    [post.author.first_name, post.author.last_name].filter(Boolean).join(' ') ||
-    post.author.username
+    author.full_name ||
+    [author.first_name, author.last_name].filter(Boolean).join(' ') ||
+    author.username ||
+    'Unknown User'
 
   return {
     id: post.id,
     userId: post.user_id,
     author: {
-      id: post.author.id,
-      username: post.author.username,
+      id: author.id || post.user_id || '',
+      username: author.username || 'unknown',
       fullName: authorName,
-      photoUrl: post.author.photo_url || post.author.avatar,
+      photoUrl: author.photo_url || author.avatar,
     },
     images: post.images || [],
     caption: post.caption || '',
@@ -103,20 +115,32 @@ function transformPost(post: BackendPost): SocialPost {
 }
 
 function transformComment(comment: BackendComment): Comment {
+  // Handle cases where author might be missing or null
+  const author = comment.author || {
+    id: comment.user_id || '',
+    username: 'Unknown',
+    full_name: 'Unknown User',
+    first_name: undefined,
+    last_name: undefined,
+    photo_url: undefined,
+    avatar: undefined,
+  }
+
   const authorName =
-    comment.author.full_name ||
-    [comment.author.first_name, comment.author.last_name].filter(Boolean).join(' ') ||
-    comment.author.username
+    author.full_name ||
+    [author.first_name, author.last_name].filter(Boolean).join(' ') ||
+    author.username ||
+    'Unknown User'
 
   return {
     id: comment.id,
     postId: comment.post_id,
     userId: comment.user_id,
     author: {
-      id: comment.author.id,
-      username: comment.author.username,
+      id: author.id || comment.user_id || '',
+      username: author.username || 'unknown',
       fullName: authorName,
-      photoUrl: comment.author.photo_url || comment.author.avatar,
+      photoUrl: author.photo_url || author.avatar,
     },
     content: comment.content,
     likes: comment.likes_count ?? comment.likes ?? 0,

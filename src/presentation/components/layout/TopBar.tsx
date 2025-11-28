@@ -1,5 +1,6 @@
+import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Search,
   Bell,
@@ -9,6 +10,7 @@ import {
   Sparkles,
   ArrowRight,
   Check,
+  X,
 } from 'lucide-react'
 import { Input } from '../ui/input'
 import { Badge } from '../ui/badge'
@@ -19,6 +21,24 @@ import { Separator } from '../ui/separator'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../ui/dropdown-menu'
 
 export const TopBar = () => {
+  const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      if (searchQuery.trim()) {
+        // Navigate to visual search or outfits page with search query
+        navigate(`/home?search=${encodeURIComponent(searchQuery.trim())}`)
+      }
+    },
+    [searchQuery, navigate]
+  )
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('')
+  }, [])
+
   return (
     <motion.header
       initial={{ y: -64 }}
@@ -34,13 +54,24 @@ export const TopBar = () => {
 
       {/* Centered Search */}
       <div className="flex flex-1 items-center justify-center lg:px-4">
-        <div className="relative w-full max-w-2xl">
+        <form onSubmit={handleSearch} className="relative w-full max-w-2xl">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search outfits, styles, brands..."
-            className="pl-9 focus-visible:ring-brand-blue"
+            className="pl-9 pr-9 focus-visible:ring-brand-blue"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </form>
       </div>
 
       {/* Actions */}

@@ -34,6 +34,7 @@ import { sortItems } from '@/shared/utils/wardrobeHelpers'
 import { FilterDialog, FilterValues } from '@/presentation/components/wardrobe/FilterDialog'
 import { SortMenu, SortOption } from '@/presentation/components/wardrobe/SortMenu'
 import { setSortBy, setFilters } from '@/shared/store/slices/wardrobeSlice'
+import { WardrobeGridSkeleton } from '@/presentation/components/ui/shimmer'
 
 const formatLastWorn = (item: WardrobeItem): string => {
   const now = new Date()
@@ -454,11 +455,7 @@ export const WardrobePage = () => {
         </div>
 
         {/* Loading State */}
-        {isLoading && (
-          <div className="flex h-96 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-brand-crimson" />
-          </div>
-        )}
+        {isLoading && items.length === 0 && <WardrobeGridSkeleton count={8} />}
 
         {/* Empty State */}
         {!isLoading && filteredItems.length === 0 && (

@@ -11,7 +11,6 @@ import {
   Users,
   Calendar,
   Sparkles,
-  Loader2,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Badge } from '@/presentation/components/ui/badge'
@@ -29,6 +28,7 @@ import {
 } from '@/shared/store/slices/lookbookSlice'
 import { useToast } from '@/presentation/components/ui/use-toast'
 import { Lookbook } from '@/domain/entities/Lookbook'
+import { LookbookGridSkeleton, StatsCardSkeleton } from '@/presentation/components/ui/shimmer'
 
 // Format time ago
 const formatTimeAgo = (date: Date): string => {
@@ -159,53 +159,61 @@ export const LookbooksPage = () => {
 
         {/* Stats Cards */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
-            <Card className="border-brand-crimson/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-crimson/10">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-brand-crimson/10 p-3">
-                  <BookOpen className="h-5 w-5 text-brand-crimson" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">
-                    {isLoading ? '-' : displayLookbooks.length}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Total Lookbooks</p>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
+          {isLoading && displayLookbooks.length === 0 ? (
+            <>
+              <StatsCardSkeleton />
+              <StatsCardSkeleton />
+              <StatsCardSkeleton />
+            </>
+          ) : (
+            <>
+              <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
+                <Card className="border-brand-crimson/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-crimson/10">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-brand-crimson/10 p-3">
+                      <BookOpen className="h-5 w-5 text-brand-crimson" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-brand-charcoal">
+                        {displayLookbooks.length}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Total Lookbooks</p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
 
-          <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
-            <Card className="border-brand-blue/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-blue/10">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-brand-blue/10 p-3">
-                  <Heart className="h-5 w-5 text-brand-blue" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">
-                    {isLoading ? '-' : totalLikes.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Total Likes</p>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
+              <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
+                <Card className="border-brand-blue/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-blue/10">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-brand-blue/10 p-3">
+                      <Heart className="h-5 w-5 text-brand-blue" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-brand-charcoal">
+                        {totalLikes.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Total Likes</p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
 
-          <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
-            <Card className="border-brand-blue/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-blue/10">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-brand-blue/10 p-3">
-                  <TrendingUp className="h-5 w-5 text-brand-blue" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">
-                    {isLoading ? '-' : trendingCount}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Trending Now</p>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
+              <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}>
+                <Card className="border-brand-blue/20 p-4 transition-all hover:shadow-lg hover:shadow-brand-blue/10">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-brand-blue/10 p-3">
+                      <TrendingUp className="h-5 w-5 text-brand-blue" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-brand-charcoal">{trendingCount}</p>
+                      <p className="text-xs text-muted-foreground">Trending Now</p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            </>
+          )}
         </div>
 
         {/* Tabs */}
@@ -226,13 +234,8 @@ export const LookbooksPage = () => {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6">
-            {isLoading ? (
-              <div className="flex min-h-[400px] items-center justify-center">
-                <div className="text-center">
-                  <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-crimson" />
-                  <p className="text-lg font-semibold">Loading lookbooks...</p>
-                </div>
-              </div>
+            {isLoading && displayLookbooks.length === 0 ? (
+              <LookbookGridSkeleton count={6} />
             ) : displayLookbooks.length === 0 ? (
               <Card className="p-12 text-center">
                 <motion.div
