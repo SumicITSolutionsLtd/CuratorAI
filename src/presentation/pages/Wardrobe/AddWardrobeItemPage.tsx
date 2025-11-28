@@ -25,10 +25,18 @@ import {
 } from '@/presentation/components/ui/select'
 import { Badge } from '@/presentation/components/ui/badge'
 import { useNavigate } from 'react-router-dom'
-import { useAppDispatch } from '@/shared/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/shared/store/hooks'
 import { addWardrobeItem } from '@/shared/store/slices/wardrobeSlice'
 import { WardrobeItem } from '@/domain/entities/Wardrobe'
 import { useToast } from '@/presentation/components/ui/use-toast'
+import { WardrobeRepository } from '@/infrastructure/repositories/WardrobeRepository'
+
+interface ImageFile {
+  file: File
+  preview: string
+}
+
+const wardrobeRepository = new WardrobeRepository()
 
 export const AddWardrobeItemPage = () => {
   const navigate = useNavigate()
@@ -37,8 +45,12 @@ export const AddWardrobeItemPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
 
+  const { user } = useAppSelector((state) => state.auth)
+  const { wardrobe } = useAppSelector((state) => state.wardrobe)
+
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [images, setImages] = useState<string[]>([])
+  const [uploadProgress, setUploadProgress] = useState<string>('')
+  const [imageFiles, setImageFiles] = useState<ImageFile[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [currentTag, setCurrentTag] = useState('')
   const [attributes, setAttributes] = useState<{ key: string; value: string }[]>([
@@ -48,7 +60,7 @@ export const AddWardrobeItemPage = () => {
   ])
 
   const [formData, setFormData] = useState({
-    wardrobeId: 'wardrobe-1',
+    wardrobeId: '',
     category: '' as WardrobeItem['category'],
     name: '',
     brand: '',
@@ -66,17 +78,26 @@ export const AddWardrobeItemPage = () => {
     const files = e.target.files
     if (!files) return
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImages((prev) => [...prev, reader.result as string])
-      }
-      reader.readAsDataURL(file)
+    // Limit to 5 images total
+    const remainingSlots = 5 - imageFiles.length
+    const filesToAdd = Array.from(files).slice(0, remainingSlots)
+
+    filesToAdd.forEach((file) => {
+      // Create preview URL
+      const preview = URL.createObjectURL(file)
+      setImageFiles((prev) => [...prev, { file, preview }])
     })
+
+    // Reset input to allow selecting the same file again
+    e.target.value = ''
   }
 
   const handleRemoveImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index))
+    setImageFiles((prev) => {
+      // Revoke the preview URL to avoid memory leaks
+      URL.revokeObjectURL(prev[index].preview)
+      return prev.filter((_, i) => i !== index)
+    })
   }
 
   const handleCameraUpload = () => {
@@ -143,7 +164,7 @@ export const AddWardrobeItemPage = () => {
       return
     }
 
-    if (images.length === 0) {
+    if (imageFiles.length === 0) {
       toast({
         title: 'No Images',
         description: 'Please add at least one image.',
@@ -152,11 +173,23 @@ export const AddWardrobeItemPage = () => {
       return
     }
 
+    if (!user?.id) {
+      toast({
+        title: 'Not Authenticated',
+        description: 'Please log in to add items.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
+      // Step 1: Create item with placeholder images (or empty)
+      setUploadProgress('Creating item...')
+
       const newItem = {
-        wardrobeId: formData.wardrobeId,
+        wardrobeId: wardrobe?.id || `wardrobe-${user.id}`,
         category: formData.category,
         name: formData.name,
         brand: formData.brand || undefined,
@@ -166,7 +199,7 @@ export const AddWardrobeItemPage = () => {
         currency: formData.currency || undefined,
         purchaseDate: formData.purchaseDate ? new Date(formData.purchaseDate) : undefined,
         material: formData.material || undefined,
-        images,
+        images: [] as string[], // Will be populated after upload
         attributes: attributes.filter((attr) => attr.key && attr.value),
         tags,
         notes: formData.notes || undefined,
@@ -174,22 +207,44 @@ export const AddWardrobeItemPage = () => {
         purchaseLink: formData.purchaseLink || undefined,
       }
 
-      await dispatch(addWardrobeItem(newItem)).unwrap()
+      // Create the item first
+      const createdItem = await dispatch(addWardrobeItem(newItem)).unwrap()
+
+      // Step 2: Upload images to the created item
+      const uploadedImageUrls: string[] = []
+
+      for (let i = 0; i < imageFiles.length; i++) {
+        setUploadProgress(`Uploading image ${i + 1} of ${imageFiles.length}...`)
+        try {
+          const imageUrl = await wardrobeRepository.uploadItemImage(
+            createdItem.id,
+            imageFiles[i].file
+          )
+          uploadedImageUrls.push(imageUrl)
+        } catch (uploadError) {
+          console.warn(`Failed to upload image ${i + 1}:`, uploadError)
+          // Continue with other images even if one fails
+        }
+      }
+
+      // Clean up preview URLs
+      imageFiles.forEach((img) => URL.revokeObjectURL(img.preview))
 
       toast({
         title: 'Item Added',
-        description: `${formData.name} has been added to your wardrobe.`,
+        description: `${formData.name} has been added to your wardrobe${uploadedImageUrls.length > 0 ? ` with ${uploadedImageUrls.length} image(s)` : ''}.`,
       })
 
       navigate('/wardrobe')
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to add item. Please try again.',
+        description: error?.message || 'Failed to add item. Please try again.',
         variant: 'destructive',
       })
     } finally {
       setIsSubmitting(false)
+      setUploadProgress('')
     }
   }
 
@@ -291,12 +346,12 @@ export const AddWardrobeItemPage = () => {
               />
 
               {/* Image Preview Grid */}
-              {images.length > 0 && (
+              {imageFiles.length > 0 && (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                  {images.map((image, index) => (
+                  {imageFiles.map((imageFile, index) => (
                     <div key={index} className="group relative aspect-square">
                       <img
-                        src={image}
+                        src={imageFile.preview}
                         alt={`Upload ${index + 1}`}
                         className="h-full w-full rounded-lg object-cover"
                       />
@@ -565,7 +620,7 @@ export const AddWardrobeItemPage = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adding...
+                  {uploadProgress || 'Adding...'}
                 </>
               ) : (
                 'Add to Wardrobe'

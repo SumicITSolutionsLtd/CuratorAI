@@ -12,7 +12,9 @@ import { cn } from '@/shared/utils/cn'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks'
 import { fetchWardrobe } from '@/shared/store/slices/wardrobeSlice'
+import { createOutfit } from '@/shared/store/slices/outfitSlice'
 import { WardrobeItem } from '@/domain/entities/Wardrobe'
+import { OutfitItem } from '@/domain/entities/Outfit'
 import { useToast } from '@/presentation/components/ui/use-toast'
 
 export const CreateOutfitPage = () => {
@@ -107,18 +109,68 @@ export const CreateOutfitPage = () => {
       return
     }
 
+    if (!user?.id) {
+      toast({
+        title: 'Not Authenticated',
+        description: 'Please log in to create an outfit.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      // Transform wardrobe items to outfit items
+      const outfitItems: OutfitItem[] = selectedItemObjects.map((item) => ({
+        id: item.id,
+        category: item.category as OutfitItem['category'],
+        brand: item.brand || '',
+        name: item.name,
+        price: item.price || 0,
+        currency: item.currency || 'USD',
+        size: item.size,
+        color: item.color,
+        imageUrl: item.images[0] || '',
+        productUrl: item.purchaseLink,
+        inStock: true,
+      }))
 
-    toast({
-      title: 'Outfit Created',
-      description: `${outfitData.name} has been saved to your collection.`,
-    })
+      // Calculate total price
+      const totalPrice = outfitItems.reduce((sum, item) => sum + item.price, 0)
 
-    navigate('/wardrobe')
-    setIsSubmitting(false)
+      const newOutfit = {
+        userId: user.id,
+        name: outfitData.name,
+        description: outfitData.description || undefined,
+        items: outfitItems,
+        styleAttributes: outfitData.tags,
+        occasion: outfitData.occasion || undefined,
+        season: undefined,
+        confidenceScore: 100,
+        totalPrice,
+        currency: 'USD',
+        isPublic: false,
+        tags: outfitData.tags,
+      }
+
+      await dispatch(createOutfit(newOutfit)).unwrap()
+
+      toast({
+        title: 'Outfit Created',
+        description: `${outfitData.name} has been saved to your collection.`,
+      })
+
+      navigate('/wardrobe')
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to create outfit. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

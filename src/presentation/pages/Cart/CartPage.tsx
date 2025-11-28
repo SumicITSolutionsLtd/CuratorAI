@@ -13,6 +13,7 @@ import {
   Heart,
   ArrowRight,
   Gift,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
@@ -22,56 +23,24 @@ import { Separator } from '@/presentation/components/ui/separator'
 import { Link } from 'react-router-dom'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
-import { fetchCart } from '@/shared/store/slices/cartSlice'
-
-const mockCartItems = [
-  {
-    id: 1,
-    name: 'Silk Midi Dress',
-    brand: 'Reformation',
-    color: 'Sage Green',
-    size: 'M',
-    price: 248.0,
-    quantity: 1,
-    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=500&fit=crop',
-    inStock: true,
-    fulfilledBy: 'curatorai', // 'curatorai' or 'external'
-  },
-  {
-    id: 2,
-    name: 'Leather Ankle Boots',
-    brand: 'Sam Edelman',
-    color: 'Black',
-    size: '8',
-    price: 175.0,
-    quantity: 1,
-    image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=500&fit=crop',
-    inStock: true,
-    fulfilledBy: 'external',
-  },
-  {
-    id: 3,
-    name: 'Oversized Blazer',
-    brand: 'Zara',
-    color: 'Camel',
-    size: 'L',
-    price: 129.0,
-    quantity: 1,
-    image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=500&fit=crop',
-    inStock: true,
-    fulfilledBy: 'curatorai',
-  },
-]
+import {
+  fetchCart,
+  updateQuantity as updateCartQuantity,
+  removeFromCart,
+  applyPromoCode as applyPromo,
+  removePromoCode,
+} from '@/shared/store/slices/cartSlice'
+import { useToast } from '@/presentation/components/ui/use-toast'
 
 export const CartPage = () => {
   const dispatch = useAppDispatch()
+  const { toast } = useToast()
   const { user } = useAppSelector((state) => state.auth)
-  const cartState = useAppSelector((state) => state.cart)
+  const { items, subtotal, shipping, tax, total, discount, promoCode, isLoading, error } =
+    useAppSelector((state) => state.cart)
 
-  // Local state for mock functionality
-  const [localItems, setLocalItems] = useState<any[]>(mockCartItems)
-  const [promoCode, setPromoCode] = useState('')
-  const [promoApplied, setPromoApplied] = useState(false)
+  const [promoInput, setPromoInput] = useState('')
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false)
 
   // Fetch cart on mount
   useEffect(() => {
@@ -80,35 +49,119 @@ export const CartPage = () => {
     }
   }, [dispatch, user?.id])
 
-  // Use backend items if available, otherwise use local mock
-  const items: any[] = cartState.items.length > 0 ? cartState.items : localItems
-  const setItems = setLocalItems
-
-  // Calculate values
-  const subtotal = items.reduce((sum: any, item: any) => sum + item.price * item.quantity, 0)
-  const shipping = subtotal > 200 ? 0 : 15.0
-  const discount = promoApplied ? subtotal * 0.1 : 0
-  const tax = (subtotal - discount) * 0.08
-  const total = subtotal + shipping - discount + tax
-
-  const updateQuantity = (id: string | number, delta: number) => {
-    setItems(
-      items
-        .map((item: any) =>
-          item.id == id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
-        )
-        .filter((item: any) => item.quantity > 0)
-    )
-  }
-
-  const removeItem = (id: string | number) => {
-    setItems(items.filter((item: any) => item.id != id))
-  }
-
-  const applyPromoCode = () => {
-    if (promoCode.toLowerCase() === 'curator10' || promoCode.toLowerCase() === 'save10') {
-      setPromoApplied(true)
+  // Show error toast
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error',
+        description: error,
+        variant: 'destructive',
+      })
     }
+  }, [error, toast])
+
+  const handleUpdateQuantity = async (itemId: string, delta: number) => {
+    if (!user?.id) return
+
+    const item = items.find((i) => i.id === itemId)
+    if (!item) return
+
+    const newQuantity = item.quantity + delta
+    if (newQuantity <= 0) {
+      handleRemoveItem(itemId)
+      return
+    }
+
+    try {
+      await dispatch(
+        updateCartQuantity({
+          userId: user.id,
+          itemId,
+          quantity: newQuantity,
+        })
+      ).unwrap()
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to update quantity',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleRemoveItem = async (itemId: string) => {
+    if (!user?.id) return
+
+    try {
+      await dispatch(removeFromCart({ userId: user.id, itemId })).unwrap()
+      toast({
+        title: 'Item Removed',
+        description: 'Item has been removed from your cart',
+      })
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove item',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleApplyPromoCode = async () => {
+    if (!user?.id || !promoInput.trim()) return
+
+    setIsApplyingPromo(true)
+    try {
+      await dispatch(applyPromo({ userId: user.id, code: promoInput })).unwrap()
+      toast({
+        title: 'Promo Applied',
+        description: 'Your promo code has been applied successfully!',
+      })
+      setPromoInput('')
+    } catch {
+      toast({
+        title: 'Invalid Code',
+        description: 'The promo code is invalid or expired',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsApplyingPromo(false)
+    }
+  }
+
+  const handleRemovePromoCode = async () => {
+    if (!user?.id) return
+
+    try {
+      await dispatch(removePromoCode(user.id)).unwrap()
+      toast({
+        title: 'Promo Removed',
+        description: 'Promo code has been removed',
+      })
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove promo code',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  // Calculate display values
+  const displaySubtotal =
+    subtotal || items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const displayShipping = shipping || (displaySubtotal > 200 ? 0 : 15.0)
+  const displayTax = tax || (displaySubtotal - (discount || 0)) * 0.08
+  const displayTotal = total || displaySubtotal + displayShipping - (discount || 0) + displayTax
+
+  if (isLoading && items.length === 0) {
+    return (
+      <MainLayout>
+        <div className="flex h-96 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-crimson" />
+        </div>
+      </MainLayout>
+    )
   }
 
   return (
@@ -173,14 +226,14 @@ export const CartPage = () => {
                       {/* Item Image */}
                       <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-lg bg-brand-beige">
                         <img
-                          src={item.image}
+                          src={item.imageUrl}
                           alt={item.name}
                           className="h-full w-full object-cover"
                         />
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => handleRemoveItem(item.id)}
                           className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -201,7 +254,7 @@ export const CartPage = () => {
                           </div>
                           <div className="flex gap-4 text-xs text-muted-foreground">
                             <span>Color: {item.color}</span>
-                            <span>Size: {item.size}</span>
+                            {item.size && <span>Size: {item.size}</span>}
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {item.inStock ? (
@@ -210,15 +263,6 @@ export const CartPage = () => {
                               </Badge>
                             ) : (
                               <Badge variant="destructive">Out of Stock</Badge>
-                            )}
-                            {item.fulfilledBy === 'curatorai' ? (
-                              <Badge className="bg-brand-crimson/10 text-brand-crimson hover:bg-brand-crimson/20">
-                                Fulfilled by CuratorAI
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-brand-charcoal/10 text-brand-charcoal hover:bg-brand-charcoal/20">
-                                Delivered by External Seller
-                              </Badge>
                             )}
                           </div>
                         </div>
@@ -229,8 +273,9 @@ export const CartPage = () => {
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              onClick={() => updateQuantity(item.id, -1)}
+                              onClick={() => handleUpdateQuantity(item.id, -1)}
                               className="p-2 transition-colors hover:bg-muted"
+                              disabled={isLoading}
                             >
                               <Minus className="h-3 w-3" />
                             </motion.button>
@@ -240,8 +285,9 @@ export const CartPage = () => {
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              onClick={() => updateQuantity(item.id, 1)}
+                              onClick={() => handleUpdateQuantity(item.id, 1)}
                               className="p-2 transition-colors hover:bg-muted"
+                              disabled={isLoading}
                             >
                               <Plus className="h-3 w-3" />
                             </motion.button>
@@ -264,27 +310,37 @@ export const CartPage = () => {
                     <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       placeholder="Enter promo code"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
+                      value={promoInput}
+                      onChange={(e) => setPromoInput(e.target.value)}
                       className="pl-10"
-                      disabled={promoApplied}
+                      disabled={!!promoCode || isApplyingPromo}
                     />
                   </div>
-                  <Button
-                    onClick={applyPromoCode}
-                    disabled={promoApplied}
-                    className="bg-brand-blue hover:bg-brand-blue/90"
-                  >
-                    {promoApplied ? 'Applied' : 'Apply'}
-                  </Button>
+                  {promoCode ? (
+                    <Button
+                      onClick={handleRemovePromoCode}
+                      variant="outline"
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      Remove
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleApplyPromoCode}
+                      disabled={isApplyingPromo || !promoInput.trim()}
+                      className="bg-brand-blue hover:bg-brand-blue/90"
+                    >
+                      {isApplyingPromo ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                    </Button>
+                  )}
                 </div>
-                {promoApplied && (
+                {promoCode && discount > 0 && (
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-2 text-sm text-brand-blue"
                   >
-                    Promo code applied! You saved ${discount.toFixed(2)}
+                    Promo code "{promoCode}" applied! You saved ${discount.toFixed(2)}
                   </motion.p>
                 )}
               </Card>
@@ -301,12 +357,12 @@ export const CartPage = () => {
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium">${subtotal.toFixed(2)}</span>
+                      <span className="font-medium">${displaySubtotal.toFixed(2)}</span>
                     </div>
 
-                    {promoApplied && (
+                    {discount > 0 && (
                       <div className="flex justify-between text-brand-blue">
-                        <span>Discount (10%)</span>
+                        <span>Discount</span>
                         <span>-${discount.toFixed(2)}</span>
                       </div>
                     )}
@@ -314,29 +370,32 @@ export const CartPage = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Shipping</span>
                       <span className="font-medium">
-                        {shipping === 0 ? (
+                        {displayShipping === 0 ? (
                           <Badge className="bg-brand-blue/10 text-brand-blue">FREE</Badge>
                         ) : (
-                          `$${shipping.toFixed(2)}`
+                          `$${displayShipping.toFixed(2)}`
                         )}
                       </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Tax</span>
-                      <span className="font-medium">${tax.toFixed(2)}</span>
+                      <span className="font-medium">${displayTax.toFixed(2)}</span>
                     </div>
 
                     <Separator />
 
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total</span>
-                      <span className="text-brand-crimson">${total.toFixed(2)}</span>
+                      <span className="text-brand-crimson">${displayTotal.toFixed(2)}</span>
                     </div>
                   </div>
 
                   <Link to="/checkout">
-                    <Button className="mt-6 h-12 w-full bg-brand-crimson hover:bg-brand-crimson/90">
+                    <Button
+                      className="mt-6 h-12 w-full bg-brand-crimson hover:bg-brand-crimson/90"
+                      disabled={items.length === 0}
+                    >
                       <CreditCard className="mr-2 h-5 w-5" />
                       Proceed to Checkout
                     </Button>

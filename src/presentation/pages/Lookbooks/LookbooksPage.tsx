@@ -19,10 +19,16 @@ import { Card } from '@/presentation/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/presentation/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/components/ui/tabs'
 import { Link } from 'react-router-dom'
-import { showToast } from '@/shared/utils/toast'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
-import { fetchLookbooks, fetchFeaturedLookbooks } from '@/shared/store/slices/lookbookSlice'
+import {
+  fetchLookbooks,
+  fetchFeaturedLookbooks,
+  likeLookbook,
+  unlikeLookbook,
+} from '@/shared/store/slices/lookbookSlice'
+import { useToast } from '@/presentation/components/ui/use-toast'
+import { Lookbook } from '@/domain/entities/Lookbook'
 
 // Format time ago
 const formatTimeAgo = (date: Date): string => {
@@ -35,118 +41,18 @@ const formatTimeAgo = (date: Date): string => {
   return `${Math.floor(diffDays / 30)}mo ago`
 }
 
-const mockLookbooks = [
-  {
-    id: 1,
-    title: 'Summer Essentials 2024',
-    description: 'Light and breezy outfits perfect for warm weather',
-    coverImage:
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=1000&fit=crop',
-    outfitCount: 12,
-    likes: 2847,
-    views: 15234,
-    saves: 892,
-    author: {
-      name: 'Emma Wilson',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
-    },
-    createdAt: '2 days ago',
-    trending: true,
-  },
-  {
-    id: 2,
-    title: 'Office Chic Collection',
-    description: 'Professional yet stylish workwear combinations',
-    coverImage:
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&h=1000&fit=crop',
-    outfitCount: 18,
-    likes: 3421,
-    views: 22109,
-    saves: 1203,
-    author: {
-      name: 'Sarah Chen',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    },
-    createdAt: '5 days ago',
-    trending: true,
-  },
-  {
-    id: 3,
-    title: 'Boho Paradise',
-    description: 'Free-spirited and effortlessly elegant looks',
-    coverImage:
-      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&h=1000&fit=crop',
-    outfitCount: 15,
-    likes: 1876,
-    views: 9823,
-    saves: 654,
-    author: {
-      name: 'Maya Rodriguez',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maya',
-    },
-    createdAt: '1 week ago',
-    trending: false,
-  },
-  {
-    id: 4,
-    title: 'Urban Street Style',
-    description: 'Edgy and contemporary city fashion',
-    coverImage:
-      'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=1000&fit=crop',
-    outfitCount: 20,
-    likes: 4129,
-    views: 28456,
-    saves: 1567,
-    author: {
-      name: 'Alex Kim',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
-    },
-    createdAt: '3 days ago',
-    trending: true,
-  },
-  {
-    id: 5,
-    title: 'Minimalist Wardrobe',
-    description: 'Simple, versatile pieces for a capsule wardrobe',
-    coverImage:
-      'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1000&fit=crop',
-    outfitCount: 10,
-    likes: 2156,
-    views: 13287,
-    saves: 923,
-    author: {
-      name: 'Sophie Anderson',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie',
-    },
-    createdAt: '4 days ago',
-    trending: false,
-  },
-  {
-    id: 6,
-    title: 'Date Night Glam',
-    description: 'Stunning outfits for special occasions',
-    coverImage:
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&h=1000&fit=crop',
-    outfitCount: 8,
-    likes: 3892,
-    views: 19445,
-    saves: 1421,
-    author: {
-      name: 'Isabella Martinez',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Isabella',
-    },
-    createdAt: '6 days ago',
-    trending: true,
-  },
-]
-
 export const LookbooksPage = () => {
   const dispatch = useAppDispatch()
-  const { lookbooks, featuredLookbooks, isLoading } = useAppSelector((state) => state.lookbook)
+  const { toast } = useToast()
+  const { user } = useAppSelector((state) => state.auth)
+  const { lookbooks, featuredLookbooks, isLoading, error } = useAppSelector(
+    (state) => state.lookbook
+  )
 
   const [activeTab, setActiveTab] = useState('trending')
+  const [likedLookbooks, setLikedLookbooks] = useState<Set<string>>(new Set())
 
-  // Fetch lookbooks on mount
+  // Fetch lookbooks on mount and tab change
   useEffect(() => {
     if (activeTab === 'trending') {
       dispatch(fetchFeaturedLookbooks(20))
@@ -155,10 +61,75 @@ export const LookbooksPage = () => {
     }
   }, [dispatch, activeTab])
 
-  // Use backend data, fallback to mock for empty state
-  const activeLookbooks = activeTab === 'trending' ? featuredLookbooks : lookbooks
-  const displayLookbooks = activeLookbooks.length > 0 ? activeLookbooks : mockLookbooks
-  const filteredLookbooks = activeTab === 'trending' ? displayLookbooks.slice(0, 6) : displayLookbooks
+  // Show error toast
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error',
+        description: error,
+        variant: 'destructive',
+      })
+    }
+  }, [error, toast])
+
+  // Get active lookbooks based on tab
+  const getActiveLookbooks = (): Lookbook[] => {
+    if (activeTab === 'trending') {
+      return featuredLookbooks
+    }
+    return lookbooks
+  }
+
+  const displayLookbooks = getActiveLookbooks()
+
+  // Handle like/unlike
+  const handleLike = async (e: React.MouseEvent, lookbookId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!user?.id) {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to like lookbooks',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const isLiked = likedLookbooks.has(lookbookId)
+
+    try {
+      if (isLiked) {
+        await dispatch(unlikeLookbook({ userId: user.id, lookbookId })).unwrap()
+        setLikedLookbooks((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(lookbookId)
+          return newSet
+        })
+      } else {
+        await dispatch(likeLookbook({ userId: user.id, lookbookId })).unwrap()
+        setLikedLookbooks((prev) => new Set(prev).add(lookbookId))
+      }
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to update like status',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleCreateLookbook = () => {
+    toast({
+      title: 'Create Lookbook',
+      description: 'Opening lookbook creator...',
+    })
+    // TODO: Navigate to /lookbooks/create when page is built
+  }
+
+  // Calculate stats
+  const totalLikes = displayLookbooks.reduce((sum, lb) => sum + (lb.likes || 0), 0)
+  const trendingCount = featuredLookbooks.length
 
   return (
     <MainLayout>
@@ -179,11 +150,7 @@ export const LookbooksPage = () => {
           </div>
           <Button
             className="w-full bg-brand-crimson hover:bg-brand-crimson/90 sm:w-auto"
-            onClick={() => {
-              showToast.success('Create Lookbook', 'Opening lookbook creator...')
-              console.log('[Analytics] Create Lookbook clicked')
-              // TODO: Navigate to /lookbooks/create when page is built
-            }}
+            onClick={handleCreateLookbook}
           >
             <Plus className="mr-2 h-4 w-4" />
             Create Lookbook
@@ -199,7 +166,9 @@ export const LookbooksPage = () => {
                   <BookOpen className="h-5 w-5 text-brand-crimson" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-brand-charcoal">{displayLookbooks.length}</p>
+                  <p className="text-2xl font-bold text-brand-charcoal">
+                    {isLoading ? '-' : displayLookbooks.length}
+                  </p>
                   <p className="text-xs text-muted-foreground">Total Lookbooks</p>
                 </div>
               </div>
@@ -214,7 +183,7 @@ export const LookbooksPage = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-brand-charcoal">
-                    {displayLookbooks.reduce((sum, lb: any) => sum + (lb.likes || 0), 0).toLocaleString()}
+                    {isLoading ? '-' : totalLikes.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground">Total Likes</p>
                 </div>
@@ -230,7 +199,7 @@ export const LookbooksPage = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-brand-charcoal">
-                    {featuredLookbooks.length || displayLookbooks.filter((lb: any) => lb.trending).length}
+                    {isLoading ? '-' : trendingCount}
                   </p>
                   <p className="text-xs text-muted-foreground">Trending Now</p>
                 </div>
@@ -264,148 +233,197 @@ export const LookbooksPage = () => {
                   <p className="text-lg font-semibold">Loading lookbooks...</p>
                 </div>
               </div>
+            ) : displayLookbooks.length === 0 ? (
+              <Card className="p-12 text-center">
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="mx-auto max-w-md space-y-4"
+                >
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-crimson/10">
+                    <BookOpen className="h-10 w-10 text-brand-crimson" />
+                  </div>
+                  <h2 className="font-heading text-2xl font-bold text-brand-charcoal">
+                    No lookbooks yet
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {activeTab === 'saved'
+                      ? 'Save lookbooks to see them here'
+                      : activeTab === 'following'
+                        ? 'Follow creators to see their lookbooks'
+                        : 'Be the first to create a lookbook!'}
+                  </p>
+                  <Button
+                    className="bg-brand-crimson hover:bg-brand-crimson/90"
+                    onClick={handleCreateLookbook}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Lookbook
+                  </Button>
+                </motion.div>
+              </Card>
             ) : (
               /* Lookbooks Grid */
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredLookbooks.map((lookbook: any, index: number) => (
-                <motion.div
-                  key={lookbook.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Link to={`/lookbooks/${lookbook.id}`}>
-                    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand-crimson/20">
-                      {/* Cover Image */}
-                      <div className="relative aspect-[3/4] overflow-hidden bg-brand-beige">
-                        <motion.img
-                          src={lookbook.coverImage}
-                          alt={lookbook.title}
-                          className="h-full w-full object-cover"
-                          whileHover={{ scale: 1.1 }}
-                          transition={{ duration: 0.3 }}
-                        />
+                {displayLookbooks.map((lookbook, index) => (
+                  <motion.div
+                    key={lookbook.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Link to={`/lookbooks/${lookbook.id}`}>
+                      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand-crimson/20">
+                        {/* Cover Image */}
+                        <div className="relative aspect-[3/4] overflow-hidden bg-brand-beige">
+                          <motion.img
+                            src={lookbook.coverImage}
+                            alt={lookbook.title}
+                            className="h-full w-full object-cover"
+                            whileHover={{ scale: 1.1 }}
+                            transition={{ duration: 0.3 }}
+                          />
 
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                          {/* Overlay Gradient */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                        {/* Trending Badge */}
-                        {(lookbook.trending || lookbook.featured) && (
+                          {/* Trending Badge */}
+                          {lookbook.isFeatured && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="absolute left-3 top-3"
+                            >
+                              <Badge className="border-0 bg-brand-crimson text-white shadow-lg">
+                                <Sparkles className="mr-1 h-3 w-3" />
+                                Trending
+                              </Badge>
+                            </motion.div>
+                          )}
+
+                          {/* Quick Actions - Desktop (hover) */}
                           <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="absolute left-3 top-3"
+                            initial={{ opacity: 0, y: 10 }}
+                            whileHover={{ opacity: 1, y: 0 }}
+                            className="absolute right-3 top-3 hidden gap-2 lg:flex"
                           >
-                            <Badge className="border-0 bg-brand-crimson text-white shadow-lg">
-                              <Sparkles className="mr-1 h-3 w-3" />
-                              Trending
-                            </Badge>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className={`h-8 w-8 rounded-full bg-white/90 hover:bg-white ${
+                                likedLookbooks.has(lookbook.id) ? 'text-red-500' : ''
+                              }`}
+                              onClick={(e) => handleLike(e, lookbook.id)}
+                            >
+                              <Heart
+                                className={`h-4 w-4 ${likedLookbooks.has(lookbook.id) ? 'fill-current' : ''}`}
+                              />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8 rounded-full bg-white/90 hover:bg-white"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                toast({
+                                  title: 'Saved!',
+                                  description: 'Lookbook saved to your collection',
+                                })
+                              }}
+                            >
+                              <Bookmark className="h-4 w-4" />
+                            </Button>
                           </motion.div>
-                        )}
 
-                        {/* Quick Actions - Desktop (hover) */}
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          whileHover={{ opacity: 1, y: 0 }}
-                          className="absolute right-3 top-3 hidden gap-2 lg:flex"
-                        >
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-8 w-8 rounded-full bg-white/90 hover:bg-white"
-                          >
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-8 w-8 rounded-full bg-white/90 hover:bg-white"
-                          >
-                            <Bookmark className="h-4 w-4" />
-                          </Button>
-                        </motion.div>
+                          {/* Quick Actions - Mobile (always visible) */}
+                          <div className="absolute right-3 top-3 flex gap-2 lg:hidden">
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className={`h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white ${
+                                likedLookbooks.has(lookbook.id) ? 'text-red-500' : ''
+                              }`}
+                              onClick={(e) => handleLike(e, lookbook.id)}
+                            >
+                              <Heart
+                                className={`h-4 w-4 ${likedLookbooks.has(lookbook.id) ? 'fill-current' : ''}`}
+                              />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                toast({
+                                  title: 'Saved!',
+                                  description: 'Lookbook saved to your collection',
+                                })
+                              }}
+                            >
+                              <Bookmark className="h-4 w-4" />
+                            </Button>
+                          </div>
 
-                        {/* Quick Actions - Mobile (always visible) */}
-                        <div className="absolute right-3 top-3 flex gap-2 lg:hidden">
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white"
-                          >
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white"
-                          >
-                            <Bookmark className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        {/* Bottom Info Overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <div className="flex items-center gap-2 text-xs text-white/90">
-                            <div className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" />
-                              <span>{lookbook.views.toLocaleString()}</span>
-                            </div>
-                            <span>•</span>
-                            <div className="flex items-center gap-1">
-                              <Heart className="h-3 w-3" />
-                              <span>{lookbook.likes.toLocaleString()}</span>
-                            </div>
-                            <span>•</span>
-                            <div className="flex items-center gap-1">
-                              <Bookmark className="h-3 w-3" />
-                              <span>{lookbook.saves.toLocaleString()}</span>
+                          {/* Bottom Info Overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <div className="flex items-center gap-2 text-xs text-white/90">
+                              <div className="flex items-center gap-1">
+                                <Eye className="h-3 w-3" />
+                                <span>{lookbook.views.toLocaleString()}</span>
+                              </div>
+                              <span>•</span>
+                              <div className="flex items-center gap-1">
+                                <Heart className="h-3 w-3" />
+                                <span>{lookbook.likes.toLocaleString()}</span>
+                              </div>
+                              <span>•</span>
+                              <div className="flex items-center gap-1">
+                                <Bookmark className="h-3 w-3" />
+                                <span>{lookbook.comments.toLocaleString()}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Lookbook Info */}
-                      <div className="space-y-3 p-4">
-                        <div>
-                          <h3 className="font-heading line-clamp-1 font-bold text-brand-charcoal transition-colors group-hover:text-brand-crimson">
-                            {lookbook.title}
-                          </h3>
-                          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                            {lookbook.description}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6 ring-2 ring-brand-crimson/20">
-                              <AvatarImage src={lookbook.creator?.photoUrl || lookbook.author?.avatar} />
-                              <AvatarFallback>
-                                {(lookbook.creator?.username || lookbook.author?.name)?.[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs font-medium text-brand-charcoal">
-                              {lookbook.creator?.fullName || lookbook.author?.name}
-                            </span>
+                        {/* Lookbook Info */}
+                        <div className="space-y-3 p-4">
+                          <div>
+                            <h3 className="font-heading line-clamp-1 font-bold text-brand-charcoal transition-colors group-hover:text-brand-crimson">
+                              {lookbook.title}
+                            </h3>
+                            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                              {lookbook.description}
+                            </p>
                           </div>
-                          <Badge variant="outline" className="text-xs">
-                            {lookbook.outfits?.length || lookbook.outfitCount} outfits
-                          </Badge>
-                        </div>
 
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          <span>
-                            {lookbook.createdAt
-                              ? typeof lookbook.createdAt === 'string'
-                                ? lookbook.createdAt
-                                : formatTimeAgo(lookbook.createdAt)
-                              : 'Recently'}
-                          </span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6 ring-2 ring-brand-crimson/20">
+                                <AvatarImage src={lookbook.creator?.photoUrl} />
+                                <AvatarFallback>
+                                  {lookbook.creator?.username?.[0] || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs font-medium text-brand-charcoal">
+                                {lookbook.creator?.fullName || lookbook.creator?.username}
+                              </span>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {lookbook.outfits?.length || 0} outfits
+                            </Badge>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            <span>{formatTimeAgo(lookbook.createdAt)}</span>
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  </Link>
-                </motion.div>
+                      </Card>
+                    </Link>
+                  </motion.div>
                 ))}
               </div>
             )}

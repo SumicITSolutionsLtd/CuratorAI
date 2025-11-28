@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -17,13 +17,19 @@ import {
   SelectValue,
 } from '@/presentation/components/ui/select'
 import { Badge } from '@/presentation/components/ui/badge'
-import { getAllBrands, getAllColors } from '@/shared/mocks/wardrobeMockData'
+import { WardrobeItem } from '@/domain/entities/Wardrobe'
+import {
+  getBrandsFromItems,
+  getColorsFromItems,
+  getSeasonsFromItems,
+} from '@/shared/utils/wardrobeHelpers'
 
 interface FilterDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onApply: (filters: FilterValues) => void
   currentFilters: FilterValues
+  items: WardrobeItem[]
 }
 
 export interface FilterValues {
@@ -39,21 +45,27 @@ export const FilterDialog = ({
   onOpenChange,
   onApply,
   currentFilters,
+  items,
 }: FilterDialogProps) => {
   const [filters, setFilters] = useState<FilterValues>(currentFilters)
 
-  const brands = getAllBrands()
-  const colors = getAllColors()
-  const seasons = [
-    'All Season',
-    'Spring',
-    'Summer',
-    'Fall',
-    'Winter',
-    'Spring/Summer',
-    'Fall/Winter',
-    'Spring/Fall',
-  ]
+  // Derive filter options from actual wardrobe items
+  const brands = useMemo(() => getBrandsFromItems(items), [items])
+  const colors = useMemo(() => getColorsFromItems(items), [items])
+  const seasons = useMemo(() => {
+    const itemSeasons = getSeasonsFromItems(items)
+    // Include common seasons if none found in items
+    const defaultSeasons = [
+      'All Season',
+      'Spring',
+      'Summer',
+      'Fall',
+      'Winter',
+      'Spring/Summer',
+      'Fall/Winter',
+    ]
+    return itemSeasons.length > 0 ? itemSeasons : defaultSeasons
+  }, [items])
 
   const handleApply = () => {
     onApply(filters)

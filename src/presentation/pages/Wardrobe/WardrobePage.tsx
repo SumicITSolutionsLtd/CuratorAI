@@ -30,7 +30,7 @@ import {
   setSearchQuery as setStoreSearchQuery,
 } from '@/shared/store/slices/wardrobeSlice'
 import { WardrobeItem } from '@/domain/entities/Wardrobe'
-import { sortItems } from '@/shared/mocks/wardrobeMockData'
+import { sortItems } from '@/shared/utils/wardrobeHelpers'
 import { FilterDialog, FilterValues } from '@/presentation/components/wardrobe/FilterDialog'
 import { SortMenu, SortOption } from '@/presentation/components/wardrobe/SortMenu'
 import { setSortBy, setFilters } from '@/shared/store/slices/wardrobeSlice'
@@ -588,6 +588,7 @@ export const WardrobePage = () => {
         onOpenChange={setFilterDialogOpen}
         onApply={handleFilterApply}
         currentFilters={filters}
+        items={items}
       />
     </MainLayout>
   )

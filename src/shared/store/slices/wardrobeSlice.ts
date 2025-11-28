@@ -37,13 +37,30 @@ const initialState: WardrobeState = {
   error: null,
 }
 
+// Helper to transform date strings to Date objects
+const transformWardrobeItem = (item: any): WardrobeItem => ({
+  ...item,
+  createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+  updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
+  purchaseDate: item.purchaseDate ? new Date(item.purchaseDate) : undefined,
+})
+
+const transformWardrobe = (wardrobe: any): Wardrobe => ({
+  ...wardrobe,
+  items: wardrobe.items?.map(transformWardrobeItem) || [],
+  createdAt: wardrobe.createdAt ? new Date(wardrobe.createdAt) : new Date(),
+  updatedAt: wardrobe.updatedAt ? new Date(wardrobe.updatedAt) : new Date(),
+  mostWornItem: wardrobe.mostWornItem ? transformWardrobeItem(wardrobe.mostWornItem) : undefined,
+})
+
 // Async Thunks
 
 export const fetchWardrobe = createAsyncThunk(
   'wardrobe/fetchWardrobe',
   async (userId: string, { rejectWithValue }) => {
     try {
-      return await wardrobeRepository.getWardrobe(userId)
+      const response = await wardrobeRepository.getWardrobe(userId)
+      return transformWardrobe(response)
     } catch (error: any) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch wardrobe'))
     }
@@ -65,7 +82,8 @@ export const addWardrobeItem = createAsyncThunk(
   'wardrobe/addItem',
   async (item: Omit<WardrobeItem, 'id' | 'createdAt' | 'updatedAt'>, { rejectWithValue }) => {
     try {
-      return await wardrobeRepository.addItem(item)
+      const response = await wardrobeRepository.addItem(item)
+      return transformWardrobeItem(response)
     } catch (error: any) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to add item'))
     }
@@ -76,7 +94,8 @@ export const updateWardrobeItem = createAsyncThunk(
   'wardrobe/updateItem',
   async ({ id, updates }: { id: string; updates: Partial<WardrobeItem> }, { rejectWithValue }) => {
     try {
-      return await wardrobeRepository.updateItem(id, updates)
+      const response = await wardrobeRepository.updateItem(id, updates)
+      return transformWardrobeItem(response)
     } catch (error: any) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to update item'))
     }
@@ -100,7 +119,11 @@ export const incrementTimesWorn = createAsyncThunk(
   async (itemId: string, { rejectWithValue }) => {
     try {
       const updatedItem = await wardrobeRepository.incrementTimesWorn(itemId)
-      return { itemId, timesWorn: updatedItem.timesWorn }
+      return {
+        itemId,
+        timesWorn: updatedItem.timesWorn,
+        updatedAt: new Date(updatedItem.updatedAt),
+      }
     } catch (error: any) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to increment times worn'))
     }
@@ -251,6 +274,7 @@ const wardrobeSlice = createSlice({
         const index = state.items.findIndex((item) => item.id === action.payload.itemId)
         if (index !== -1) {
           state.items[index].timesWorn = action.payload.timesWorn
+          state.items[index].updatedAt = action.payload.updatedAt
         }
         if (state.wardrobe) {
           const wardrobeIndex = state.wardrobe.items.findIndex(
@@ -258,6 +282,7 @@ const wardrobeSlice = createSlice({
           )
           if (wardrobeIndex !== -1) {
             state.wardrobe.items[wardrobeIndex].timesWorn = action.payload.timesWorn
+            state.wardrobe.items[wardrobeIndex].updatedAt = action.payload.updatedAt
           }
         }
       })
