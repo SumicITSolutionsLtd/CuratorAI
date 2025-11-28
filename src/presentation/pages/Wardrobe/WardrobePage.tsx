@@ -336,7 +336,7 @@ export const WardrobePage = () => {
                   ) : (
                     <>
                       <p className="text-2xl font-bold text-brand-charcoal">
-                        ${stats?.totalValue.toFixed(0) || 0}
+                        ${Number(stats?.totalValue || 0).toFixed(0)}
                       </p>
                       <p className="text-xs text-muted-foreground">Total Value</p>
                     </>

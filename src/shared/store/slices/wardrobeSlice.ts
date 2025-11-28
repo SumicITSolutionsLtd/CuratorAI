@@ -68,11 +68,23 @@ export const fetchWardrobe = createAsyncThunk(
   }
 )
 
+// Transform stats to ensure numeric values
+const transformStats = (stats: any): WardrobeStats => ({
+  totalItems: stats.total_items ?? stats.totalItems ?? 0,
+  totalOutfits: stats.total_outfits ?? stats.totalOutfits ?? 0,
+  mostWornCategory: stats.most_worn_category ?? stats.mostWornCategory ?? '',
+  averageItemPrice: parseFloat(stats.average_item_price ?? stats.averageItemPrice) || 0,
+  totalValue: parseFloat(stats.total_value ?? stats.totalValue) || 0,
+  itemsByColor: stats.colors ?? stats.itemsByColor ?? {},
+  itemsByBrand: stats.brands ?? stats.itemsByBrand ?? {},
+})
+
 export const fetchWardrobeStats = createAsyncThunk(
   'wardrobe/fetchWardrobeStats',
   async (userId: string, { rejectWithValue }) => {
     try {
-      return await wardrobeRepository.getWardrobeStats(userId)
+      const response = await wardrobeRepository.getWardrobeStats(userId)
+      return transformStats(response)
     } catch (error: any) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch stats'))
     }

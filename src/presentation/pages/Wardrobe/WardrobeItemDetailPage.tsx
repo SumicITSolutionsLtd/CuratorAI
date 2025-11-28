@@ -272,7 +272,7 @@ export const WardrobeItemDetailPage = () => {
 
               {item.price && (
                 <p className="text-2xl font-bold text-brand-crimson">
-                  {item.currency} ${item.price.toFixed(2)}
+                  {item.currency} ${Number(item.price || 0).toFixed(2)}
                 </p>
               )}
             </div>
@@ -289,7 +289,7 @@ export const WardrobeItemDetailPage = () => {
               </Card>
               <Card className="p-4 text-center">
                 <p className="text-sm font-semibold text-brand-charcoal">
-                  ${((item.price || 0) / Math.max(item.timesWorn, 1)).toFixed(2)}
+                  ${(Number(item.price || 0) / Math.max(item.timesWorn, 1)).toFixed(2)}
                 </p>
                 <p className="text-xs text-muted-foreground">Cost Per Wear</p>
               </Card>

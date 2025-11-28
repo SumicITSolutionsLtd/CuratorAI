@@ -457,7 +457,8 @@ export const OutfitDetailPage = () => {
                                   </h3>
                                   <p className="text-sm text-muted-foreground sm:text-base">
                                     {item.brand}
-                                    {item.price > 0 && ` • $${item.price.toFixed(2)}`}
+                                    {Number(item.price) > 0 &&
+                                      ` • $${Number(item.price).toFixed(2)}`}
                                     {item.size && ` • Size ${item.size}`}
                                   </p>
                                 </div>

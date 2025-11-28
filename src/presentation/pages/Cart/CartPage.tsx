@@ -148,12 +148,15 @@ export const CartPage = () => {
     }
   }
 
-  // Calculate display values
+  // Calculate display values (ensure numbers for .toFixed())
   const displaySubtotal =
-    subtotal || items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const displayShipping = shipping || (displaySubtotal > 200 ? 0 : 15.0)
-  const displayTax = tax || (displaySubtotal - (discount || 0)) * 0.08
-  const displayTotal = total || displaySubtotal + displayShipping - (discount || 0) + displayTax
+    Number(subtotal) ||
+    items.reduce((sum, item) => sum + Number(item.price || 0) * item.quantity, 0)
+  const displayShipping = Number(shipping) || (displaySubtotal > 200 ? 0 : 15.0)
+  const displayTax = Number(tax) || (displaySubtotal - Number(discount || 0)) * 0.08
+  const displayTotal =
+    Number(total) || displaySubtotal + displayShipping - Number(discount || 0) + displayTax
+  const displayDiscount = Number(discount || 0)
 
   if (isLoading && items.length === 0) {
     return (
@@ -266,7 +269,7 @@ export const CartPage = () => {
                               <p className="text-sm text-muted-foreground">{item.brand}</p>
                             </div>
                             <p className="font-semibold text-brand-charcoal">
-                              ${item.price.toFixed(2)}
+                              ${Number(item.price || 0).toFixed(2)}
                             </p>
                           </div>
                           <div className="flex gap-4 text-xs text-muted-foreground">
@@ -351,13 +354,13 @@ export const CartPage = () => {
                     </Button>
                   )}
                 </div>
-                {promoCode && discount > 0 && (
+                {promoCode && displayDiscount > 0 && (
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-2 text-sm text-brand-blue"
                   >
-                    Promo code "{promoCode}" applied! You saved ${discount.toFixed(2)}
+                    Promo code "{promoCode}" applied! You saved ${displayDiscount.toFixed(2)}
                   </motion.p>
                 )}
               </Card>
@@ -377,10 +380,10 @@ export const CartPage = () => {
                       <span className="font-medium">${displaySubtotal.toFixed(2)}</span>
                     </div>
 
-                    {discount > 0 && (
+                    {displayDiscount > 0 && (
                       <div className="flex justify-between text-brand-blue">
                         <span>Discount</span>
-                        <span>-${discount.toFixed(2)}</span>
+                        <span>-${displayDiscount.toFixed(2)}</span>
                       </div>
                     )}
 

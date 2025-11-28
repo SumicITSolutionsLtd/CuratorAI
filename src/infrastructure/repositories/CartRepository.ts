@@ -4,21 +4,22 @@ import { apiClient } from '../api/ApiClient'
 
 export class CartRepository implements ICartRepository {
   // Transform backend cart response to frontend format
+  // Note: API returns subtotal, shipping, tax, discount, total as decimal strings
   private transformCart(backendCart: any): Cart {
     const items = this.transformCartItems(backendCart.items || [])
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const calculatedSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
     return {
       id: backendCart.id?.toString() || '',
       userId: backendCart.user_id?.toString() || backendCart.user?.toString() || '',
       items,
-      subtotal: backendCart.subtotal || subtotal,
-      shipping: backendCart.shipping_cost || backendCart.shipping || 0,
-      tax: backendCart.tax || 0,
-      total: backendCart.total || backendCart.grand_total || subtotal,
+      subtotal: parseFloat(backendCart.subtotal) || calculatedSubtotal,
+      shipping: parseFloat(backendCart.shipping_cost || backendCart.shipping) || 0,
+      tax: parseFloat(backendCart.tax) || 0,
+      total: parseFloat(backendCart.total || backendCart.grand_total) || calculatedSubtotal,
       currency: backendCart.currency || 'USD',
       promoCode: backendCart.promo_code || backendCart.promoCode || undefined,
-      discount: backendCart.discount || 0,
+      discount: parseFloat(backendCart.discount) || 0,
       itemCount: backendCart.item_count || items.reduce((sum, item) => sum + item.quantity, 0),
       updatedAt: new Date(backendCart.updated_at || backendCart.updatedAt || new Date()),
     }
