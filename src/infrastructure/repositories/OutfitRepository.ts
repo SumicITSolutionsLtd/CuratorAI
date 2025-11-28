@@ -23,7 +23,8 @@ export class OutfitRepository implements IOutfitRepository {
   }
 
   async getOutfitById(outfitId: string): Promise<Outfit> {
-    return await apiClient.get<Outfit>(`/outfits/${outfitId}/`)
+    const response = await apiClient.get<any>(`/outfits/${outfitId}/`)
+    return this.transformOutfit(response.data || response)
   }
 
   async createOutfit(outfit: Omit<Outfit, 'id' | 'createdAt' | 'updatedAt'>): Promise<Outfit> {
@@ -88,7 +89,7 @@ export class OutfitRepository implements IOutfitRepository {
       occasion: backendOutfit.occasion,
       season: backendOutfit.season,
       confidenceScore: backendOutfit.confidence_score || backendOutfit.confidenceScore || 0,
-      totalPrice: backendOutfit.total_price || backendOutfit.totalPrice || 0,
+      totalPrice: parseFloat(backendOutfit.total_price || backendOutfit.totalPrice) || 0,
       currency: backendOutfit.currency || 'USD',
       isPublic: backendOutfit.is_public ?? backendOutfit.isPublic ?? false,
       tags: backendOutfit.style_tags || backendOutfit.tags || [],
@@ -109,7 +110,7 @@ export class OutfitRepository implements IOutfitRepository {
       category: item.category || 'top',
       brand: item.brand || '',
       name: item.name || '',
-      price: item.price || 0,
+      price: parseFloat(item.price) || 0,
       currency: item.currency || 'USD',
       size: item.size,
       color: item.color || '',

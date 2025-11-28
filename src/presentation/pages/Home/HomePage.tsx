@@ -65,10 +65,11 @@ export const HomePage = () => {
     items:
       outfit.items?.map((item: any) => ({
         name: item.name || item.title,
-        price: item.price || 0,
+        price: parseFloat(item.price) || 0,
         brand: item.brand || '',
       })) || [],
-    totalPrice: outfit.items?.reduce((sum: number, item: any) => sum + (item.price || 0), 0) || 0,
+    totalPrice:
+      outfit.items?.reduce((sum: number, item: any) => sum + (parseFloat(item.price) || 0), 0) || 0,
     matchScore: outfit.match_score || 85, // Default score since backend doesn't provide
     tags: outfit.tags || outfit.style_tags || [],
     likes: outfit.likes_count || 0,

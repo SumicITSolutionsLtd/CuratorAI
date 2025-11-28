@@ -37,9 +37,10 @@ const initialState: WardrobeState = {
   error: null,
 }
 
-// Helper to transform date strings to Date objects
+// Helper to transform backend item to frontend format
 const transformWardrobeItem = (item: any): WardrobeItem => ({
   ...item,
+  price: parseFloat(item.price) || 0,
   createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
   updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
   purchaseDate: item.purchaseDate ? new Date(item.purchaseDate) : undefined,
