@@ -3,57 +3,56 @@ import { SocialPost, Comment, FeedFilter } from '@domain/entities/Social'
 import { PaginatedResponse } from '@domain/repositories/IOutfitRepository'
 import { apiClient } from '../api/ApiClient'
 
+// Matches UserBasic schema from API
+interface BackendUserBasic {
+  id: number
+  username: string
+  first_name?: string
+  last_name?: string
+  avatar?: string | null
+  is_verified?: boolean
+}
+
+// Matches PostImage schema from API
+interface BackendPostImage {
+  id: number
+  image: string
+  order: number
+  created_at: string
+}
+
+// Matches Post schema from API
 interface BackendPost {
-  id: string
-  user_id: string
-  author: {
-    id: string
-    username: string
-    full_name?: string
-    first_name?: string
-    last_name?: string
-    photo_url?: string
-    avatar?: string
-  }
-  images: string[]
+  id: number
+  user: BackendUserBasic
   caption: string
-  tags: string[]
+  tags?: string[]
+  outfit_id?: number | null
   tagged_items?: string[]
-  outfit_id?: string
-  likes_count?: number
-  likes?: number
-  comments_count?: number
-  comments?: number
-  shares_count?: number
-  shares?: number
-  saves_count?: number
-  saves?: number
-  is_liked?: boolean
-  is_saved?: boolean
+  location_name?: string
+  images: BackendPostImage[]
+  likes_count: number
+  comments_count: number
+  shares_count: number
+  saves_count: number
+  views_count?: number
+  is_liked: boolean | string
+  is_saved: boolean | string
   privacy: 'public' | 'friends' | 'private'
   created_at: string
   updated_at: string
 }
 
+// Matches Comment schema from API
 interface BackendComment {
-  id: string
-  post_id: string
-  user_id: string
-  author: {
-    id: string
-    username: string
-    full_name?: string
-    first_name?: string
-    last_name?: string
-    photo_url?: string
-    avatar?: string
-  }
+  id: number
+  post_id: number
+  user: BackendUserBasic
   content: string
-  likes_count?: number
-  likes?: number
-  is_liked?: boolean
-  parent_comment_id?: string
-  parent_id?: string
+  parent_comment_id?: number | null
+  likes_count: number
+  is_liked: boolean | string
+  replies_count?: number | string
   replies?: BackendComment[]
   created_at: string
   updated_at: string
@@ -71,43 +70,53 @@ interface BackendPaginatedResponse<T> {
 }
 
 function transformPost(post: BackendPost): SocialPost {
-  // Handle cases where author might be missing or null
-  const author = post.author || {
-    id: post.user_id || '',
-    username: 'Unknown',
-    full_name: 'Unknown User',
+  // Handle cases where user might be missing or null
+  const user = post.user || {
+    id: 0,
+    username: 'unknown',
     first_name: undefined,
     last_name: undefined,
-    photo_url: undefined,
     avatar: undefined,
+    is_verified: false,
   }
 
-  const authorName =
-    author.full_name ||
-    [author.first_name, author.last_name].filter(Boolean).join(' ') ||
-    author.username ||
-    'Unknown User'
+  // Build full name from first_name + last_name
+  const fullName =
+    [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'Unknown User'
+
+  // Extract image URLs from PostImage objects
+  const imageUrls = (post.images || []).map((img) => (typeof img === 'string' ? img : img.image))
+
+  // Handle is_liked and is_saved which can be boolean or string
+  const isLiked =
+    typeof post.is_liked === 'string'
+      ? post.is_liked === 'true' || post.is_liked === 'True'
+      : Boolean(post.is_liked)
+  const isSaved =
+    typeof post.is_saved === 'string'
+      ? post.is_saved === 'true' || post.is_saved === 'True'
+      : Boolean(post.is_saved)
 
   return {
-    id: post.id,
-    userId: post.user_id,
+    id: String(post.id),
+    userId: String(user.id),
     author: {
-      id: author.id || post.user_id || '',
-      username: author.username || 'unknown',
-      fullName: authorName,
-      photoUrl: author.photo_url || author.avatar,
+      id: String(user.id),
+      username: user.username || 'unknown',
+      fullName: fullName,
+      photoUrl: user.avatar || undefined,
     },
-    images: post.images || [],
+    images: imageUrls,
     caption: post.caption || '',
     tags: post.tags || [],
     taggedItems: post.tagged_items,
-    outfitId: post.outfit_id,
-    likes: post.likes_count ?? post.likes ?? 0,
-    comments: post.comments_count ?? post.comments ?? 0,
-    shares: post.shares_count ?? post.shares ?? 0,
-    saves: post.saves_count ?? post.saves ?? 0,
-    isLiked: post.is_liked ?? false,
-    isSaved: post.is_saved ?? false,
+    outfitId: post.outfit_id ? String(post.outfit_id) : undefined,
+    likes: post.likes_count ?? 0,
+    comments: post.comments_count ?? 0,
+    shares: post.shares_count ?? 0,
+    saves: post.saves_count ?? 0,
+    isLiked,
+    isSaved,
     privacy: post.privacy || 'public',
     createdAt: new Date(post.created_at),
     updatedAt: new Date(post.updated_at),
@@ -115,37 +124,40 @@ function transformPost(post: BackendPost): SocialPost {
 }
 
 function transformComment(comment: BackendComment): Comment {
-  // Handle cases where author might be missing or null
-  const author = comment.author || {
-    id: comment.user_id || '',
-    username: 'Unknown',
-    full_name: 'Unknown User',
+  // Handle cases where user might be missing or null
+  const user = comment.user || {
+    id: 0,
+    username: 'unknown',
     first_name: undefined,
     last_name: undefined,
-    photo_url: undefined,
     avatar: undefined,
+    is_verified: false,
   }
 
-  const authorName =
-    author.full_name ||
-    [author.first_name, author.last_name].filter(Boolean).join(' ') ||
-    author.username ||
-    'Unknown User'
+  // Build full name from first_name + last_name
+  const fullName =
+    [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'Unknown User'
+
+  // Handle is_liked which can be boolean or string
+  const isLiked =
+    typeof comment.is_liked === 'string'
+      ? comment.is_liked === 'true' || comment.is_liked === 'True'
+      : Boolean(comment.is_liked)
 
   return {
-    id: comment.id,
-    postId: comment.post_id,
-    userId: comment.user_id,
+    id: String(comment.id),
+    postId: String(comment.post_id),
+    userId: String(user.id),
     author: {
-      id: author.id || comment.user_id || '',
-      username: author.username || 'unknown',
-      fullName: authorName,
-      photoUrl: author.photo_url || author.avatar,
+      id: String(user.id),
+      username: user.username || 'unknown',
+      fullName: fullName,
+      photoUrl: user.avatar || undefined,
     },
     content: comment.content,
-    likes: comment.likes_count ?? comment.likes ?? 0,
-    isLiked: comment.is_liked ?? false,
-    parentCommentId: comment.parent_comment_id || comment.parent_id,
+    likes: comment.likes_count ?? 0,
+    isLiked,
+    parentCommentId: comment.parent_comment_id ? String(comment.parent_comment_id) : undefined,
     replies: comment.replies?.map(transformComment),
     createdAt: new Date(comment.created_at),
     updatedAt: new Date(comment.updated_at),
