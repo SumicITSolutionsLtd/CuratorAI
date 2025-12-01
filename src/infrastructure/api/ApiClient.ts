@@ -2,14 +2,18 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios'
 import { sessionManager } from '../services/SessionManager'
 
 // Auth endpoints that don't require token
+// Note: Use specific paths to avoid matching authenticated endpoints like /auth/register/complete/
 const AUTH_ENDPOINTS = [
-  '/auth/login',
-  '/auth/register',
-  '/auth/oauth',
-  '/auth/refresh',
-  '/auth/password-reset',
-  '/auth/verify-email',
+  '/auth/login/',
+  '/auth/register/', // Initial registration only, not /register/complete/
+  '/auth/oauth/',
+  '/auth/refresh/',
+  '/auth/password-reset/',
+  '/auth/verify-email/',
 ]
+
+// Endpoints that require authentication even if they match AUTH_ENDPOINTS prefix
+const AUTHENTICATED_AUTH_ENDPOINTS = ['/auth/register/complete/']
 
 export class ApiClient {
   private client: AxiosInstance
@@ -32,6 +36,11 @@ export class ApiClient {
 
   private isAuthEndpoint(url?: string): boolean {
     if (!url) return false
+    // Check if it's an authenticated auth endpoint first (these need tokens)
+    if (AUTHENTICATED_AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint))) {
+      return false
+    }
+    // Check if it's a public auth endpoint (no token needed)
     return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint))
   }
 
