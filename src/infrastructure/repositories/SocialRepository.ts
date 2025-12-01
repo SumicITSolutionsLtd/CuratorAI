@@ -278,16 +278,19 @@ export class SocialRepository implements ISocialRepository {
     content: string,
     parentId?: string
   ): Promise<Comment> {
-    const payload: Record<string, string> = { content }
+    const payload: Record<string, string | number> = { content }
     if (parentId) {
-      payload.parent_id = parentId
+      payload.parent_comment_id = parseInt(parentId, 10)
     }
 
-    const response = await apiClient.post<BackendComment>(
+    // API returns { success: boolean, data: Comment }
+    const response = await apiClient.post<{ success: boolean; data: BackendComment }>(
       `/social/posts/${postId}/comments/add/`,
       payload
     )
-    return transformComment(response)
+    // Extract the comment from response.data
+    const commentData = response.data || response
+    return transformComment(commentData as BackendComment)
   }
 
   async updateComment(commentId: string, content: string): Promise<Comment> {

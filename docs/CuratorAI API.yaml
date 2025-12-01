@@ -155,7 +155,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/UserUpdateRequest'
-        required: true
       security:
       - jwtAuth: []
       - BearerAuth: []
@@ -5889,8 +5888,6 @@ components:
           $ref: '#/components/schemas/UserProfile'
         style_preference:
           $ref: '#/components/schemas/StylePreference'
-      required:
-      - username
     UserUpdateRequest:
       type: object
       description: Serializer for updating user information.
@@ -5919,8 +5916,6 @@ components:
           $ref: '#/components/schemas/UserProfileRequest'
         style_preference:
           $ref: '#/components/schemas/StylePreferenceRequest'
-      required:
-      - username
     UserVerificationStatus:
       type: object
       properties:

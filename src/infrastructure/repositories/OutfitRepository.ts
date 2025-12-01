@@ -71,6 +71,7 @@ export class OutfitRepository implements IOutfitRepository {
 
   // Transform backend response to frontend format
   private transformOutfit(backendOutfit: any): Outfit {
+    const items = this.transformOutfitItems(backendOutfit.items || [])
     return {
       id: backendOutfit.id?.toString() || '',
       userId:
@@ -80,7 +81,9 @@ export class OutfitRepository implements IOutfitRepository {
         '',
       name: backendOutfit.title || backendOutfit.name || '', // API uses 'title'
       description: backendOutfit.description,
-      items: this.transformOutfitItems(backendOutfit.items || []),
+      mainImage: backendOutfit.main_image || backendOutfit.mainImage || items[0]?.imageUrl,
+      thumbnail: backendOutfit.thumbnail || backendOutfit.main_image || items[0]?.imageUrl,
+      items,
       styleAttributes:
         backendOutfit.style_tags ||
         backendOutfit.style_attributes ||

@@ -47,7 +47,7 @@ import {
   rollbackUnsavePost,
 } from '@/shared/store/slices/socialSlice'
 import { followUser, unfollowUser } from '@/shared/store/slices/userSlice'
-import { useToast } from '@/presentation/components/ui/use-toast'
+import { showToast } from '@/shared/utils/toast'
 import { DetailPageSkeleton, Shimmer } from '@/presentation/components/ui/shimmer'
 
 // Helper function to format relative time
@@ -72,7 +72,6 @@ export const PostDetailPage = () => {
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { toast } = useToast()
 
   const { user } = useAppSelector((state) => state.auth)
   const {
@@ -104,13 +103,9 @@ export const PostDetailPage = () => {
   // Show error toast
   useEffect(() => {
     if (error) {
-      toast({
-        title: 'Error',
-        description: error,
-        variant: 'destructive',
-      })
+      showToast.error('Error', error)
     }
-  }, [error, toast])
+  }, [error])
 
   const nextImage = () => {
     if (!post) return
@@ -124,11 +119,7 @@ export const PostDetailPage = () => {
 
   const handleLikePost = async () => {
     if (!post || !user?.id) {
-      toast({
-        title: 'Please log in',
-        description: 'You need to be logged in to like posts',
-        variant: 'destructive',
-      })
+      showToast.error('Please log in', 'You need to be logged in to like posts')
       return
     }
 
@@ -140,11 +131,7 @@ export const PostDetailPage = () => {
       } catch {
         // Rollback on failure
         dispatch(rollbackUnlikePost(post.id))
-        toast({
-          title: 'Error',
-          description: 'Failed to unlike post',
-          variant: 'destructive',
-        })
+        showToast.error('Error', 'Failed to unlike post')
       }
     } else {
       // Optimistic update
@@ -154,22 +141,14 @@ export const PostDetailPage = () => {
       } catch {
         // Rollback on failure
         dispatch(rollbackLikePost(post.id))
-        toast({
-          title: 'Error',
-          description: 'Failed to like post',
-          variant: 'destructive',
-        })
+        showToast.error('Error', 'Failed to like post')
       }
     }
   }
 
   const handleSavePost = async () => {
     if (!post || !user?.id) {
-      toast({
-        title: 'Please log in',
-        description: 'You need to be logged in to save posts',
-        variant: 'destructive',
-      })
+      showToast.error('Please log in', 'You need to be logged in to save posts')
       return
     }
 
@@ -178,72 +157,43 @@ export const PostDetailPage = () => {
       dispatch(optimisticUnsavePost(post.id))
       try {
         await dispatch(unsavePost({ postId: post.id })).unwrap()
-        toast({
-          title: 'Removed from saved',
-          description: 'Post has been removed from your saved items',
-        })
+        showToast.success('Removed from saved', 'Post has been removed from your saved items')
       } catch {
         // Rollback on failure
         dispatch(rollbackUnsavePost(post.id))
-        toast({
-          title: 'Error',
-          description: 'Failed to unsave post',
-          variant: 'destructive',
-        })
+        showToast.error('Error', 'Failed to unsave post')
       }
     } else {
       // Optimistic update
       dispatch(optimisticSavePost(post.id))
       try {
         await dispatch(savePost({ postId: post.id })).unwrap()
-        toast({
-          title: 'Saved',
-          description: 'Post has been saved to your collection',
-        })
+        showToast.success('Saved', 'Post has been saved to your collection')
       } catch {
         // Rollback on failure
         dispatch(rollbackSavePost(post.id))
-        toast({
-          title: 'Error',
-          description: 'Failed to save post',
-          variant: 'destructive',
-        })
+        showToast.error('Error', 'Failed to save post')
       }
     }
   }
 
   const handleSharePost = async () => {
     if (!post || !user?.id) {
-      toast({
-        title: 'Please log in',
-        description: 'You need to be logged in to share posts',
-        variant: 'destructive',
-      })
+      showToast.error('Please log in', 'You need to be logged in to share posts')
       return
     }
 
     try {
       await dispatch(sharePost({ postId: post.id })).unwrap()
-      toast({
-        title: 'Shared',
-        description: 'Post has been shared',
-      })
+      showToast.success('Shared', 'Post has been shared')
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to share post',
-        variant: 'destructive',
-      })
+      showToast.error('Error', 'Failed to share post')
     }
   }
 
   const handleAddComment = async () => {
     if (!post || !user?.id) {
-      toast({
-        title: 'Please log in',
-        description: 'You need to be logged in to comment',
-        variant: 'destructive',
-      })
+      showToast.error('Please log in', 'You need to be logged in to comment')
       return
     }
 
@@ -252,26 +202,15 @@ export const PostDetailPage = () => {
     try {
       await dispatch(addComment({ postId: post.id, content: commentInput.trim() })).unwrap()
       setCommentInput('')
-      toast({
-        title: 'Comment added',
-        description: 'Your comment has been posted',
-      })
+      showToast.success('Comment added', 'Your comment has been posted')
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to add comment',
-        variant: 'destructive',
-      })
+      showToast.error('Error', 'Failed to add comment')
     }
   }
 
   const handleLikeComment = async (commentId: string, isCurrentlyLiked: boolean) => {
     if (!user?.id) {
-      toast({
-        title: 'Please log in',
-        description: 'You need to be logged in to like comments',
-        variant: 'destructive',
-      })
+      showToast.error('Please log in', 'You need to be logged in to like comments')
       return
     }
 
@@ -282,21 +221,13 @@ export const PostDetailPage = () => {
         await dispatch(likeComment({ commentId })).unwrap()
       }
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to update comment like',
-        variant: 'destructive',
-      })
+      showToast.error('Error', 'Failed to update comment like')
     }
   }
 
   const handleFollowUser = async () => {
     if (!post || !user?.id) {
-      toast({
-        title: 'Please log in',
-        description: 'You need to be logged in to follow users',
-        variant: 'destructive',
-      })
+      showToast.error('Please log in', 'You need to be logged in to follow users')
       return
     }
 
@@ -310,24 +241,14 @@ export const PostDetailPage = () => {
       if (isFollowing) {
         await dispatch(unfollowUser({ userId: user.id, targetUserId: post.author.id })).unwrap()
         setIsFollowing(false)
-        toast({
-          title: 'Unfollowed',
-          description: `You unfollowed ${post.author.fullName}`,
-        })
+        showToast.success('Unfollowed', `You unfollowed ${post.author.fullName}`)
       } else {
         await dispatch(followUser({ userId: user.id, targetUserId: post.author.id })).unwrap()
         setIsFollowing(true)
-        toast({
-          title: 'Following',
-          description: `You are now following ${post.author.fullName}`,
-        })
+        showToast.success('Following', `You are now following ${post.author.fullName}`)
       }
     } catch {
-      toast({
-        title: 'Error',
-        description: isFollowing ? 'Failed to unfollow user' : 'Failed to follow user',
-        variant: 'destructive',
-      })
+      showToast.error('Error', isFollowing ? 'Failed to unfollow user' : 'Failed to follow user')
     } finally {
       setIsFollowLoading(false)
     }

@@ -16,7 +16,7 @@ import { Button } from '@/presentation/components/ui/button'
 import { Badge } from '@/presentation/components/ui/badge'
 import { Card } from '@/presentation/components/ui/card'
 import { cn } from '@/shared/utils/cn'
-import { useToast } from '@/presentation/components/ui/use-toast'
+import { showToast } from '@/shared/utils/toast'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import {
@@ -34,7 +34,6 @@ export const OutfitDetailPage = () => {
   const { outfitId } = useParams<{ outfitId: string }>()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { toast } = useToast()
 
   const { user } = useAppSelector((state) => state.auth)
   const { selectedOutfit: outfit, isLoading, error } = useAppSelector((state) => state.outfit)
@@ -65,21 +64,13 @@ export const OutfitDetailPage = () => {
   // Show error toast
   useEffect(() => {
     if (error) {
-      toast({
-        title: 'Error',
-        description: error,
-        variant: 'destructive',
-      })
+      showToast.error('Error', error)
     }
-  }, [error, toast])
+  }, [error])
 
   const handleLike = async () => {
     if (!user?.id || !outfit) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to like outfits',
-        variant: 'destructive',
-      })
+      showToast.error('Sign in required', 'Please sign in to like outfits')
       return
     }
 
@@ -94,21 +85,13 @@ export const OutfitDetailPage = () => {
         setLikesCount((prev) => prev + 1)
       }
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to update like status',
-        variant: 'destructive',
-      })
+      showToast.error('Error', 'Failed to update like status')
     }
   }
 
   const handleSave = async () => {
     if (!user?.id || !outfit) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to save outfits',
-        variant: 'destructive',
-      })
+      showToast.error('Sign in required', 'Please sign in to save outfits')
       return
     }
 
@@ -116,34 +99,20 @@ export const OutfitDetailPage = () => {
       if (isSaved) {
         await dispatch(unsaveOutfit({ userId: user.id, outfitId: outfit.id })).unwrap()
         setIsSaved(false)
-        toast({
-          title: 'Removed from saved',
-          description: 'Outfit removed from your collection',
-        })
+        showToast.success('Removed from saved', 'Outfit removed from your collection')
       } else {
         await dispatch(saveOutfit({ userId: user.id, outfitId: outfit.id })).unwrap()
         setIsSaved(true)
-        toast({
-          title: 'Saved!',
-          description: 'Outfit saved to your collection',
-        })
+        showToast.success('Saved!', 'Outfit saved to your collection')
       }
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to update save status',
-        variant: 'destructive',
-      })
+      showToast.error('Error', 'Failed to update save status')
     }
   }
 
   const handleAddToCart = async (item: NonNullable<typeof outfit>['items'][0]) => {
     if (!user?.id) {
-      toast({
-        title: 'Please log in',
-        description: 'You need to be logged in to add items to cart',
-        variant: 'destructive',
-      })
+      showToast.error('Please log in', 'You need to be logged in to add items to cart')
       return
     }
 
@@ -167,26 +136,15 @@ export const OutfitDetailPage = () => {
         })
       ).unwrap()
 
-      toast({
-        title: 'Added to Cart',
-        description: `${item.name} has been added to your cart`,
-      })
+      showToast.addedToCart(item.name)
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to add item to cart',
-        variant: 'destructive',
-      })
+      showToast.error('Error', 'Failed to add item to cart')
     }
   }
 
   const handleBuyOutfit = async () => {
     if (!user?.id || !outfit?.items?.length) {
-      toast({
-        title: 'Error',
-        description: 'Unable to add items to cart',
-        variant: 'destructive',
-      })
+      showToast.error('Error', 'Unable to add items to cart')
       return
     }
 
@@ -215,32 +173,19 @@ export const OutfitDetailPage = () => {
         }
       }
 
-      toast({
-        title: 'Added to Cart',
-        description: `All items from ${outfit.name} added to your cart`,
-      })
+      showToast.success('Added to Cart', `All items from ${outfit.name} added to your cart`)
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to add items to cart',
-        variant: 'destructive',
-      })
+      showToast.error('Error', 'Failed to add items to cart')
     }
   }
 
   const handleDownloadLook = () => {
-    toast({
-      title: 'Downloading Look',
-      description: 'Your outfit is being prepared',
-    })
+    showToast.info('Downloading Look', 'Your outfit is being prepared')
   }
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href)
-    toast({
-      title: 'Link Copied!',
-      description: 'Share this look with your friends',
-    })
+    showToast.success('Link Copied!', 'Share this look with your friends')
   }
 
   // Calculate total price from items
@@ -320,9 +265,9 @@ export const OutfitDetailPage = () => {
           >
             <Card className="overflow-hidden shadow-lg">
               <div className="relative aspect-[3/4] bg-gradient-to-br from-brand-beige/30 to-brand-gray/10 sm:aspect-[4/5] lg:aspect-[16/9]">
-                {outfit.items?.[0]?.imageUrl ? (
+                {outfit.mainImage || outfit.thumbnail || outfit.items?.[0]?.imageUrl ? (
                   <img
-                    src={outfit.items[0].imageUrl}
+                    src={outfit.mainImage || outfit.thumbnail || outfit.items?.[0]?.imageUrl}
                     alt={outfit.name}
                     className="h-full w-full object-cover"
                   />

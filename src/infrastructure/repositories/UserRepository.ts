@@ -27,11 +27,11 @@ export class UserRepository implements IUserRepository {
   }
 
   async followUser(_userId: string, targetUserId: string): Promise<void> {
-    await apiClient.post<void>(`/auth/users/${targetUserId}/follow`)
+    await apiClient.post<void>(`/auth/users/${targetUserId}/follow/`)
   }
 
   async unfollowUser(_userId: string, targetUserId: string): Promise<void> {
-    await apiClient.delete<void>(`/auth/users/${targetUserId}/follow`)
+    await apiClient.delete<void>(`/auth/users/${targetUserId}/follow/`)
   }
 
   async getFollowers(userId: string): Promise<User[]> {

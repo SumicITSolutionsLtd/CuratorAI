@@ -17,6 +17,8 @@ export interface Outfit {
   userId: string
   name: string
   description?: string
+  mainImage?: string
+  thumbnail?: string
   items: OutfitItem[]
   styleAttributes: string[]
   occasion?: string
