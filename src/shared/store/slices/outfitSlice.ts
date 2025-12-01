@@ -8,6 +8,7 @@ const outfitRepository = new OutfitRepository()
 interface OutfitState {
   recommendations: OutfitRecommendation[]
   savedOutfits: Outfit[]
+  userOutfits: Outfit[]
   selectedOutfit: Outfit | null
   currentPage: number
   hasMore: boolean
@@ -20,6 +21,7 @@ interface OutfitState {
 const initialState: OutfitState = {
   recommendations: [],
   savedOutfits: [],
+  userOutfits: [],
   selectedOutfit: null,
   currentPage: 1,
   hasMore: true,
@@ -159,6 +161,22 @@ export const fetchSavedOutfits = createAsyncThunk(
       return await outfitRepository.getSavedOutfits(userId, page, limit)
     } catch (error: any) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch saved outfits'))
+    }
+  }
+)
+
+// ==================== USER OUTFITS ====================
+
+export const fetchUserOutfits = createAsyncThunk(
+  'outfit/fetchUserOutfits',
+  async (
+    { userId, page = 1, limit = 12 }: { userId: string; page?: number; limit?: number },
+    { rejectWithValue }
+  ) => {
+    try {
+      return await outfitRepository.getUserOutfits(userId, page, limit)
+    } catch (error: any) {
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch user outfits'))
     }
   }
 )
@@ -362,6 +380,27 @@ const outfitSlice = createSlice({
         state.total = action.payload.count
       })
       .addCase(fetchSavedOutfits.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
+
+      // ==================== FETCH USER OUTFITS ====================
+      .addCase(fetchUserOutfits.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(fetchUserOutfits.fulfilled, (state, action) => {
+        state.isLoading = false
+        if (action.payload.currentPage === 1) {
+          state.userOutfits = action.payload.results
+        } else {
+          state.userOutfits.push(...action.payload.results)
+        }
+        state.currentPage = action.payload.currentPage
+        state.hasMore = action.payload.hasMore
+        state.total = action.payload.count
+      })
+      .addCase(fetchUserOutfits.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.payload as string
       })

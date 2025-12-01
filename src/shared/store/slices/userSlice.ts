@@ -211,12 +211,23 @@ const userSlice = createSlice({
         state.error = action.payload as string
       })
       // Follow user
-      .addCase(followUser.fulfilled, () => {
-        // Could add optimistic update here
+      .addCase(followUser.fulfilled, (state, action) => {
+        // Update selectedUser if it matches
+        if (state.selectedUser && state.selectedUser.id === action.payload) {
+          state.selectedUser.isFollowing = true
+          state.selectedUser.followersCount = (state.selectedUser.followersCount || 0) + 1
+        }
       })
       // Unfollow user
-      .addCase(unfollowUser.fulfilled, () => {
-        // Could add optimistic update here
+      .addCase(unfollowUser.fulfilled, (state, action) => {
+        // Update selectedUser if it matches
+        if (state.selectedUser && state.selectedUser.id === action.payload) {
+          state.selectedUser.isFollowing = false
+          state.selectedUser.followersCount = Math.max(
+            0,
+            (state.selectedUser.followersCount || 0) - 1
+          )
+        }
       })
       // Get followers
       .addCase(getFollowers.pending, (state) => {

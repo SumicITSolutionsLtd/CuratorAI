@@ -111,7 +111,7 @@ export const Sidebar = () => {
         className="fixed left-0 top-0 z-40 hidden h-screen border-r bg-background lg:block"
       >
         <div className="flex h-full flex-col">
-          {/* User Profile */}
+          {/* User Profile with Dropdown */}
           {!isCollapsed && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -119,68 +119,132 @@ export const Sidebar = () => {
               exit={{ opacity: 0 }}
               className="mt-4 border-b p-4"
             >
-              <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
-                  <AvatarImage
-                    src={
-                      user?.profile?.photoUrl ||
-                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
-                    }
-                  />
-                  <AvatarFallback>
-                    {user?.fullName
-                      ?.split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{user?.fullName || 'User'}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {user?.profile?.bio || user?.role || 'Fashion Enthusiast'}
-                  </p>
-                </div>
-                <button className="text-muted-foreground hover:text-foreground">
-                  <Bell className="h-5 w-5" />
-                </button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex w-full items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted">
+                    <Avatar className="h-12 w-12 ring-2 ring-brand-crimson/20">
+                      <AvatarImage
+                        src={
+                          user?.profile?.photoUrl ||
+                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
+                        }
+                      />
+                      <AvatarFallback>
+                        {user?.fullName
+                          ?.split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="truncate text-sm font-medium">{user?.fullName || 'User'}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        @{user?.username || 'user'}
+                      </p>
+                    </div>
+                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile/me" className="flex items-center gap-3">
+                      <UserIcon className="h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center gap-3">
+                      <Settings className="h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/notifications" className="flex items-center gap-3">
+                      <Bell className="h-4 w-4" />
+                      <span>Notifications</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="flex cursor-pointer items-center gap-3 text-red-600 focus:text-red-600"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </motion.div>
           )}
 
-          {/* Collapsed User Avatar */}
+          {/* Collapsed User Avatar with Dropdown */}
           {isCollapsed && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="mt-4 flex justify-center border-b p-4"
             >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link to="/profile/me">
-                      <Avatar className="h-10 w-10 cursor-pointer ring-2 ring-brand-crimson/20">
-                        <AvatarImage
-                          src={
-                            user?.profile?.photoUrl ||
-                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
-                          }
-                        />
-                        <AvatarFallback>
-                          {user?.fullName
-                            ?.split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button>
+                    <Avatar className="h-10 w-10 cursor-pointer ring-2 ring-brand-crimson/20 transition-transform hover:scale-105">
+                      <AvatarImage
+                        src={
+                          user?.profile?.photoUrl ||
+                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`
+                        }
+                      />
+                      <AvatarFallback>
+                        {user?.fullName
+                          ?.split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="start" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span>{user?.fullName || 'User'}</span>
+                      <span className="text-xs font-normal text-muted-foreground">
+                        @{user?.username || 'user'}
+                      </span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile/me" className="flex items-center gap-3">
+                      <UserIcon className="h-4 w-4" />
+                      <span>Profile</span>
                     </Link>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>{user?.fullName || 'User'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center gap-3">
+                      <Settings className="h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/notifications" className="flex items-center gap-3">
+                      <Bell className="h-4 w-4" />
+                      <span>Notifications</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="flex cursor-pointer items-center gap-3 text-red-600 focus:text-red-600"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </motion.div>
           )}
 

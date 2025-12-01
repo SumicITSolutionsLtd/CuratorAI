@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
@@ -14,17 +14,21 @@ import {
   MessageCircle,
   UserPlus,
   UserCheck,
+  Loader2,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Card } from '@/presentation/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/presentation/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/components/ui/tabs'
 import { OutfitCard } from '@/presentation/components/outfit/OutfitCard'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { cn } from '@/shared/utils/cn'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
-import { fetchFeed } from '@/shared/store/slices/socialSlice'
+import { getUserById, followUser, unfollowUser } from '@/shared/store/slices/userSlice'
+import { fetchUserOutfits } from '@/shared/store/slices/outfitSlice'
+import { showToast } from '@/shared/utils/toast'
 
 // Format join date
 const formatJoinDate = (date?: Date) => {
@@ -32,107 +36,96 @@ const formatJoinDate = (date?: Date) => {
   return `Joined ${new Date(date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
 }
 
-const mockProfile = {
-  name: 'Sarah Chen',
-  username: '@sarahchen',
-  bio: 'Fashion enthusiast • Style curator • Coffee lover ☕\nSharing my daily outfits and fashion finds',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-  coverImage: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=400&fit=crop',
-  location: 'San Francisco, CA',
-  website: 'sarahchen.style',
-  joinedDate: 'Joined March 2023',
-  stats: {
-    posts: 127,
-    followers: 12453,
-    following: 892,
-  },
-  isFollowing: false,
-  isOwnProfile: true,
-}
-
-const posts = [
-  {
-    id: 1,
-    name: 'Summer Brunch',
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=800&fit=crop',
-    items: [
-      { name: 'Linen Dress', brand: 'Reformation' },
-      { name: 'Sandals', brand: 'Ancient Greek' },
-    ],
-    matchScore: 95,
-    price: 248,
-    likes: 432,
-  },
-  {
-    id: 2,
-    name: 'Office Look',
-    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600&h=800&fit=crop',
-    items: [
-      { name: 'Blazer', brand: 'Zara' },
-      { name: 'Trousers', brand: 'COS' },
-    ],
-    matchScore: 92,
-    price: 179,
-    likes: 521,
-  },
-  {
-    id: 3,
-    name: 'Weekend Casual',
-    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&h=800&fit=crop',
-    items: [
-      { name: 'Denim Jacket', brand: "Levi's" },
-      { name: 'White Tee', brand: 'Everlane' },
-    ],
-    matchScore: 88,
-    price: 95,
-    likes: 387,
-  },
-  {
-    id: 4,
-    name: 'Evening Elegance',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=800&fit=crop',
-    items: [
-      { name: 'Silk Dress', brand: 'Reformation' },
-      { name: 'Heels', brand: 'Stuart Weitzman' },
-    ],
-    matchScore: 94,
-    price: 398,
-    likes: 612,
-  },
-]
-
 export const ProfilePage = () => {
+  const { userId } = useParams<{ userId: string }>()
   const dispatch = useAppDispatch()
-  const { user } = useAppSelector((state) => state.auth)
+  const { user: currentUser } = useAppSelector((state) => state.auth)
+  const { selectedUser, isLoading: userLoading } = useAppSelector((state) => state.user)
+  const { userOutfits, isLoading: outfitsLoading } = useAppSelector((state) => state.outfit)
 
-  const [isFollowing, setIsFollowing] = useState(false)
   const [activeTab, setActiveTab] = useState('posts')
+  const [isFollowLoading, setIsFollowLoading] = useState(false)
 
-  // Fetch user's posts on mount
+  // Determine if viewing own profile or another user's profile
+  const isOwnProfile = !userId || userId === 'me' || userId === currentUser?.id
+
+  // The profile to display - either selected user or current user
+  const profileUser = isOwnProfile ? currentUser : selectedUser
+
+  // Fetch user profile and outfits on mount
   useEffect(() => {
-    if (user?.id) {
-      dispatch(fetchFeed({ type: 'forYou', limit: 20, page: 1 }))
-    }
-  }, [dispatch, user?.id])
+    const targetUserId = isOwnProfile ? currentUser?.id : userId
 
-  // Use current user data or fall back to mock
-  const displayProfile = user
-    ? {
-        name: user.fullName || mockProfile.name,
-        username: `@${user.username}` || mockProfile.username,
-        bio: user.profile?.bio || mockProfile.bio,
-        avatar:
-          user.profile?.photoUrl ||
-          `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
-        coverImage: mockProfile.coverImage, // Would come from backend in real app
-        location: user.profile?.location || mockProfile.location,
-        website: user.profile?.website || mockProfile.website,
-        joinedDate: formatJoinDate(user.createdAt),
-        stats: mockProfile.stats, // Would come from backend in real app
-        isFollowing: false,
-        isOwnProfile: true,
+    if (targetUserId && !isOwnProfile) {
+      // Fetch other user's profile
+      dispatch(getUserById(targetUserId))
+    }
+
+    if (targetUserId) {
+      // Fetch user's outfits
+      dispatch(fetchUserOutfits({ userId: targetUserId, page: 1, limit: 12 }))
+    }
+  }, [dispatch, userId, currentUser?.id, isOwnProfile])
+
+  // Handle follow/unfollow
+  const handleFollowToggle = useCallback(async () => {
+    if (!currentUser?.id || !profileUser?.id) return
+
+    setIsFollowLoading(true)
+    try {
+      if (profileUser.isFollowing) {
+        await dispatch(
+          unfollowUser({ userId: currentUser.id, targetUserId: profileUser.id })
+        ).unwrap()
+        showToast.success('Unfollowed', `You unfollowed ${profileUser.fullName}`)
+      } else {
+        await dispatch(
+          followUser({ userId: currentUser.id, targetUserId: profileUser.id })
+        ).unwrap()
+        showToast.success('Following', `You are now following ${profileUser.fullName}`)
       }
-    : mockProfile
+    } catch (error: any) {
+      showToast.error('Error', error?.message || 'Failed to update follow status')
+    } finally {
+      setIsFollowLoading(false)
+    }
+  }, [dispatch, currentUser?.id, profileUser])
+
+  // Build display profile data
+  const displayProfile = {
+    name: profileUser?.fullName || 'User',
+    username: `@${profileUser?.username || 'user'}`,
+    bio: profileUser?.profile?.bio || 'No bio yet',
+    avatar:
+      profileUser?.profile?.photoUrl ||
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileUser?.username || 'user'}`,
+    coverImage:
+      'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=400&fit=crop',
+    location: profileUser?.profile?.location,
+    website: profileUser?.profile?.website,
+    joinedDate: formatJoinDate(profileUser?.createdAt),
+    stats: {
+      posts: profileUser?.postsCount || userOutfits.length || 0,
+      followers: profileUser?.followersCount || 0,
+      following: profileUser?.followingCount || 0,
+    },
+    isFollowing: profileUser?.isFollowing || false,
+    isOwnProfile,
+  }
+
+  // Show loading state
+  if (userLoading && !isOwnProfile) {
+    return (
+      <MainLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-crimson" />
+            <p className="text-lg font-medium">Loading profile...</p>
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -187,15 +180,18 @@ export const ProfilePage = () => {
                 ) : (
                   <>
                     <Button
-                      onClick={() => setIsFollowing(!isFollowing)}
+                      onClick={handleFollowToggle}
+                      disabled={isFollowLoading}
                       className={cn(
                         'min-w-[120px]',
-                        isFollowing
+                        displayProfile.isFollowing
                           ? 'bg-muted text-foreground hover:bg-muted/80'
                           : 'bg-brand-crimson hover:bg-brand-crimson/90'
                       )}
                     >
-                      {isFollowing ? (
+                      {isFollowLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : displayProfile.isFollowing ? (
                         <>
                           <UserCheck className="mr-2 h-4 w-4" />
                           Following
@@ -294,18 +290,55 @@ export const ProfilePage = () => {
           </TabsList>
 
           <TabsContent value="posts" className="mt-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {posts.map((post, index) => (
-                <motion.div
-                  key={post.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <OutfitCard {...post} />
-                </motion.div>
-              ))}
-            </div>
+            {outfitsLoading ? (
+              <div className="flex min-h-[200px] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-brand-crimson" />
+              </div>
+            ) : userOutfits.length === 0 ? (
+              <div className="py-12 text-center">
+                <Sparkles className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+                <p className="text-muted-foreground">
+                  {displayProfile.isOwnProfile
+                    ? "You haven't posted any outfits yet"
+                    : 'No outfits posted yet'}
+                </p>
+                {displayProfile.isOwnProfile && (
+                  <Link to="/wardrobe/create-outfit">
+                    <Button className="mt-4 bg-brand-crimson hover:bg-brand-crimson/90">
+                      Create Your First Outfit
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {userOutfits.map((outfit, index) => (
+                  <motion.div
+                    key={outfit.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <OutfitCard
+                      id={outfit.id}
+                      name={outfit.name}
+                      image={
+                        outfit.mainImage || outfit.thumbnail || outfit.items?.[0]?.imageUrl || ''
+                      }
+                      items={
+                        outfit.items?.map((item) => ({
+                          name: item.name,
+                          brand: item.brand,
+                        })) || []
+                      }
+                      matchScore={outfit.confidenceScore || 0}
+                      price={outfit.totalPrice || 0}
+                      likes={outfit.likes || 0}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="lookbooks" className="mt-6">
@@ -317,17 +350,14 @@ export const ProfilePage = () => {
 
           <TabsContent value="liked" className="mt-6">
             {displayProfile.isOwnProfile ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {posts.slice(0, 2).map((post, index) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <OutfitCard {...post} />
-                  </motion.div>
-                ))}
+              <div className="py-12 text-center">
+                <Heart className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+                <p className="text-muted-foreground">Your liked outfits will appear here</p>
+                <Link to="/feed">
+                  <Button variant="outline" className="mt-4">
+                    Explore Outfits
+                  </Button>
+                </Link>
               </div>
             ) : (
               <div className="py-12 text-center">

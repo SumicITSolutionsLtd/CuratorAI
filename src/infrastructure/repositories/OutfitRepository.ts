@@ -158,4 +158,27 @@ export class OutfitRepository implements IOutfitRepository {
     // This method may not work until backend implements it
     throw new Error('Outfit feedback endpoint not implemented in backend API')
   }
+
+  async getUserOutfits(
+    userId: string,
+    page: number = 1,
+    limit: number = 12
+  ): Promise<PaginatedResponse<Outfit>> {
+    const response = await apiClient.get<{
+      count: number
+      next?: string
+      previous?: string
+      results: any[]
+    }>(`/outfits/user/${userId}/?page=${page}&limit=${limit}`)
+
+    const totalPages = Math.ceil(response.count / limit)
+
+    return {
+      results: response.results.map((outfit) => this.transformOutfit(outfit)),
+      count: response.count,
+      currentPage: page,
+      totalPages,
+      hasMore: !!response.next,
+    }
+  }
 }
