@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home,
   Search,
@@ -33,6 +33,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import { fetchCart } from '@/shared/store/slices/cartSlice'
+import { logout } from '@/shared/store/slices/authSlice'
+import { showToast } from '@/shared/utils/toast'
 
 const baseNavItems = [
   { icon: Home, label: 'Home', path: '/home', primary: true },
@@ -47,10 +49,21 @@ const baseNavItems = [
 
 export const Sidebar = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
   const { itemCount: cartItemCount } = useAppSelector((state) => state.cart)
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await dispatch(logout()).unwrap()
+      showToast.success('Logged out', 'You have been successfully logged out')
+      navigate('/login')
+    } catch {
+      showToast.error('Logout failed', 'Please try again')
+    }
+  }, [dispatch, navigate])
 
   // Fetch cart on mount
   useEffect(() => {
@@ -393,7 +406,10 @@ export const Sidebar = () => {
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem className="flex items-center gap-3 text-red-600">
+              <DropdownMenuItem
+                className="flex cursor-pointer items-center gap-3 text-red-600"
+                onClick={handleLogout}
+              >
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
