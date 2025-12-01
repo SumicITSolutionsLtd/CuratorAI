@@ -26,7 +26,7 @@ import {
 import { Badge } from '@/presentation/components/ui/badge'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks'
-import { addWardrobeItem } from '@/shared/store/slices/wardrobeSlice'
+import { addWardrobeItem, updateWardrobeItem } from '@/shared/store/slices/wardrobeSlice'
 import { WardrobeItem } from '@/domain/entities/Wardrobe'
 import { useToast } from '@/presentation/components/ui/use-toast'
 import { WardrobeRepository } from '@/infrastructure/repositories/WardrobeRepository'
@@ -225,6 +225,16 @@ export const AddWardrobeItemPage = () => {
           console.warn(`Failed to upload image ${i + 1}:`, uploadError)
           // Continue with other images even if one fails
         }
+      }
+
+      // Step 3: Update Redux state with the uploaded image URLs
+      if (uploadedImageUrls.length > 0) {
+        dispatch(
+          updateWardrobeItem({
+            id: createdItem.id,
+            updates: { images: uploadedImageUrls },
+          })
+        )
       }
 
       // Clean up preview URLs

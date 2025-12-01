@@ -500,13 +500,19 @@ export const WardrobePage = () => {
                     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand-crimson/20">
                       {/* Image */}
                       <div className="relative aspect-[3/4] overflow-hidden bg-brand-beige">
-                        <motion.img
-                          src={item.images[0]}
-                          alt={item.name}
-                          className="h-full w-full object-cover"
-                          whileHover={{ scale: 1.1 }}
-                          transition={{ duration: 0.3 }}
-                        />
+                        {item.images && item.images.length > 0 ? (
+                          <motion.img
+                            src={item.images[0]}
+                            alt={item.name}
+                            className="h-full w-full object-cover"
+                            whileHover={{ scale: 1.1 }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <Shirt className="h-16 w-16 text-muted-foreground/30" />
+                          </div>
+                        )}
                         {/* Desktop hover overlay */}
                         <div className="absolute inset-0 hidden bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 lg:block" />
 

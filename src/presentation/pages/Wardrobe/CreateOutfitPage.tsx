@@ -131,7 +131,7 @@ export const CreateOutfitPage = () => {
         currency: item.currency || 'USD',
         size: item.size,
         color: item.color,
-        imageUrl: item.images[0] || '',
+        imageUrl: item.images?.[0] || '',
         productUrl: item.purchaseLink,
         inStock: true,
       }))
@@ -271,11 +271,17 @@ export const CreateOutfitPage = () => {
                           )}
                         >
                           <div className="aspect-[3/4] overflow-hidden bg-brand-beige">
-                            <img
-                              src={item.images[0]}
-                              alt={item.name}
-                              className="h-full w-full object-cover transition-transform group-hover:scale-110"
-                            />
+                            {item.images && item.images.length > 0 ? (
+                              <img
+                                src={item.images[0]}
+                                alt={item.name}
+                                className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center">
+                                <Sparkles className="h-8 w-8 text-muted-foreground/30" />
+                              </div>
+                            )}
                           </div>
 
                           {/* Selection Indicator */}
@@ -318,11 +324,17 @@ export const CreateOutfitPage = () => {
                   <div className="space-y-2">
                     {selectedItemObjects.map((item) => (
                       <div key={item.id} className="flex items-center gap-2 rounded-lg border p-2">
-                        <img
-                          src={item.images[0]}
-                          alt={item.name}
-                          className="h-12 w-12 rounded object-cover"
-                        />
+                        {item.images && item.images.length > 0 ? (
+                          <img
+                            src={item.images[0]}
+                            alt={item.name}
+                            className="h-12 w-12 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-12 items-center justify-center rounded bg-muted">
+                            <Sparkles className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-xs font-medium">{item.name}</p>
                           <p className="truncate text-xs capitalize text-muted-foreground">

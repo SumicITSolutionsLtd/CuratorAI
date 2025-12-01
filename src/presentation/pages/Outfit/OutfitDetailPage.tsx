@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Heart,
   Bookmark,
+  Shirt,
 } from 'lucide-react'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import { Button } from '@/presentation/components/ui/button'
@@ -28,6 +29,7 @@ import {
   clearSelectedOutfit,
 } from '@/shared/store/slices/outfitSlice'
 import { addToCart } from '@/shared/store/slices/cartSlice'
+import { addWardrobeItem } from '@/shared/store/slices/wardrobeSlice'
 import { DetailPageSkeleton } from '@/presentation/components/ui/shimmer'
 
 export const OutfitDetailPage = () => {
@@ -186,6 +188,44 @@ export const OutfitDetailPage = () => {
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href)
     showToast.success('Link Copied!', 'Share this look with your friends')
+  }
+
+  const handleAddToWardrobe = async (item: NonNullable<typeof outfit>['items'][0]) => {
+    if (!user?.id) {
+      showToast.error('Please log in', 'You need to be logged in to add items to your wardrobe')
+      return
+    }
+
+    try {
+      await dispatch(
+        addWardrobeItem({
+          wardrobeId: `wardrobe-${user.id}`,
+          category: item.category as
+            | 'top'
+            | 'bottom'
+            | 'shoes'
+            | 'accessory'
+            | 'outerwear'
+            | 'dress'
+            | 'bag',
+          name: item.name,
+          brand: item.brand || undefined,
+          color: item.color || 'Unknown',
+          size: item.size,
+          price: item.price || undefined,
+          currency: item.currency || 'USD',
+          images: item.imageUrl ? [item.imageUrl] : [],
+          attributes: [],
+          tags: [],
+          timesWorn: 0,
+          purchaseLink: item.productUrl,
+        })
+      ).unwrap()
+
+      showToast.success('Added to Wardrobe', `${item.name} has been added to your wardrobe`)
+    } catch {
+      showToast.error('Error', 'Failed to add item to wardrobe')
+    }
   }
 
   // Calculate total price from items
@@ -432,6 +472,16 @@ export const OutfitDetailPage = () => {
                                   Out of Stock
                                 </Badge>
                               )}
+
+                              <Button
+                                size="lg"
+                                variant="outline"
+                                className="flex-1 border-brand-blue text-brand-blue hover:bg-brand-blue/10"
+                                onClick={() => handleAddToWardrobe(item)}
+                              >
+                                <Shirt className="mr-2 h-4 w-4" />
+                                Add to Wardrobe
+                              </Button>
 
                               {item.productUrl && (
                                 <Button
