@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  ImageIcon,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Badge } from '@/presentation/components/ui/badge'
@@ -192,21 +193,27 @@ export const WardrobeItemDetailPage = () => {
           <div className="space-y-4">
             <Card className="overflow-hidden">
               <div className="relative aspect-[3/4] bg-brand-beige">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={currentImageIndex}
-                    src={item.images[currentImageIndex]}
-                    alt={`${item.name} ${currentImageIndex + 1}`}
-                    className="h-full w-full object-cover"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </AnimatePresence>
+                {item.images && item.images.length > 0 ? (
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={currentImageIndex}
+                      src={item.images[currentImageIndex]}
+                      alt={`${item.name} ${currentImageIndex + 1}`}
+                      className="h-full w-full object-cover"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </AnimatePresence>
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <ImageIcon className="h-16 w-16 text-muted-foreground/30" />
+                  </div>
+                )}
 
                 {/* Navigation Arrows */}
-                {item.images.length > 1 && (
+                {item.images && item.images.length > 1 && (
                   <>
                     <button
                       onClick={handlePreviousImage}
@@ -224,7 +231,7 @@ export const WardrobeItemDetailPage = () => {
                 )}
 
                 {/* Image Counter */}
-                {item.images.length > 1 && (
+                {item.images && item.images.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
                     {currentImageIndex + 1} / {item.images.length}
                   </div>
@@ -233,7 +240,7 @@ export const WardrobeItemDetailPage = () => {
             </Card>
 
             {/* Thumbnail Strip */}
-            {item.images.length > 1 && (
+            {item.images && item.images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto">
                 {item.images.map((image, index) => (
                   <button
@@ -369,7 +376,7 @@ export const WardrobeItemDetailPage = () => {
             </Card>
 
             {/* Attributes */}
-            {item.attributes.length > 0 && (
+            {item.attributes && item.attributes.length > 0 && (
               <Card className="p-6">
                 <h2 className="mb-4 text-lg font-semibold">Attributes</h2>
                 <div className="space-y-2">
@@ -384,7 +391,7 @@ export const WardrobeItemDetailPage = () => {
             )}
 
             {/* Tags */}
-            {item.tags.length > 0 && (
+            {item.tags && item.tags.length > 0 && (
               <Card className="p-6">
                 <h2 className="mb-4 text-lg font-semibold">Tags</h2>
                 <div className="flex flex-wrap gap-2">

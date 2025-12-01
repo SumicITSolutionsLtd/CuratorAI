@@ -177,7 +177,7 @@ export const WardrobePage = () => {
           item.name.toLowerCase().includes(lowerQuery) ||
           item.brand?.toLowerCase().includes(lowerQuery) ||
           item.color.toLowerCase().includes(lowerQuery) ||
-          item.tags.some((tag) => tag.toLowerCase().includes(lowerQuery))
+          item.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))
       )
     }
 
@@ -192,7 +192,7 @@ export const WardrobePage = () => {
     }
     if (filters.season) {
       filtered = filtered.filter((item) =>
-        item.attributes.some(
+        item.attributes?.some(
           (attr) =>
             attr.key === 'season' &&
             attr.value.toLowerCase().includes(filters.season!.toLowerCase())
@@ -571,7 +571,7 @@ export const WardrobePage = () => {
                           <span>{item.color}</span>
                           <span>•</span>
                           <span>
-                            {item.attributes.find((attr) => attr.key === 'season')?.value ||
+                            {item.attributes?.find((attr) => attr.key === 'season')?.value ||
                               'All Season'}
                           </span>
                         </div>
