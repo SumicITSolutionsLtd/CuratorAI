@@ -23,6 +23,8 @@ const config: OAuthConfig = {
   facebookAppId: import.meta.env.VITE_FACEBOOK_APP_ID,
 }
 
+console.log('Google Client ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID)
+
 /**
  * Initialize Google OAuth
  * This loads the Google Identity Services SDK and initializes it
@@ -64,7 +66,11 @@ export const initGoogleOAuth = (): Promise<void> => {
 export const loginWithGoogle = (): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (!config.googleClientId) {
-      reject(new Error('Google Client ID not configured. Please add VITE_GOOGLE_CLIENT_ID to your .env file'))
+      reject(
+        new Error(
+          'Google Client ID not configured. Please add VITE_GOOGLE_CLIENT_ID to your .env file'
+        )
+      )
       return
     }
 
@@ -74,6 +80,7 @@ export const loginWithGoogle = (): Promise<string> => {
       callback: (response: any) => {
         if (response.credential) {
           // response.credential is the JWT ID token
+          console.log('Google OAuth Token:', response.credential)
           resolve(response.credential)
         } else {
           reject(new Error('Google OAuth failed'))
@@ -134,7 +141,11 @@ export const initFacebookSDK = (): Promise<void> => {
 export const loginWithFacebook = (): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (!config.facebookAppId) {
-      reject(new Error('Facebook App ID not configured. Please add VITE_FACEBOOK_APP_ID to your .env file'))
+      reject(
+        new Error(
+          'Facebook App ID not configured. Please add VITE_FACEBOOK_APP_ID to your .env file'
+        )
+      )
       return
     }
 
