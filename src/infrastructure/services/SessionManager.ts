@@ -41,7 +41,7 @@ class SessionManager {
       refreshFailures: 0,
     }
     this.listeners = new Map()
-    this.baseURL = import.meta.env.VITE_API_URL || 'https://curator-ai-backend.vercel.app/api/v1'
+    this.baseURL = import.meta.env.VITE_API_URL || 'https://api.curatorai.net/api/v1'
     this.initializeFromStorage()
   }
 

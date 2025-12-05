@@ -181,8 +181,8 @@ export class ApiClient {
 
 // Create singleton instances
 export const apiClient = new ApiClient(
-  import.meta.env.VITE_API_URL || 'https://curator-ai-backend.vercel.app/api/v1'
+  import.meta.env.VITE_API_URL || 'https://api.curatorai.net/api/v1'
 )
 export const mlApiClient = new ApiClient(
-  import.meta.env.VITE_ML_API_URL || 'https://curator-ai-backend.vercel.app/ml'
+  import.meta.env.VITE_ML_API_URL || 'https://api.curatorai.net/ml'
 )
