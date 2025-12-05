@@ -18,6 +18,7 @@ import { Badge } from '@/presentation/components/ui/badge'
 import { Card } from '@/presentation/components/ui/card'
 import { cn } from '@/shared/utils/cn'
 import { showToast } from '@/shared/utils/toast'
+import { ShareModal } from '@/presentation/components/common/ShareModal'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import {
@@ -43,6 +44,7 @@ export const OutfitDetailPage = () => {
   const [isLiked, setIsLiked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [likesCount, setLikesCount] = useState(0)
+  const [showShareModal, setShowShareModal] = useState(false)
 
   // Fetch outfit on mount
   useEffect(() => {
@@ -186,8 +188,7 @@ export const OutfitDetailPage = () => {
   }
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href)
-    showToast.success('Link Copied!', 'Share this look with your friends')
+    setShowShareModal(true)
   }
 
   const handleAddToWardrobe = async (item: NonNullable<typeof outfit>['items'][0]) => {
@@ -600,6 +601,17 @@ export const OutfitDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title={outfit?.name || 'Outfit'}
+        description={outfit?.description || `Check out this outfit: ${outfit?.name}`}
+        imageUrl={outfit?.items?.[0]?.imageUrl}
+        shareUrl={window.location.href}
+        type="outfit"
+      />
     </MainLayout>
   )
 }

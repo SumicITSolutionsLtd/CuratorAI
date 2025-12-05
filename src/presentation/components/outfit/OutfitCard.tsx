@@ -19,7 +19,7 @@ import { cn } from '@/shared/utils/cn'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { showToast } from '@/shared/utils/toast'
-import toast from 'react-hot-toast'
+import { ShareModal } from '../common/ShareModal'
 
 interface OutfitCardProps {
   id?: string | number
@@ -61,6 +61,7 @@ export const OutfitCard = ({
   const [isSaved, setIsSaved] = useState(initialSaved)
   const [likesCount, setLikesCount] = useState(likes)
   const [showTryOn, setShowTryOn] = useState(false)
+  const [showShare, setShowShare] = useState(false)
 
   const handleLike = () => {
     if (!id) return
@@ -84,16 +85,7 @@ export const OutfitCard = ({
   }
 
   const handleShare = () => {
-    // Copy link to clipboard
-    navigator.clipboard.writeText(window.location.href)
-    toast.success('Link copied to clipboard!', {
-      icon: '🔗',
-      style: {
-        borderRadius: '12px',
-        background: '#fff',
-        color: '#1C1917',
-      },
-    })
+    setShowShare(true)
   }
 
   const handleAddToCart = () => {
@@ -390,6 +382,17 @@ export const OutfitCard = ({
           </AnimatePresence>,
           document.body
         )}
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShare}
+        onClose={() => setShowShare(false)}
+        title={name}
+        description={`Check out this outfit: ${name}`}
+        imageUrl={displayImage}
+        shareUrl={id ? `${window.location.origin}/outfits/${id}` : undefined}
+        type="outfit"
+      />
     </motion.div>
   )
 }
