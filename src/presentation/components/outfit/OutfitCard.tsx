@@ -34,6 +34,8 @@ interface OutfitCardProps {
   likes: number
   isLiked?: boolean
   isSaved?: boolean
+  onLike?: (id: string | number, isNowLiked: boolean) => void
+  onSave?: (id: string | number, isNowSaved: boolean) => void
 }
 
 export const OutfitCard = ({
@@ -49,30 +51,35 @@ export const OutfitCard = ({
   likes,
   isLiked: initialLiked = false,
   isSaved: initialSaved = false,
+  onLike,
+  onSave,
 }: OutfitCardProps) => {
   const navigate = useNavigate()
   const displayImage = image || imageUrl
   const displayPrice = totalPrice || price || 0
   const [isLiked, setIsLiked] = useState(initialLiked)
   const [isSaved, setIsSaved] = useState(initialSaved)
+  const [likesCount, setLikesCount] = useState(likes)
   const [showTryOn, setShowTryOn] = useState(false)
 
   const handleLike = () => {
+    if (!id) return
     const newLikedState = !isLiked
     setIsLiked(newLikedState)
-    if (newLikedState) {
-      showToast.success(
-        'Added to your likes!',
-        'You can view all your liked outfits in your profile'
-      )
+    setLikesCount((prev) => (newLikedState ? prev + 1 : Math.max(0, prev - 1)))
+
+    if (onLike) {
+      onLike(id, newLikedState)
     }
   }
 
   const handleSave = () => {
+    if (!id) return
     const newSavedState = !isSaved
     setIsSaved(newSavedState)
-    if (newSavedState) {
-      showToast.success('Saved!', 'Added to your saved collection')
+
+    if (onSave) {
+      onSave(id, newSavedState)
     }
   }
 
@@ -160,7 +167,7 @@ export const OutfitCard = ({
                       {tag}
                     </Badge>
                   ))}
-                  <span className="text-xs text-white/80">• {likes} likes</span>
+                  <span className="text-xs text-white/80">• {likesCount} likes</span>
                 </div>
               </div>
               {/* Quick Action Icons */}
