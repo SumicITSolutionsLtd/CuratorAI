@@ -127,10 +127,17 @@ export const unlikeOutfit = createAsyncThunk(
 
 export const saveOutfit = createAsyncThunk(
   'outfit/saveOutfit',
-  async ({ userId, outfitId }: { userId: string; outfitId: string }, { rejectWithValue }) => {
+  async (
+    {
+      userId,
+      outfitId,
+      collectionName,
+    }: { userId: string; outfitId: string; collectionName?: string },
+    { rejectWithValue }
+  ) => {
     try {
-      await outfitRepository.saveOutfit(userId, outfitId)
-      return outfitId
+      const response = await outfitRepository.saveOutfit(userId, outfitId, { collectionName })
+      return { outfitId, savesCount: response.savesCount }
     } catch (error: any) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to save outfit'))
     }
@@ -141,8 +148,8 @@ export const unsaveOutfit = createAsyncThunk(
   'outfit/unsaveOutfit',
   async ({ userId, outfitId }: { userId: string; outfitId: string }, { rejectWithValue }) => {
     try {
-      await outfitRepository.unsaveOutfit(userId, outfitId)
-      return outfitId
+      const response = await outfitRepository.unsaveOutfit(userId, outfitId)
+      return { outfitId, savesCount: response.savesCount }
     } catch (error: any) {
       return rejectWithValue(extractAPIErrorMessage(error, 'Failed to unsave outfit'))
     }
@@ -341,26 +348,32 @@ const outfitSlice = createSlice({
 
       // ==================== SAVE OUTFIT ====================
       .addCase(saveOutfit.fulfilled, (state, action) => {
-        const outfit = state.recommendations.find((o) => o.id === action.payload)
+        const { outfitId, savesCount } = action.payload
+        const outfit = state.recommendations.find((o) => o.id === outfitId)
         if (outfit) {
           outfit.isSaved = true
+          outfit.saves = savesCount
         }
-        if (state.selectedOutfit?.id === action.payload) {
+        if (state.selectedOutfit?.id === outfitId) {
           state.selectedOutfit.isSaved = true
+          state.selectedOutfit.saves = savesCount
         }
       })
 
       // ==================== UNSAVE OUTFIT ====================
       .addCase(unsaveOutfit.fulfilled, (state, action) => {
-        const outfit = state.recommendations.find((o) => o.id === action.payload)
+        const { outfitId, savesCount } = action.payload
+        const outfit = state.recommendations.find((o) => o.id === outfitId)
         if (outfit) {
           outfit.isSaved = false
+          outfit.saves = savesCount
         }
-        if (state.selectedOutfit?.id === action.payload) {
+        if (state.selectedOutfit?.id === outfitId) {
           state.selectedOutfit.isSaved = false
+          state.selectedOutfit.saves = savesCount
         }
         // Remove from saved outfits
-        state.savedOutfits = state.savedOutfits.filter((o) => o.id !== action.payload)
+        state.savedOutfits = state.savedOutfits.filter((o) => o.id !== outfitId)
       })
 
       // ==================== FETCH SAVED OUTFITS ====================

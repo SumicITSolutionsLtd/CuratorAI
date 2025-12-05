@@ -8,6 +8,17 @@ export interface PaginatedResponse<T> {
   hasMore: boolean
 }
 
+export interface SaveOutfitOptions {
+  collectionName?: string
+}
+
+export interface SaveOutfitResponse {
+  success: boolean
+  message: string
+  isSaved: boolean
+  savesCount: number
+}
+
 export interface IOutfitRepository {
   getRecommendations(
     userId: string,
@@ -21,8 +32,13 @@ export interface IOutfitRepository {
   deleteOutfit(outfitId: string): Promise<void>
   likeOutfit(userId: string, outfitId: string): Promise<void>
   unlikeOutfit(userId: string, outfitId: string): Promise<void>
-  saveOutfit(userId: string, outfitId: string): Promise<void>
-  unsaveOutfit(userId: string, outfitId: string): Promise<void>
+  saveOutfit(
+    userId: string,
+    outfitId: string,
+    options?: SaveOutfitOptions
+  ): Promise<SaveOutfitResponse>
+  unsaveOutfit(userId: string, outfitId: string): Promise<SaveOutfitResponse>
   getSavedOutfits(userId: string, page?: number, limit?: number): Promise<PaginatedResponse<Outfit>>
+  getUserOutfits(userId: string, page?: number, limit?: number): Promise<PaginatedResponse<Outfit>>
   provideFeedback(outfitId: string, helpful: boolean, feedback?: string): Promise<void>
 }

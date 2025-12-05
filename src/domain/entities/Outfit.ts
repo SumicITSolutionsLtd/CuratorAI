@@ -45,6 +45,7 @@ export interface OutfitRecommendation {
   reasons: string[]
   matchPercentage: number
   likes: number
+  saves?: number
   isLiked: boolean
   isSaved: boolean
   createdAt: Date

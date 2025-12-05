@@ -8,6 +8,7 @@ const lookbookRepository = new LookbookRepository()
 interface LookbookState {
   lookbooks: Lookbook[]
   featuredLookbooks: Lookbook[]
+  likedLookbooks: Lookbook[]
   selectedLookbook: Lookbook | null
   currentPage: number
   totalPages: number
@@ -19,6 +20,7 @@ interface LookbookState {
 const initialState: LookbookState = {
   lookbooks: [],
   featuredLookbooks: [],
+  likedLookbooks: [],
   selectedLookbook: null,
   currentPage: 1,
   totalPages: 1,
@@ -125,6 +127,26 @@ export const unlikeLookbook = createAsyncThunk(
   }
 )
 
+export const fetchLikedLookbooks = createAsyncThunk(
+  'lookbook/fetchLiked',
+  async ({ page = 1, limit = 20 }: { page?: number; limit?: number }, { rejectWithValue }) => {
+    try {
+      // Fetch lookbooks and filter by is_liked
+      const response = await lookbookRepository.getLookbooks({}, page, limit * 2)
+      const likedLookbooks = response.results.filter((l) => l.isLiked)
+      return {
+        results: likedLookbooks.slice(0, limit),
+        count: likedLookbooks.length,
+        currentPage: page,
+        totalPages: Math.ceil(likedLookbooks.length / limit),
+        hasMore: likedLookbooks.length >= limit,
+      }
+    } catch (error: any) {
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch liked lookbooks'))
+    }
+  }
+)
+
 const lookbookSlice = createSlice({
   name: 'lookbook',
   initialState,
@@ -157,6 +179,19 @@ const lookbookSlice = createSlice({
       // Fetch featured lookbooks
       .addCase(fetchFeaturedLookbooks.fulfilled, (state, action) => {
         state.featuredLookbooks = action.payload
+      })
+      // Fetch liked lookbooks
+      .addCase(fetchLikedLookbooks.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(fetchLikedLookbooks.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.likedLookbooks = action.payload.results
+      })
+      .addCase(fetchLikedLookbooks.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
       })
       // Fetch lookbook by ID
       .addCase(fetchLookbookById.pending, (state) => {
@@ -206,9 +241,11 @@ const lookbookSlice = createSlice({
         const lookbook = state.lookbooks.find((l) => l.id === action.payload)
         if (lookbook) {
           lookbook.likes += 1
+          lookbook.isLiked = true
         }
         if (state.selectedLookbook?.id === action.payload) {
           state.selectedLookbook.likes += 1
+          state.selectedLookbook.isLiked = true
         }
       })
       // Unlike lookbook
@@ -216,9 +253,11 @@ const lookbookSlice = createSlice({
         const lookbook = state.lookbooks.find((l) => l.id === action.payload)
         if (lookbook) {
           lookbook.likes = Math.max(0, lookbook.likes - 1)
+          lookbook.isLiked = false
         }
         if (state.selectedLookbook?.id === action.payload) {
           state.selectedLookbook.likes = Math.max(0, state.selectedLookbook.likes - 1)
+          state.selectedLookbook.isLiked = false
         }
       })
   },

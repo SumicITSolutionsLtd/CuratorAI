@@ -35,6 +35,8 @@ export class LookbookRepository implements ILookbookRepository {
       comments: backend.comments_count || backend.comments || 0,
       isPublic: backend.is_public ?? backend.isPublic ?? true,
       isFeatured: backend.is_featured ?? backend.isFeatured ?? false,
+      isLiked: backend.is_liked ?? backend.isLiked ?? false,
+      isSaved: backend.is_saved ?? backend.isSaved ?? false,
       tags: backend.tags || [],
       createdAt: new Date(backend.created_at || backend.createdAt || new Date()),
       updatedAt: new Date(backend.updated_at || backend.updatedAt || new Date()),

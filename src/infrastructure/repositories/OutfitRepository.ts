@@ -1,4 +1,9 @@
-import { IOutfitRepository, PaginatedResponse } from '@domain/repositories/IOutfitRepository'
+import {
+  IOutfitRepository,
+  PaginatedResponse,
+  SaveOutfitOptions,
+  SaveOutfitResponse,
+} from '@domain/repositories/IOutfitRepository'
 import { Outfit, OutfitRecommendation, OutfitFilter } from '@domain/entities/Outfit'
 import { apiClient } from '../api/ApiClient'
 
@@ -132,25 +137,74 @@ export class OutfitRepository implements IOutfitRepository {
     await apiClient.post(`/outfits/${outfitId}/like/`, {})
   }
 
-  async saveOutfit(_userId: string, outfitId: string): Promise<void> {
-    await apiClient.post(`/outfits/${outfitId}/save/`, {})
+  async saveOutfit(
+    _userId: string,
+    outfitId: string,
+    options?: SaveOutfitOptions
+  ): Promise<SaveOutfitResponse> {
+    const payload: { collection_name?: string } = {}
+    if (options?.collectionName) {
+      payload.collection_name = options.collectionName
+    }
+
+    const response = await apiClient.post<{
+      success: boolean
+      message: string
+      saves_count: number
+    }>(`/outfits/${outfitId}/save/`, payload)
+
+    return {
+      success: response.success,
+      message: response.message,
+      isSaved: true,
+      savesCount: response.saves_count,
+    }
   }
 
-  async unsaveOutfit(_userId: string, outfitId: string): Promise<void> {
+  async unsaveOutfit(_userId: string, outfitId: string): Promise<SaveOutfitResponse> {
     // Toggle - same endpoint for save/unsave
-    await apiClient.post(`/outfits/${outfitId}/save/`, {})
+    const response = await apiClient.post<{
+      success: boolean
+      message: string
+      saves_count: number
+    }>(`/outfits/${outfitId}/save/`, {})
+
+    return {
+      success: response.success,
+      message: response.message,
+      isSaved: false,
+      savesCount: response.saves_count,
+    }
   }
 
   async getSavedOutfits(
-    userId: string,
+    _userId: string,
     page: number = 1,
     limit: number = 12
   ): Promise<PaginatedResponse<Outfit>> {
-    // TODO: /users/{id}/saved-outfits endpoint doesn't exist in API docs
-    // Using /outfits/user/{user_id}/ as alternative
-    return await apiClient.get<PaginatedResponse<Outfit>>(
-      `/outfits/user/${userId}/?page=${page}&limit=${limit}`
-    )
+    // Fetch outfits and filter by is_saved status
+    // The API returns is_saved field for authenticated users
+    const response = await apiClient.get<{
+      count: number
+      next?: string
+      previous?: string
+      results: any[]
+    }>(`/outfits/?page=${page}&limit=${limit * 2}`) // Fetch more to account for filtering
+
+    // Filter to only saved outfits
+    const savedOutfits = response.results
+      .filter((outfit) => outfit.is_saved === true || outfit.is_saved === 'true')
+      .slice(0, limit)
+
+    const totalSaved = savedOutfits.length
+
+    return {
+      results: savedOutfits.map((outfit) => this.transformOutfit(outfit)),
+      count: totalSaved,
+      currentPage: page,
+      totalPages: Math.ceil(totalSaved / limit),
+      hasMore: savedOutfits.length >= limit,
+    }
   }
 
   async provideFeedback(_outfitId: string, _helpful: boolean, _feedback?: string): Promise<void> {

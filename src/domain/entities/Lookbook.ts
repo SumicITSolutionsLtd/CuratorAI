@@ -45,6 +45,8 @@ export interface Lookbook {
   comments: number
   isPublic: boolean
   isFeatured: boolean
+  isLiked?: boolean
+  isSaved?: boolean
   tags: string[]
   createdAt: Date
   updatedAt: Date

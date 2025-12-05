@@ -23,7 +23,14 @@ import { cn } from '@/shared/utils/cn'
 import { showToast } from '@/shared/utils/toast'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
-import { fetchSavedOutfits, unsaveOutfit } from '@/shared/store/slices/outfitSlice'
+import {
+  fetchSavedOutfits,
+  unsaveOutfit,
+  likeOutfit,
+  unlikeOutfit,
+} from '@/shared/store/slices/outfitSlice'
+import { fetchLikedLookbooks, unlikeLookbook } from '@/shared/store/slices/lookbookSlice'
+import { useNavigate } from 'react-router-dom'
 
 // Helper to format time ago
 const formatTimeAgo = (date: Date): string => {
@@ -40,26 +47,32 @@ const formatTimeAgo = (date: Date): string => {
 
 export const WishlistPage = () => {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const { user } = useAppSelector((state) => state.auth)
-  const { savedOutfits, isLoading } = useAppSelector((state) => state.outfit)
+  const { savedOutfits, isLoading: outfitsLoading } = useAppSelector((state) => state.outfit)
+  const { likedLookbooks, isLoading: lookbooksLoading } = useAppSelector((state) => state.lookbook)
 
   const [selectedCollection, setSelectedCollection] = useState('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  // Fetch wishlist outfits on mount
+  const isLoading = outfitsLoading || lookbooksLoading
+
+  // Fetch wishlist data on mount
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchSavedOutfits({ userId: user.id, page: 1, limit: 20 }))
+      dispatch(fetchLikedLookbooks({ page: 1, limit: 20 }))
     }
   }, [dispatch, user?.id])
 
   // Calculate collection counts
+  const totalItems = savedOutfits.length + likedLookbooks.length
   const collections = [
     {
       id: 'all',
       name: 'All Items',
       icon: Heart,
-      count: savedOutfits.length,
+      count: totalItems,
       color: 'text-brand-crimson',
     },
     {
@@ -69,7 +82,13 @@ export const WishlistPage = () => {
       count: savedOutfits.length,
       color: 'text-brand-blue',
     },
-    { id: 'lookbooks', name: 'Lookbooks', icon: BookOpen, count: 0, color: 'text-brand-blue' },
+    {
+      id: 'lookbooks',
+      name: 'Lookbooks',
+      icon: BookOpen,
+      count: likedLookbooks.length,
+      color: 'text-brand-blue',
+    },
     { id: 'items', name: 'Items', icon: ShoppingBag, count: 0, color: 'text-brand-crimson' },
   ]
 
@@ -85,8 +104,40 @@ export const WishlistPage = () => {
     matchScore: 0, // Wishlist outfits don't have match score
     price: outfit.totalPrice,
     likes: outfit.likes || 0,
+    isLiked: outfit.isLiked,
+    isSaved: true, // These are saved outfits
     savedAt: formatTimeAgo(outfit.createdAt),
   }))
+
+  // Handle like/unlike outfit
+  const handleLikeOutfit = async (outfitId: string | number, isNowLiked: boolean) => {
+    if (!user?.id) {
+      showToast.error('Sign in required', 'Please sign in to like outfits')
+      return
+    }
+
+    try {
+      if (isNowLiked) {
+        await dispatch(likeOutfit({ userId: user.id, outfitId: String(outfitId) })).unwrap()
+      } else {
+        await dispatch(unlikeOutfit({ userId: user.id, outfitId: String(outfitId) })).unwrap()
+      }
+    } catch {
+      showToast.error('Error', 'Failed to update like status')
+    }
+  }
+
+  // Handle remove lookbook from liked
+  const handleRemoveLookbook = async (lookbookId: string) => {
+    if (!user?.id) return
+
+    try {
+      await dispatch(unlikeLookbook({ userId: user.id, lookbookId })).unwrap()
+      showToast.success('Removed', 'Lookbook removed from wishlist')
+    } catch {
+      showToast.error('Error', 'Failed to remove lookbook')
+    }
+  }
 
   // Handle remove from wishlist
   const handleRemoveFromWishlist = async (outfitId: string) => {
@@ -314,7 +365,7 @@ export const WishlistPage = () => {
                       transition={{ delay: index * 0.1 }}
                       className="group relative"
                     >
-                      <OutfitCard {...outfit} />
+                      <OutfitCard {...outfit} onLike={handleLikeOutfit} />
 
                       {/* Remove Button */}
                       <motion.div
@@ -345,10 +396,95 @@ export const WishlistPage = () => {
             </TabsContent>
 
             <TabsContent value="lookbooks" className="mt-6">
-              <div className="py-12 text-center">
-                <BookOpen className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">No lookbooks in your wishlist yet</p>
-              </div>
+              {lookbooksLoading ? (
+                <div className="flex min-h-[400px] items-center justify-center">
+                  <div className="text-center">
+                    <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-crimson" />
+                    <p className="text-lg font-semibold">Loading lookbooks...</p>
+                  </div>
+                </div>
+              ) : likedLookbooks.length === 0 ? (
+                <div className="py-12 text-center">
+                  <BookOpen className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">No lookbooks in your wishlist yet</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Like lookbooks to add them here
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    'grid gap-4',
+                    viewMode === 'grid'
+                      ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4'
+                      : 'grid-cols-1'
+                  )}
+                >
+                  {likedLookbooks.map((lookbook, index) => (
+                    <motion.div
+                      key={lookbook.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group relative"
+                    >
+                      <Card
+                        className="cursor-pointer overflow-hidden transition-all hover:shadow-lg"
+                        onClick={() => navigate(`/lookbooks/${lookbook.id}`)}
+                      >
+                        <div className="relative aspect-[3/4] overflow-hidden">
+                          {lookbook.coverImage ? (
+                            <img
+                              src={lookbook.coverImage}
+                              alt={lookbook.title}
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-beige to-brand-gray/10">
+                              <BookOpen className="h-16 w-16 text-brand-gray/20" />
+                            </div>
+                          )}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-3">
+                            <h3 className="mb-1 truncate text-sm font-bold text-white">
+                              {lookbook.title}
+                            </h3>
+                            <div className="flex items-center gap-2 text-xs text-white/80">
+                              <span>{lookbook.outfits.length} outfits</span>
+                              <span>• {lookbook.likes} likes</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+
+                      {/* Remove Button */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute right-2 top-2 z-10"
+                      >
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="h-8 w-8 rounded-full bg-white/90 shadow-lg hover:bg-white"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleRemoveLookbook(lookbook.id)
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </motion.div>
+
+                      {/* Added Date */}
+                      <div className="absolute bottom-2 left-2 z-10">
+                        <Badge className="bg-white/90 text-xs text-brand-charcoal hover:bg-white">
+                          Added {formatTimeAgo(lookbook.createdAt)}
+                        </Badge>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="items" className="mt-6">
