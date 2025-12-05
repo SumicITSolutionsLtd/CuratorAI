@@ -200,7 +200,7 @@ export const CartPage = () => {
             </p>
           </div>
           <Link to="/home">
-            <Button variant="outline">Continue Shopping</Button>
+            <Button variant="outline">Keep Curating</Button>
           </Link>
         </div>
 

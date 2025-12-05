@@ -17,7 +17,7 @@ import { Badge } from '@/presentation/components/ui/badge'
 import { Card } from '@/presentation/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/presentation/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/components/ui/tabs'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import {
@@ -43,6 +43,7 @@ const formatTimeAgo = (date: Date): string => {
 
 export const LookbooksPage = () => {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const { toast } = useToast()
   const { user } = useAppSelector((state) => state.auth)
   const { lookbooks, featuredLookbooks, isLoading, error } = useAppSelector(
@@ -120,11 +121,7 @@ export const LookbooksPage = () => {
   }
 
   const handleCreateLookbook = () => {
-    toast({
-      title: 'Create Lookbook',
-      description: 'Opening lookbook creator...',
-    })
-    // TODO: Navigate to /lookbooks/create when page is built
+    navigate('/lookbooks/create')
   }
 
   // Calculate stats

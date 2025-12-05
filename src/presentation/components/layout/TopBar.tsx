@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Search,
@@ -13,6 +13,8 @@ import {
   X,
   Loader2,
   MessageSquare,
+  User,
+  Shirt,
 } from 'lucide-react'
 import { Input } from '../ui/input'
 import { Badge } from '../ui/badge'
@@ -27,15 +29,24 @@ import {
   fetchUnreadCount,
   markAllNotificationsAsRead,
 } from '@/shared/store/slices/notificationSlice'
+import { performTextSearch, clearTextSearch, setTextQuery } from '@/shared/store/slices/searchSlice'
 import { formatDistanceToNow } from 'date-fns'
 
 export const TopBar = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearchResults, setShowSearchResults] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth)
   const { notifications, unreadCount, isLoading } = useAppSelector((state) => state.notification)
+  const {
+    textQuery,
+    textSearchOutfits,
+    textSearchUsers,
+    isLoading: searchLoading,
+  } = useAppSelector((state) => state.search)
 
   // Fetch notifications on mount and when user changes
   useEffect(() => {
@@ -44,6 +55,68 @@ export const TopBar = () => {
       dispatch(fetchUnreadCount(user.id))
     }
   }, [dispatch, isAuthenticated, user?.id])
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Debounced search
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      dispatch(setTextQuery(value))
+
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+
+      if (value.trim().length >= 2) {
+        setShowSearchResults(true)
+        debounceRef.current = setTimeout(() => {
+          dispatch(performTextSearch({ query: value.trim(), limit: 5 }))
+        }, 300)
+      } else {
+        setShowSearchResults(false)
+        dispatch(clearTextSearch())
+      }
+    },
+    [dispatch]
+  )
+
+  const handleClearSearch = useCallback(() => {
+    dispatch(clearTextSearch())
+    setShowSearchResults(false)
+  }, [dispatch])
+
+  const handleSearchSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      if (textQuery.trim()) {
+        setShowSearchResults(false)
+        navigate(`/search?q=${encodeURIComponent(textQuery.trim())}`)
+      }
+    },
+    [textQuery, navigate]
+  )
+
+  const handleResultClick = useCallback(
+    (type: 'outfit' | 'user', id: string) => {
+      setShowSearchResults(false)
+      dispatch(clearTextSearch())
+      if (type === 'outfit') {
+        navigate(`/outfit/${id}`)
+      } else {
+        navigate(`/profile/${id}`)
+      }
+    },
+    [navigate, dispatch]
+  )
 
   const handleMarkAllRead = useCallback(() => {
     if (user?.id) {
@@ -78,20 +151,7 @@ export const TopBar = () => {
     }
   }
 
-  const handleSearch = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault()
-      if (searchQuery.trim()) {
-        // Navigate to visual search or outfits page with search query
-        navigate(`/home?search=${encodeURIComponent(searchQuery.trim())}`)
-      }
-    },
-    [searchQuery, navigate]
-  )
-
-  const handleClearSearch = useCallback(() => {
-    setSearchQuery('')
-  }, [])
+  const hasResults = textSearchOutfits.length > 0 || textSearchUsers.length > 0
 
   return (
     <motion.header
@@ -107,25 +167,143 @@ export const TopBar = () => {
       </div>
 
       {/* Centered Search */}
-      <div className="flex flex-1 items-center justify-center lg:px-4">
-        <form onSubmit={handleSearch} className="relative w-full max-w-2xl">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search outfits, styles, brands..."
-            className="pl-9 pr-9 focus-visible:ring-brand-blue"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </form>
+      <div className="flex flex-1 items-center justify-center lg:px-4" ref={searchRef}>
+        <div className="relative w-full max-w-2xl">
+          <form onSubmit={handleSearchSubmit}>
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search outfits, styles, brands..."
+              className="pl-9 pr-9 focus-visible:ring-brand-blue"
+              value={textQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => textQuery.length >= 2 && setShowSearchResults(true)}
+            />
+            {textQuery && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </form>
+
+          {/* Search Results Dropdown */}
+          <AnimatePresence>
+            {showSearchResults && textQuery.length >= 2 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full mt-2 w-full rounded-lg border bg-background shadow-lg"
+              >
+                {searchLoading ? (
+                  <div className="flex items-center justify-center p-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-brand-crimson" />
+                  </div>
+                ) : !hasResults ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    No results found for "{textQuery}"
+                  </div>
+                ) : (
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {/* Users Section */}
+                    {textSearchUsers.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 border-b px-4 py-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs font-medium text-muted-foreground">Users</span>
+                        </div>
+                        {textSearchUsers.map((user) => (
+                          <button
+                            key={user.id}
+                            onClick={() => handleResultClick('user', user.id)}
+                            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted"
+                          >
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={user.photoUrl} />
+                              <AvatarFallback>
+                                {user.username.slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium">{user.fullName}</p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                @{user.username}
+                              </p>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {user.followersCount} followers
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Outfits Section */}
+                    {textSearchOutfits.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 border-b px-4 py-2">
+                          <Shirt className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs font-medium text-muted-foreground">Outfits</span>
+                        </div>
+                        {textSearchOutfits.map((outfit) => (
+                          <button
+                            key={outfit.id}
+                            onClick={() => handleResultClick('outfit', outfit.id)}
+                            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted"
+                          >
+                            {outfit.mainImage ? (
+                              <img
+                                src={outfit.mainImage}
+                                alt={outfit.title}
+                                className="h-12 w-12 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                                <Shirt className="h-6 w-6 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium">{outfit.title}</p>
+                              {outfit.user && (
+                                <p className="truncate text-xs text-muted-foreground">
+                                  by @{outfit.user.username}
+                                </p>
+                              )}
+                            </div>
+                            {outfit.totalPrice > 0 && (
+                              <span className="text-sm font-medium text-brand-crimson">
+                                ${outfit.totalPrice.toFixed(0)}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* View All Link */}
+                    <div className="border-t p-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-brand-blue"
+                        onClick={() => {
+                          setShowSearchResults(false)
+                          navigate(`/search?q=${encodeURIComponent(textQuery)}`)
+                        }}
+                      >
+                        View all results
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Actions */}

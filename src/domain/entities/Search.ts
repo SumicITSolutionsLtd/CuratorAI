@@ -13,51 +13,83 @@ export interface VisualSearchRequest {
   }
 }
 
+export interface VisualSearchResultItem {
+  id: string
+  name: string
+  price: number
+  brand: string
+  imageUrl: string
+}
+
 export interface VisualSearchResult {
   id: string
-  outfitId: string
-  outfit: {
+  similarityScore: number
+  outfit?: {
+    id: string
     name: string
-    description?: string
     imageUrl: string
-    items: {
-      id: string
-      name: string
-      brand: string
-      price: number
-      currency: string
-      imageUrl: string
-    }[]
+    items: VisualSearchResultItem[]
     totalPrice: number
   }
-  similarityScore: number
-  matchPercentage: number
-  matchedFeatures: string[]
+  product?: {
+    id: string
+    name: string
+    price: number
+    brand: string
+    imageUrl: string
+  }
 }
 
 export interface VisualSearchResponse {
-  query: {
-    imageUrl: string
-    timestamp: Date
-  }
   results: VisualSearchResult[]
-  totalResults: number
-  processingTime: number
-}
-
-export interface ProcessingStep {
-  step: number
-  name: string
-  status: 'pending' | 'in_progress' | 'completed' | 'failed'
-  progress: number
+  searchId?: string
 }
 
 export interface ImageProcessingStatus {
-  id: string
-  imageUrl: string
-  steps: ProcessingStep[]
-  currentStep: number
-  totalSteps: number
-  estimatedTimeRemaining: number
   status: 'processing' | 'completed' | 'failed'
+  progress: number
+}
+
+// Text-based search types
+export interface TextSearchRequest {
+  query: string
+  page?: number
+  limit?: number
+  filters?: {
+    occasion?: string
+    season?: string
+  }
+}
+
+export interface TextSearchOutfitResult {
+  id: string
+  title: string
+  description?: string
+  mainImage: string
+  totalPrice: number
+  occasion?: string
+  season?: string
+  likesCount: number
+  user?: {
+    id: string
+    username: string
+    photoUrl?: string
+  }
+}
+
+export interface TextSearchUserResult {
+  id: string
+  username: string
+  fullName: string
+  photoUrl?: string
+  bio?: string
+  followersCount: number
+  isFollowing: boolean
+}
+
+export interface TextSearchResponse {
+  outfits: TextSearchOutfitResult[]
+  users: TextSearchUserResult[]
+  totalOutfits: number
+  totalUsers: number
 }

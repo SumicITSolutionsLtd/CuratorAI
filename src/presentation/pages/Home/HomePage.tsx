@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Sparkles,
@@ -34,6 +34,7 @@ import { fetchRecommendations } from '@/shared/store/slices/outfitSlice'
 
 export const HomePage = () => {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAppSelector((state) => state.auth)
   const { recommendations, isLoading } = useAppSelector((state) => state.outfit)
@@ -250,11 +251,8 @@ export const HomePage = () => {
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  showToast.success(
-                    'Quick Style Loading...',
-                    'Generating instant outfit recommendations'
-                  )
-                  console.log('[Analytics] Quick Style clicked')
+                  showToast.success('Quick Style', 'Generating instant outfit recommendations')
+                  navigate('/wardrobe/create-outfit')
                 }}
                 className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-crimson hover:shadow-md"
               >
@@ -267,8 +265,8 @@ export const HomePage = () => {
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  showToast.success('Color Mood Opening...', 'Pick your palette and vibe')
-                  console.log('[Analytics] Color Mood clicked')
+                  showToast.success('Color Mood', 'Pick your palette and vibe')
+                  navigate('/search?type=visual')
                 }}
                 className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-blue hover:shadow-md"
               >
@@ -281,8 +279,8 @@ export const HomePage = () => {
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  showToast.success('Event Ready Loading...', 'Finding looks for your occasion')
-                  console.log('[Analytics] Event Ready clicked')
+                  showToast.success('Event Ready', 'Finding looks for your occasion')
+                  navigate('/home?search=event')
                 }}
                 className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-crimson hover:shadow-md"
               >
@@ -295,11 +293,8 @@ export const HomePage = () => {
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  showToast.success(
-                    'Local Trends Loading...',
-                    "Discovering what's trending near you"
-                  )
-                  console.log('[Analytics] Local Trends clicked')
+                  showToast.success('Local Trends', "Discovering what's trending near you")
+                  navigate('/home?search=trending')
                 }}
                 className="group rounded-lg border bg-gradient-to-br from-brand-ivory to-white p-4 text-left transition-all hover:border-brand-crimson hover:shadow-md"
               >

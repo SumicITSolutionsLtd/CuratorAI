@@ -1,8 +1,11 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import {
   VisualSearchResult,
   VisualSearchRequest,
   ImageProcessingStatus,
+  TextSearchRequest,
+  TextSearchOutfitResult,
+  TextSearchUserResult,
 } from '@domain/entities/Search'
 import { SearchRepository } from '@infrastructure/repositories/SearchRepository'
 import { extractAPIErrorMessage } from '@/shared/utils/apiErrorHandler'
@@ -10,21 +13,41 @@ import { extractAPIErrorMessage } from '@/shared/utils/apiErrorHandler'
 const searchRepository = new SearchRepository()
 
 interface SearchState {
+  // Visual search state
   results: VisualSearchResult[]
   recentSearches: { id: string; imageUrl: string; timestamp: Date }[]
   uploadedImageUrl: string | null
   processingStatus: ImageProcessingStatus | null
   isProcessing: boolean
+
+  // Text search state
+  textQuery: string
+  textSearchOutfits: TextSearchOutfitResult[]
+  textSearchUsers: TextSearchUserResult[]
+  totalOutfits: number
+  totalUsers: number
+
+  // Common state
   isLoading: boolean
   error: string | null
 }
 
 const initialState: SearchState = {
+  // Visual search
   results: [],
   recentSearches: [],
   uploadedImageUrl: null,
   processingStatus: null,
   isProcessing: false,
+
+  // Text search
+  textQuery: '',
+  textSearchOutfits: [],
+  textSearchUsers: [],
+  totalOutfits: 0,
+  totalUsers: 0,
+
+  // Common
   isLoading: false,
   error: null,
 }
@@ -89,6 +112,19 @@ export const deleteSearchHistory = createAsyncThunk(
   }
 )
 
+// ==================== TEXT SEARCH ====================
+
+export const performTextSearch = createAsyncThunk(
+  'search/performTextSearch',
+  async (request: TextSearchRequest, { rejectWithValue }) => {
+    try {
+      return await searchRepository.performTextSearch(request)
+    } catch (error: any) {
+      return rejectWithValue(extractAPIErrorMessage(error, 'Search failed'))
+    }
+  }
+)
+
 // ==================== SLICE ====================
 
 const searchSlice = createSlice({
@@ -99,6 +135,16 @@ const searchSlice = createSlice({
       state.results = []
       state.uploadedImageUrl = null
       state.processingStatus = null
+    },
+    clearTextSearch: (state) => {
+      state.textQuery = ''
+      state.textSearchOutfits = []
+      state.textSearchUsers = []
+      state.totalOutfits = 0
+      state.totalUsers = 0
+    },
+    setTextQuery: (state, action: PayloadAction<string>) => {
+      state.textQuery = action.payload
     },
     clearError: (state) => {
       state.error = null
@@ -180,8 +226,25 @@ const searchSlice = createSlice({
         state.isLoading = false
         state.error = action.payload as string
       })
+
+      // ==================== TEXT SEARCH ====================
+      .addCase(performTextSearch.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(performTextSearch.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.textSearchOutfits = action.payload.outfits
+        state.textSearchUsers = action.payload.users
+        state.totalOutfits = action.payload.totalOutfits
+        state.totalUsers = action.payload.totalUsers
+      })
+      .addCase(performTextSearch.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
   },
 })
 
-export const { clearResults, clearError } = searchSlice.actions
+export const { clearResults, clearTextSearch, setTextQuery, clearError } = searchSlice.actions
 export default searchSlice.reducer
