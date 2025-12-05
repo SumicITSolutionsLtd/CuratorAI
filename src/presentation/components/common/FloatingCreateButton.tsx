@@ -18,12 +18,13 @@ export const FloatingCreateButton = () => {
     navigate('/wardrobe/create-outfit')
   }
 
+  // Only show on desktop - mobile uses the integrated nav button
   return (
     <motion.div
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 0.5, type: 'spring', stiffness: 200, damping: 20 }}
-      className="fixed bottom-20 right-4 z-40 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8"
+      className="fixed bottom-6 right-6 z-40 hidden lg:bottom-8 lg:right-8 lg:block"
     >
       <Button
         size="lg"

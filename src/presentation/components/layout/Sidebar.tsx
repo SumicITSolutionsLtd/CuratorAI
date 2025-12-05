@@ -17,6 +17,7 @@ import {
   LogOut,
   User as UserIcon,
   Heart,
+  Plus,
 } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
@@ -374,26 +375,59 @@ export const Sidebar = () => {
         animate={{ y: 0 }}
         className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden"
       >
-        <div className="flex items-center justify-around px-2 py-3">
-          {primaryItems.slice(0, 4).map((item) => {
+        <div className="flex items-center justify-around px-2 py-2">
+          {/* First two nav items */}
+          {primaryItems.slice(0, 2).map((item) => {
             const isActive = location.pathname === item.path
             const Icon = item.icon
 
             return (
-              <Link key={item.path} to={item.path} className="relative">
+              <Link key={item.path} to={item.path} className="relative flex-1">
                 <motion.div
                   whileTap={{ scale: 0.9 }}
                   className={cn(
-                    'flex flex-col items-center gap-1 rounded-lg px-4 py-2 transition-colors',
+                    'flex flex-col items-center gap-0.5 rounded-lg py-1.5 transition-colors',
                     isActive ? 'text-brand-crimson' : 'text-muted-foreground'
                   )}
                 >
-                  <Icon className="h-6 w-6" />
-                  <span className="text-xs font-medium">{item.label}</span>
+                  <Icon className="h-5 w-5" />
+                  <span className="text-[10px] font-medium">{item.label}</span>
+                </motion.div>
+              </Link>
+            )
+          })}
+
+          {/* Center Create Button */}
+          <div className="flex flex-1 justify-center">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate('/wardrobe/create-outfit')}
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-brand-crimson to-brand-blue shadow-lg shadow-brand-crimson/30"
+            >
+              <Plus className="h-6 w-6 text-white" strokeWidth={2.5} />
+            </motion.button>
+          </div>
+
+          {/* Next two nav items */}
+          {primaryItems.slice(2, 4).map((item) => {
+            const isActive = location.pathname === item.path
+            const Icon = item.icon
+
+            return (
+              <Link key={item.path} to={item.path} className="relative flex-1">
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  className={cn(
+                    'flex flex-col items-center gap-0.5 rounded-lg py-1.5 transition-colors',
+                    isActive ? 'text-brand-crimson' : 'text-muted-foreground'
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="text-[10px] font-medium">{item.label}</span>
                   {item.badge && (
                     <Badge
                       variant="secondary"
-                      className="absolute right-2 top-1 h-4 min-w-[16px] px-1 text-[10px]"
+                      className="absolute right-1 top-0 h-4 min-w-[16px] px-1 text-[10px]"
                     >
                       {item.badge}
                     </Badge>
@@ -406,9 +440,9 @@ export const Sidebar = () => {
           {/* More Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex flex-col items-center gap-1 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:text-foreground">
-                <MoreHorizontal className="h-6 w-6" />
-                <span className="text-xs font-medium">More</span>
+              <button className="flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <MoreHorizontal className="h-5 w-5" />
+                <span className="text-[10px] font-medium">More</span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
