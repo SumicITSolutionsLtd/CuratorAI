@@ -12,6 +12,8 @@ import {
   Sparkles,
   Camera,
   Smile,
+  ShoppingBag,
+  Link as LinkIcon,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
@@ -27,6 +29,7 @@ import {
   SelectValue,
 } from '@/presentation/components/ui/select'
 import { Separator } from '@/presentation/components/ui/separator'
+import { Switch } from '@/presentation/components/ui/switch'
 import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '@/shared/hooks/useAppSelector'
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
@@ -58,6 +61,8 @@ export const CreatePostPage = () => {
   const [tags, setTags] = useState<string[]>([])
   const [location, setLocation] = useState('')
   const [visibility, setVisibility] = useState<Privacy>('public')
+  const [isShoppable, setIsShoppable] = useState(false)
+  const [externalLink, setExternalLink] = useState('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const moreFilesInputRef = useRef<HTMLInputElement>(null)
@@ -387,6 +392,57 @@ export const CreatePostPage = () => {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <Separator />
+
+                {/* Shoppable Toggle */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="shoppable" className="cursor-pointer">
+                        Shoppable Post
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Allow others to shop items in this post
+                      </p>
+                    </div>
+                    <Switch id="shoppable" checked={isShoppable} onCheckedChange={setIsShoppable} />
+                  </div>
+
+                  {isShoppable && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="rounded-lg border border-brand-crimson/20 bg-brand-crimson/5 p-3"
+                    >
+                      <div className="flex items-center gap-2 text-xs text-brand-crimson">
+                        <ShoppingBag className="h-3 w-3" />
+                        <span>Items in this post can be tagged for shopping</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* External Link */}
+                <div className="space-y-2">
+                  <Label htmlFor="external-link">External Link</Label>
+                  <div className="relative">
+                    <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="external-link"
+                      placeholder="https://example.com/your-page"
+                      value={externalLink}
+                      onChange={(e) => setExternalLink(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Add a link to your blog, store, or any webpage
+                  </p>
                 </div>
 
                 <Separator />

@@ -9,6 +9,8 @@ interface LookbookState {
   lookbooks: Lookbook[]
   featuredLookbooks: Lookbook[]
   likedLookbooks: Lookbook[]
+  followingLookbooks: Lookbook[]
+  savedLookbooks: Lookbook[]
   selectedLookbook: Lookbook | null
   currentPage: number
   totalPages: number
@@ -21,6 +23,8 @@ const initialState: LookbookState = {
   lookbooks: [],
   featuredLookbooks: [],
   likedLookbooks: [],
+  followingLookbooks: [],
+  savedLookbooks: [],
   selectedLookbook: null,
   currentPage: 1,
   totalPages: 1,
@@ -147,6 +151,46 @@ export const fetchLikedLookbooks = createAsyncThunk(
   }
 )
 
+export const fetchFollowingLookbooks = createAsyncThunk(
+  'lookbook/fetchFollowing',
+  async ({ page = 1, limit = 20 }: { page?: number; limit?: number }, { rejectWithValue }) => {
+    try {
+      // TODO: When backend supports following feed, use a dedicated endpoint
+      // For now, fetch all lookbooks (simulating following feed)
+      const response = await lookbookRepository.getLookbooks({}, page, limit)
+      return {
+        results: response.results,
+        count: response.count,
+        currentPage: page,
+        totalPages: response.totalPages,
+        hasMore: response.hasMore,
+      }
+    } catch (error: any) {
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch following lookbooks'))
+    }
+  }
+)
+
+export const fetchSavedLookbooks = createAsyncThunk(
+  'lookbook/fetchSaved',
+  async ({ page = 1, limit = 20 }: { page?: number; limit?: number }, { rejectWithValue }) => {
+    try {
+      // Fetch lookbooks and filter by is_saved
+      const response = await lookbookRepository.getLookbooks({}, page, limit * 2)
+      const savedLookbooks = response.results.filter((l) => l.isSaved)
+      return {
+        results: savedLookbooks.slice(0, limit),
+        count: savedLookbooks.length,
+        currentPage: page,
+        totalPages: Math.ceil(savedLookbooks.length / limit),
+        hasMore: savedLookbooks.length >= limit,
+      }
+    } catch (error: any) {
+      return rejectWithValue(extractAPIErrorMessage(error, 'Failed to fetch saved lookbooks'))
+    }
+  }
+)
+
 const lookbookSlice = createSlice({
   name: 'lookbook',
   initialState,
@@ -190,6 +234,32 @@ const lookbookSlice = createSlice({
         state.likedLookbooks = action.payload.results
       })
       .addCase(fetchLikedLookbooks.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
+      // Fetch following lookbooks
+      .addCase(fetchFollowingLookbooks.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(fetchFollowingLookbooks.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.followingLookbooks = action.payload.results
+      })
+      .addCase(fetchFollowingLookbooks.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
+      // Fetch saved lookbooks
+      .addCase(fetchSavedLookbooks.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(fetchSavedLookbooks.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.savedLookbooks = action.payload.results
+      })
+      .addCase(fetchSavedLookbooks.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.payload as string
       })

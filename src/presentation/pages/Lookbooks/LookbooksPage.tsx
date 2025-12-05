@@ -23,6 +23,8 @@ import { useAppDispatch } from '@/shared/hooks/useAppDispatch'
 import {
   fetchLookbooks,
   fetchFeaturedLookbooks,
+  fetchFollowingLookbooks,
+  fetchSavedLookbooks,
   likeLookbook,
   unlikeLookbook,
 } from '@/shared/store/slices/lookbookSlice'
@@ -46,19 +48,26 @@ export const LookbooksPage = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { user } = useAppSelector((state) => state.auth)
-  const { lookbooks, featuredLookbooks, isLoading, error } = useAppSelector(
-    (state) => state.lookbook
-  )
+  const { lookbooks, featuredLookbooks, followingLookbooks, savedLookbooks, isLoading, error } =
+    useAppSelector((state) => state.lookbook)
 
   const [activeTab, setActiveTab] = useState('trending')
-  const [likedLookbooks, setLikedLookbooks] = useState<Set<string>>(new Set())
+  const [likedLookbooksSet, setLikedLookbooksSet] = useState<Set<string>>(new Set())
 
   // Fetch lookbooks on mount and tab change
   useEffect(() => {
-    if (activeTab === 'trending') {
-      dispatch(fetchFeaturedLookbooks(20))
-    } else {
-      dispatch(fetchLookbooks({ page: 1, limit: 20 }))
+    switch (activeTab) {
+      case 'trending':
+        dispatch(fetchFeaturedLookbooks(20))
+        break
+      case 'following':
+        dispatch(fetchFollowingLookbooks({ page: 1, limit: 20 }))
+        break
+      case 'saved':
+        dispatch(fetchSavedLookbooks({ page: 1, limit: 20 }))
+        break
+      default:
+        dispatch(fetchLookbooks({ page: 1, limit: 20 }))
     }
   }, [dispatch, activeTab])
 
@@ -75,10 +84,16 @@ export const LookbooksPage = () => {
 
   // Get active lookbooks based on tab
   const getActiveLookbooks = (): Lookbook[] => {
-    if (activeTab === 'trending') {
-      return featuredLookbooks
+    switch (activeTab) {
+      case 'trending':
+        return featuredLookbooks
+      case 'following':
+        return followingLookbooks
+      case 'saved':
+        return savedLookbooks
+      default:
+        return lookbooks
     }
-    return lookbooks
   }
 
   const displayLookbooks = getActiveLookbooks()
@@ -97,19 +112,19 @@ export const LookbooksPage = () => {
       return
     }
 
-    const isLiked = likedLookbooks.has(lookbookId)
+    const isLiked = likedLookbooksSet.has(lookbookId)
 
     try {
       if (isLiked) {
         await dispatch(unlikeLookbook({ userId: user.id, lookbookId })).unwrap()
-        setLikedLookbooks((prev) => {
+        setLikedLookbooksSet((prev) => {
           const newSet = new Set(prev)
           newSet.delete(lookbookId)
           return newSet
         })
       } else {
         await dispatch(likeLookbook({ userId: user.id, lookbookId })).unwrap()
-        setLikedLookbooks((prev) => new Set(prev).add(lookbookId))
+        setLikedLookbooksSet((prev) => new Set(prev).add(lookbookId))
       }
     } catch {
       toast({
@@ -311,12 +326,12 @@ export const LookbooksPage = () => {
                               size="icon"
                               variant="secondary"
                               className={`h-8 w-8 rounded-full bg-white/90 hover:bg-white ${
-                                likedLookbooks.has(lookbook.id) ? 'text-red-500' : ''
+                                likedLookbooksSet.has(lookbook.id) ? 'text-red-500' : ''
                               }`}
                               onClick={(e) => handleLike(e, lookbook.id)}
                             >
                               <Heart
-                                className={`h-4 w-4 ${likedLookbooks.has(lookbook.id) ? 'fill-current' : ''}`}
+                                className={`h-4 w-4 ${likedLookbooksSet.has(lookbook.id) ? 'fill-current' : ''}`}
                               />
                             </Button>
                             <Button
@@ -342,12 +357,12 @@ export const LookbooksPage = () => {
                               size="icon"
                               variant="secondary"
                               className={`h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white ${
-                                likedLookbooks.has(lookbook.id) ? 'text-red-500' : ''
+                                likedLookbooksSet.has(lookbook.id) ? 'text-red-500' : ''
                               }`}
                               onClick={(e) => handleLike(e, lookbook.id)}
                             >
                               <Heart
-                                className={`h-4 w-4 ${likedLookbooks.has(lookbook.id) ? 'fill-current' : ''}`}
+                                className={`h-4 w-4 ${likedLookbooksSet.has(lookbook.id) ? 'fill-current' : ''}`}
                               />
                             </Button>
                             <Button

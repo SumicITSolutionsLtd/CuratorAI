@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { MainLayout } from '@/presentation/components/layout/MainLayout'
 import {
   Heart,
@@ -10,13 +10,16 @@ import {
   Folder,
   Grid3x3,
   List,
-  MoreHorizontal,
   Trash2,
   Loader2,
+  X,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/presentation/components/ui/button'
 import { Badge } from '@/presentation/components/ui/badge'
 import { Card } from '@/presentation/components/ui/card'
+import { Input } from '@/presentation/components/ui/input'
+import { Label } from '@/presentation/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/presentation/components/ui/tabs'
 import { OutfitCard } from '@/presentation/components/outfit/OutfitCard'
 import { cn } from '@/shared/utils/cn'
@@ -31,6 +34,7 @@ import {
 } from '@/shared/store/slices/outfitSlice'
 import { fetchLikedLookbooks, unlikeLookbook } from '@/shared/store/slices/lookbookSlice'
 import { useNavigate } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 
 // Helper to format time ago
 const formatTimeAgo = (date: Date): string => {
@@ -45,6 +49,13 @@ const formatTimeAgo = (date: Date): string => {
   return `${diffDays}d ago`
 }
 
+// Collection type for custom collections
+interface Collection {
+  id: string
+  name: string
+  itemCount: number
+}
+
 export const WishlistPage = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -54,8 +65,54 @@ export const WishlistPage = () => {
 
   const [selectedCollection, setSelectedCollection] = useState('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [newCollectionName, setNewCollectionName] = useState('')
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false)
+  const [userCollections, setUserCollections] = useState<Collection[]>([
+    { id: 'summer', name: 'Summer Vacation', itemCount: 12 },
+    { id: 'fall', name: 'Fall Wardrobe', itemCount: 8 },
+    { id: 'work', name: 'Work Essentials', itemCount: 15 },
+  ])
 
   const isLoading = outfitsLoading || lookbooksLoading
+
+  // Handle create collection
+  const handleCreateCollection = async () => {
+    if (!newCollectionName.trim()) {
+      showToast.error('Name required', 'Please enter a collection name')
+      return
+    }
+
+    setIsCreatingCollection(true)
+
+    try {
+      // TODO: Implement actual API call when backend endpoint is ready
+      // await collectionRepository.createCollection({ name: newCollectionName })
+
+      await new Promise((resolve) => setTimeout(resolve, 800))
+
+      const newCollection: Collection = {
+        id: `collection-${Date.now()}`,
+        name: newCollectionName,
+        itemCount: 0,
+      }
+
+      setUserCollections((prev) => [...prev, newCollection])
+      showToast.success('Collection created!', `"${newCollectionName}" has been created`)
+      setNewCollectionName('')
+      setShowCreateModal(false)
+    } catch {
+      showToast.error('Error', 'Failed to create collection')
+    } finally {
+      setIsCreatingCollection(false)
+    }
+  }
+
+  // Handle delete collection
+  const handleDeleteCollection = (collectionId: string, collectionName: string) => {
+    setUserCollections((prev) => prev.filter((c) => c.id !== collectionId))
+    showToast.success('Collection deleted', `"${collectionName}" has been removed`)
+  }
 
   // Fetch wishlist data on mount
   useEffect(() => {
@@ -169,11 +226,7 @@ export const WishlistPage = () => {
           </div>
           <Button
             className="bg-brand-crimson hover:bg-brand-crimson/90"
-            onClick={() => {
-              showToast.success('Create Collection', 'Opening collection creator...')
-              console.log('[Analytics] Create Collection clicked')
-              // TODO: Navigate to /collections/create or show collection creation modal
-            }}
+            onClick={() => setShowCreateModal(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
             New Collection
@@ -221,66 +274,61 @@ export const WishlistPage = () => {
               <Folder className="h-5 w-5 text-brand-crimson" />
               <h2 className="font-semibold text-brand-charcoal">My Collections</h2>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                showToast.success('Create Collection', 'Opening collection creator...')
-                console.log('[Analytics] Create Collection (My Collections) clicked')
-                // TODO: Navigate to /collections/create or show collection creation modal
-              }}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowCreateModal(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create New
             </Button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="cursor-pointer rounded-lg bg-white p-4 shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-brand-charcoal">Summer Vacation</p>
-                  <p className="mt-1 text-xs text-muted-foreground">12 items</p>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="cursor-pointer rounded-lg bg-white p-4 shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-brand-charcoal">Fall Wardrobe</p>
-                  <p className="mt-1 text-xs text-muted-foreground">8 items</p>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="cursor-pointer rounded-lg bg-white p-4 shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-brand-charcoal">Work Essentials</p>
-                  <p className="mt-1 text-xs text-muted-foreground">15 items</p>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </motion.div>
-          </div>
+          {userCollections.length === 0 ? (
+            <div className="py-8 text-center">
+              <Folder className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">No collections yet</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create your first collection
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-3">
+              {userCollections.map((collection) => (
+                <motion.div
+                  key={collection.id}
+                  whileHover={{ scale: 1.02 }}
+                  className="cursor-pointer rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                  onClick={() => {
+                    navigate(`/wishlist/collections/${collection.id}`)
+                    showToast.info('Coming soon', 'Collection detail page is under development')
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-brand-charcoal">{collection.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {collection.itemCount} items
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteCollection(collection.id, collection.name)
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </Card>
 
         {/* Wishlist Items Grid */}
@@ -496,6 +544,115 @@ export const WishlistPage = () => {
           </Tabs>
         </div>
       </motion.div>
+
+      {/* Create Collection Modal */}
+      {showCreateModal &&
+        createPortal(
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            >
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={() => setShowCreateModal(false)}
+              />
+
+              {/* Modal */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative z-10 w-full max-w-md"
+              >
+                <Card className="overflow-hidden">
+                  {/* Header */}
+                  <div className="relative border-b bg-gradient-to-r from-brand-crimson/10 to-brand-blue/10 p-6">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute right-4 top-4"
+                      onClick={() => setShowCreateModal(false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-full bg-brand-crimson/10 p-3">
+                        <Sparkles className="h-6 w-6 text-brand-crimson" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-brand-charcoal">Create Collection</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Organize your saved items into a collection
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="space-y-4 p-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="collection-name">Collection Name</Label>
+                      <Input
+                        id="collection-name"
+                        placeholder="e.g., Summer Vacation, Work Outfits..."
+                        value={newCollectionName}
+                        onChange={(e) => setNewCollectionName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !isCreatingCollection) {
+                            handleCreateCollection()
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div className="rounded-lg border border-dashed border-brand-gray/30 bg-brand-beige/20 p-4">
+                      <p className="text-center text-sm text-muted-foreground">
+                        After creating, you can add items to this collection from your wishlist
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex gap-3 border-t bg-muted/30 p-4">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setShowCreateModal(false)}
+                      disabled={isCreatingCollection}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="flex-1 bg-brand-crimson hover:bg-brand-crimson/90"
+                      onClick={handleCreateCollection}
+                      disabled={isCreatingCollection || !newCollectionName.trim()}
+                    >
+                      {isCreatingCollection ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create Collection
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </Card>
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>,
+          document.body
+        )}
     </MainLayout>
   )
 }

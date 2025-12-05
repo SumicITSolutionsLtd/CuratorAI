@@ -20,6 +20,7 @@ import { LookbookDetailPage } from '../pages/Lookbooks/LookbookDetailPage'
 import { CreateLookbookPage } from '../pages/Lookbooks/CreateLookbookPage'
 import { TryOnPage } from '../pages/TryOn/TryOnPage'
 import { WishlistPage } from '../pages/Wishlist/WishlistPage'
+import { CollectionDetailPage } from '../pages/Wishlist/CollectionDetailPage'
 import { SettingsPage } from '../pages/Settings/SettingsPage'
 import { ProfilePage } from '../pages/Profile/ProfilePage'
 import { NotificationsPage } from '../pages/Notifications/NotificationsPage'
@@ -193,6 +194,14 @@ export const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <WishlistPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wishlist/collections/:collectionId"
+        element={
+          <ProtectedRoute>
+            <CollectionDetailPage />
           </ProtectedRoute>
         }
       />
